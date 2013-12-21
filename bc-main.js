@@ -436,6 +436,19 @@ function longCycle(){
 	//Отправляем разведку и проверяем изменения альянса
 	setWarEnv();
 //	player_enemy = [];
+	var p=0;
+	for( var w in u_warcyborgs){
+		if( p >= maxPlayers) break;
+		if (u_warcyborgs[w].order == DORDER_ATTACK || u_warcyborgs[w].order == DORDER_MOVE) continue;
+		var targetXY = startPositions[playerData[p].position];
+		if (getDistance(targetXY) < 10 ) continue;
+		orderDroidLoc(u_warcyborgs[w],DORDER_MOVE,targetXY.x,targetXY.y);
+		debugMsg("Отправляю разведку на точку игрока ["+p+"] ("+targetXY.x+","+targetXY.y+")",1);
+		p++;
+	}
+
+
+/*
 	for(var i = 0; i < maxPlayers; i++){
 		if(!allianceExistsBetween(me,i)){
 //			player_enemy.unshift(i);
@@ -452,6 +465,7 @@ function longCycle(){
 		}
 		else{continue;}
 	}
+*/
 /*
     setWarEnv();
     //Отправляю разведку на любую точку ресурса, не пренадлежащаю "мне"
@@ -764,16 +778,16 @@ function buildSome(){
         }
         return;
     }
-    //Если вышек больше(или ровно) чем генераторов, строим по приоритету дополнительный генератор
-    else if ((bc_power_c*4) <=  bc_rig_c && (bc_power_c < max_power)){
-        buildBuilding(b_power,base_x,base_y);
-        return;
-    }
 	//И так же необходим коммандный центр
 	else if (bc_cc_c == 0){
 		buildBuilding(b_cc,base_x,base_y);
 		return;
 	}
+    //Если вышек больше(или ровно) чем генераторов, строим по приоритету дополнительный генератор
+    else if ((bc_power_c*4) <=  bc_rig_c && (bc_power_c < max_power)){
+        buildBuilding(b_power,base_x,base_y);
+        return;
+    }
 /*
     else if (bc_rig_c < 3 && bc_oil_c >= 3){
         buildRig();
@@ -929,7 +943,7 @@ function myEyes(){
 			attackNowCyborg(enemyRigs[num_r],true);
 			return;
 		}
-		else if(num_b <= num_r && num_b != Infinity && (u_warcyborgs_c + u_warriors_c) >= 2){
+		else if(num_b <= num_r && num_b != Infinity && (u_warcyborgs_c + u_warriors_c) >= 1){
 			debugMsg("Атака на вражеского строителя ("+enemyBuiders[num_b].x+","+enemyBuiders[num_b].y+"){"+e+"}",2);
 			attackNowMachine(enemyBuiders[num_b],true);
 			attackNowCyborg(enemyBuiders[num_b],true);
@@ -1084,19 +1098,39 @@ function researchSome(){
 		}
 */
 	var labs = enumStruct( me, RESEARCH_LAB );
+/*
+	var r=0;
+	for ( var l in labs ) {
+		if ( research_way.length <= r ){
+			debugMsg("Лабораторий больше, чем задач исследования ("+r+")", 2);
+			break;
+		}
+		if ( factoryReady(labs[l]) ){
+			debugMsg("Лаборатория["+l+"] исследует путь "+r, 3);
+			pursueResearch(labs[l], research_way[r]);
+			r++;
+			continue;
+		}
+	}
+*/
+
+//	research_way.reverse();
 	for ( var r in research_way ){
 		if( labs.length < 1){
 			debugMsg("Нет свободных лабораторий",3);
-			 break;
+			break;
 		}
+		debugMsg("Кол-во лабораторий "+labs.length, 3);
 		for ( var l in labs ){
 			if( factoryReady(labs[l]) ){
-				debugMsg("Лаборатория["+l+"] исследует путь "+r, 3);
+				debugMsg("Лаборатория("+labs[l].id+")["+l+"] исследует путь "+r, 3);
 				pursueResearch(labs[l], research_way[r]);
 				labs.splice(l,1);
 				break;
 			}else{
-				debugMsg("Лаборатория["+l+"] занята", 3);
+				debugMsg("Лаборатория("+labs[l].id+")["+l+"] занята", 3);
+//				labs.splice(l,1);
+//				break;
 			}
 		}
 	}
