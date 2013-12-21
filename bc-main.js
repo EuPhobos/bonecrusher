@@ -1,5 +1,5 @@
-const vernum    = "0.1x";
-const verdate   = "xx.12.2013";
+const vernum    = "0.11";
+const verdate   = "21.12.2013";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
