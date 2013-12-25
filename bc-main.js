@@ -1,5 +1,5 @@
-const vernum    = "0.1x";
-const verdate   = "xx.12.2013";
+const vernum    = "0.12";
+const verdate   = "xx.xx.2013";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
@@ -432,7 +432,7 @@ function lets_go() {
 function longCycle(){
 	listCyborgs(); //Составляем список для производства киборгов
 	listMachine(); //Составляем список для производства машин
-	
+
 	//Отправляем разведку и проверяем изменения альянса
 	setWarEnv();
 //	player_enemy = [];
@@ -765,10 +765,10 @@ function buildSome(){
 	}
     //Приоритет вышки, если их меньше 2, строим вышки!
 //	else if (bc_rig_c < 4 && bc_oil_c >= 4){
-    else if (bc_rig_c < 1 ){
-        buildRig();
-        return;
-    }
+//    else if (bc_rig_c < 1 ){
+//        buildRig();
+//        return;
+//    }
     //Приоритет лабаротории, хотя бы 1 должна быть однозначно!
     else if (bc_lab_r.length == 0){
         if(bc_lab_c != 0){
@@ -905,13 +905,26 @@ function buildSome(){
 //Функция (не читерская) наблюдает за видимым полем боя
 //Принимает решение, если в полезрения попал противник
 function myEyes(){
+	var enemyRigs = new Array();
+	var enemyBuiders = new Array();
+	var enemyUnits = new Array();
+	var enemyFactory = new Array();
+	var enemyCyborgFactory = new Array();
+	var enemyPower = new Array();
+	var enemyLab = new Array();
+
 	for(var e = 0; e < maxPlayers; ++e){
 		if(allianceExistsBetween(me,e)){continue;}
 //		debugMsg("Сканирую вражеского игрока ["+e+"/"+maxPlayers+"] "+enemyBuiders.length, 5);
 		//Атакуем вражеские вышки (ибо нех тут качать!)
-		var enemyRigs = enumStruct(e,b_rig,me);
-		var enemyBuiders = enumDroid(e,DROID_CONSTRUCT,me); // Создаём массив вражеских строителей (только тех, которых честно видим)
-		
+		enemyRigs = enemyRigs.concat(enumStruct(e,b_rig,me));
+		enemyBuiders = enemyBuiders.concat(enumDroid(e,DROID_CONSTRUCT,me)); // Создаём массив вражеских строителей (только тех, которых честно видим)
+		enemyUnits = enemyUnits.concat(enumDroid(e,DROID_ANY,me));
+		enemyFactory = enemyFactory.concat(enumStruct(e,FACTORY,me));
+		enemyCyborgFactory = enemyCyborgFactory.concat(enumStruct(e,CYBORG_FACTORY,me));
+		enemyPower = enemyPower.concat(enumStruct(e,POWER_GEN,me));
+		enemyLab = enemyLab.concat(enumStruct(e,RESEARCH_LAB,me));
+	}	
 		var en_builder = Infinity;
 		var num_b = Infinity;
 		var en_rig = Infinity;
@@ -950,7 +963,6 @@ function myEyes(){
 			return;
 		}
 		else if( (u_warcyborgs_c + u_warriors_c) >= 10 ){
-			var enemyUnits = enumDroid(e,DROID_ANY,me);
 			if(enemyUnits.length != 0){
 				for(var eu in enemyUnits){
 					debugMsg("Вражеский юнит ("+enemyUnits[eu].x+","+enemyUnits[eu].y+"){"+e+"}",2);
@@ -961,10 +973,6 @@ function myEyes(){
 			}
 			else {
 				setWarEnv();
-				var enemyFactory = enumStruct(e,FACTORY,me);
-				var enemyCyborgFactory = enumStruct(e,CYBORG_FACTORY,me);
-				var enemyPower = enumStruct(e,POWER_GEN,me);
-				var enemyLab = enumStruct(e,RESEARCH_LAB,me);
 //				var enemyStruct = enumStruct(e,BUILDING,me); // 3.2+ only
 //				var enemyStruct = enumStruct(e); // Получается что чит? Т.к. видит все строения, значит пока так и ждем версию 3.2
 				if(enemyFactory.length != 0){
@@ -1011,7 +1019,7 @@ function myEyes(){
 */
 			}
 		}
-	}
+//	}
 
 	if(scavengerPlayer!=-1){
 		e=scavengerPlayer;
@@ -1090,8 +1098,10 @@ function buildSomeCyborg(){
 }
 
 //Функция для исследованний и следований по пути выбранных технологий
+var res_=0;
 function researchSome(){
 	if ( my_money < 200 ) { return; }
+	if( res_ == research_way.length ) res_ = 0;
 /*		if( bc_lab_c == l && factoryReady(bc_lab[l]) ){
 			pursueResearch(bc_lab[l], second_research_way);
 			break;
@@ -1115,31 +1125,33 @@ function researchSome(){
 */
 
 //	research_way.reverse();
-	for ( var r in research_way ){
+//	for ( var r in research_way ){
 		if( labs.length < 1){
 			debugMsg("Нет свободных лабораторий",3);
-			break;
-		}
-		debugMsg("Кол-во лабораторий "+labs.length, 3);
-		for ( var l in labs ){
-			if( factoryReady(labs[l]) ){
-				debugMsg("Лаборатория("+labs[l].id+")["+l+"] исследует путь "+r, 3);
-				pursueResearch(labs[l], research_way[r]);
-				labs.splice(l,1);
-				break;
-			}else{
-				debugMsg("Лаборатория("+labs[l].id+")["+l+"] занята", 3);
+//			break;
+		} else {
+			debugMsg("Кол-во лабораторий "+labs.length, 3);
+			for ( var l in labs ){
+				if( factoryReady(labs[l]) ){
+					debugMsg("Лаборатория("+labs[l].id+")["+l+"] исследует путь "+res_, 3);
+					pursueResearch(labs[l], research_way[res_]);
 //				labs.splice(l,1);
 //				break;
+				}else{
+					debugMsg("Лаборатория("+labs[l].id+")["+l+"] занята", 3);
+//				labs.splice(l,1);
+//				break;
+				}
 			}
 		}
-	}
+//	}
 
 //    queue("research_1", 2000);
 //    queue("research_2", 4000);
 //    queue("research_3", 6000);
 //    queue("research_4", 8000);
 //    queue("research_5", 2000);
+	res_++;
 }
 function research_1(){
 	var labs = enumStruct( me, RESEARCH_LAB );
