@@ -99,7 +99,8 @@ const research_way_1 = [
 	"R-Vehicle-Body09",				//Броня "Tiger"
 	"R-Wpn-Mortar3",				//Скорострельная мортира "Pepperpot"
 	"R-Wpn-Flamer-Damage09",		//Самый последний огнемёт (финал)
-	"Emplacement-RotHow",			//Самая последняя артиллерия (финал)
+//	"Emplacement-RotHow",			//Самая последняя артиллерия (финал)
+	"R-Sys-Sensor-UpLink",			//Открыть всю карту
 ];
 const research_way_2 = [
 	"R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
