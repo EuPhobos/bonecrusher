@@ -1,5 +1,5 @@
-const vernum    = "0.12";
-const verdate   = "27.12.2013";
+const vernum    = "0.13";
+const verdate   = "xx.12.2013";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
@@ -14,6 +14,7 @@ const d_truck_normal  = 4;
 const d_truck_max	  = 8;
 
 const searchOil_range = 40; // Как далеко мы ищем ресурсы
+const rigDefenceRange = 10; // С какого расстояния начинать строить защиту ресурсам
 const max_power = 10; //Максимально возможное кол-во построек электростанций
 
 
@@ -357,14 +358,19 @@ function lets_go() {
 				base_y = bc_oil[num].y;
 			}
 			else if (tmp_rnd == 1){
-				debugMsg("Значит база на стартовой локации",2);
-				base_x = p_start.x;
-				base_y = p_start.y;
-			}
-			else if (tmp_rnd == 2){
 				debugMsg("Значит база у первого строителя",2);
 				base_x = tmp_builders[0].x;
 				base_y = tmp_builders[0].y;
+			}
+			else if (tmp_rnd == 2){
+				debugMsg("Значит база на случайной локации",2);
+				base_x = tmp_builders[0].x+Math.round(Math.random()*5);
+				base_y = tmp_builders[0].y+Math.round(Math.random()*5);
+			}
+			else if (tmp_rnd == 3){
+				debugMsg("Значит база на стартовой локации",2);
+				base_x = p_start.x;
+				base_y = p_start.y;
 			}
 		}
 		else{
@@ -442,10 +448,10 @@ function longCycle(){
 		if( p >= maxPlayers) break;
 		if (u_warcyborgs[w].order == DORDER_ATTACK || u_warcyborgs[w].order == DORDER_MOVE) continue;
 		var targetXY = startPositions[playerData[p].position];
-		if (getDistance(targetXY) < 10 ) continue;
+		if (getDistance(targetXY) < 3 ) continue;
 		orderDroidLoc(u_warcyborgs[w],DORDER_MOVE,targetXY.x,targetXY.y);
 		debugMsg("Отправляю разведку на точку игрока ["+p+"] ("+targetXY.x+","+targetXY.y+")",1);
-		p++;
+		p=p+1;
 	}
 
 
@@ -906,10 +912,12 @@ function buildSome(){
 //Функция (не читерская) наблюдает за видимым полем боя
 //Принимает решение, если в полезрения попал противник
 function myEyes(){
+	setWarEnv();	
+	debugMsg("Моих войск: Киборги-"+u_warcyborgs_c+", Машины-"+u_warriors_c,3);
 	var enemyRigs = new Array();
 	var enemyBuiders = new Array();
 	var enemyUnits = new Array();
-	var enemyFactory = new Array();
+	var enemyFactory = [];
 	var enemyCyborgFactory = new Array();
 	var enemyPower = new Array();
 	var enemyLab = new Array();
@@ -921,105 +929,139 @@ function myEyes(){
 		enemyRigs = enemyRigs.concat(enumStruct(e,b_rig,me));
 		enemyBuiders = enemyBuiders.concat(enumDroid(e,DROID_CONSTRUCT,me)); // Создаём массив вражеских строителей (только тех, которых честно видим)
 		enemyUnits = enemyUnits.concat(enumDroid(e,DROID_ANY,me));
+//		var tmp = [];
+//		tmp = enumStruct(e,FACTORY,me);
+//		if(tmp.length!=0)enemyFactory.push(tmp);
+//		if(tmp.length!=0){
+//			debugMsg("enemyFactory: "+tmp.player+", ("+tmp.x+","+tmp.y+")",5);
 		enemyFactory = enemyFactory.concat(enumStruct(e,FACTORY,me));
-		enemyCyborgFactory = enemyCyborgFactory.concat(enumStruct(e,CYBORG_FACTORY,me));
+		enemyFactory = enemyFactory.concat(enumStruct(e,CYBORG_FACTORY,me));
+//		}
+//		tmp = enumStruct(e,CYBORG_FACTORY,me);
+//		if(tmp.length!=0)enemyFactory.push(tmp);
+//		enemyCyborgFactory = enemyCyborgFactory.concat(enumStruct(e,CYBORG_FACTORY,me));
+		enemyFactory = enemyFactory.concat(enemyCyborgFactory);
 		enemyPower = enemyPower.concat(enumStruct(e,POWER_GEN,me));
 		enemyLab = enemyLab.concat(enumStruct(e,RESEARCH_LAB,me));
 	}	
-		var en_builder = Infinity;
-		var num_b = Infinity;
-		var en_rig = Infinity;
-		var num_r = Infinity;
-		if(enemyRigs.length != 0){
-			for(var er in enemyRigs){
-				var resource_near = distBetweenTwoPoints(base_x,base_y,enemyRigs[er].x,enemyRigs[er].y);
-				if(resource_near < en_rig){
-					en_rig = resource_near;
-					num_r = er;
-				}
-			}
+	var en_builder = Infinity;
+	var num_b = Infinity;
+	var en_rig = Infinity;
+	var num_r = Infinity;
 
-		}
-		if(enemyBuiders.length != 0){
-			for(var eb in enemyBuiders){
-				var builder_near = distBetweenTwoPoints(base_x,base_y,enemyBuiders[eb].x,enemyBuiders[eb].y);
-				if(builder_near < en_builder){
-					en_builder = builder_near;
-					num_b = eb;
-				}
+	if(enemyFactory.length != 0 && (u_warcyborgs_c + u_warriors_c) >= 20){
+		var fact  = Infinity;
+		var tmp   = Infinity;
+		debugMsg("Обнаружено вражеских заводов: "+enemyFactory.length,5);
+		for(var ef in enemyFactory){
+			tmp = getDistance(enemyFactory[ef]);
+//			debugMsg("Вражеские заводы: #"+ef+", id "+enemyFactory[ef].id+", "+enemyFactory[ef].stattype+"("+enemyFactory[ef].x+","+enemyFactory[ef].y+")["+tmp+"]{"+enemyFactory[ef].player+"}", 3);
+			if(fact > tmp){
+				fact = tmp;
+				target_f = new Array();
+				target_f = enemyFactory[ef];
+//				debugMsg("tmp:"+tmp,5);
+//				debugMsg("target_f:"+target_f.x+","+target_f.y,5);
+//				debugMsg("enemyFactory::"+enemyFactory[ef].x+","+enemyFactory[ef].y,5);
 			}
-
 		}
+//		debugMsg("Атакую ближайший вражеский завод ("+target_f.x+","+target_f.y+"){"+target_f.player+"}",2);
+		attackNowMachine(target_f,false);
+		attackNowCyborg(target_f,false);
+		return;
+	}
+	if(enemyRigs.length != 0){
+		for(var er in enemyRigs){
+			var resource_near = distBetweenTwoPoints(base_x,base_y,enemyRigs[er].x,enemyRigs[er].y);
+			if(resource_near < en_rig){
+				en_rig = resource_near;
+				num_r = er;
+			}
+		}
+	}
+	if(enemyBuiders.length != 0){
+		for(var eb in enemyBuiders){
+			var builder_near = distBetweenTwoPoints(base_x,base_y,enemyBuiders[eb].x,enemyBuiders[eb].y);
+			if(builder_near < en_builder){
+				en_builder = builder_near;
+				num_b = eb;
+			}
+		}
+	}
 		
-		if (num_b > num_r && (u_warcyborgs_c + u_warriors_c) >= 4 ){
-			debugMsg("Атакую вражескую качалку ("+enemyRigs[num_r].x+","+enemyRigs[num_r].y+"){"+e+"}",2);
-			attackNowMachine(enemyRigs[num_r],true);
-			attackNowCyborg(enemyRigs[num_r],true);
-			return;
+	if (enemyUnits.length-enemyBuiders.length > 0){
+		for(var eu in enemyUnits){
+			if(getDistance(enemyUnits[eu]) < searchOil_range && enemyUnits[eu].droidType != DROID_CONSTRUCT){ // 3 = DROID_CONSTRUCT
+				debugMsg("Вражеский юнит слишком близко к базе! ("+enemyUnits[eu].droidType+")["+getDistance(enemyUnits[eu])+"]", 2);
+				attackNowMachine(enemyUnits[eu],true);
+				attackNowCyborg(enemyUnits[eu],true);
+				return;
+			}
 		}
-		else if(num_b <= num_r && num_b != Infinity && (u_warcyborgs_c + u_warriors_c) >= 1){
-			debugMsg("Атака на вражеского строителя ("+enemyBuiders[num_b].x+","+enemyBuiders[num_b].y+"){"+e+"}",2);
-			attackNowMachine(enemyBuiders[num_b],true);
-			attackNowCyborg(enemyBuiders[num_b],true);
-			return;
+	}
+	if (num_b > num_r && (u_warcyborgs_c + u_warriors_c) >= 4 ){
+		debugMsg("Атакую вражескую качалку ("+enemyRigs[num_r].x+","+enemyRigs[num_r].y+"){"+enemyRigs[num_r].player+"}",2);
+		attackNowMachine(enemyRigs[num_r],true);
+		attackNowCyborg(enemyRigs[num_r],true);
+		return;
+	}
+	else if(num_b <= num_r && num_b != Infinity && (u_warcyborgs_c + u_warriors_c) >= 1){
+		debugMsg("Атака на вражеского строителя ("+enemyBuiders[num_b].x+","+enemyBuiders[num_b].y+"){"+enemyBuiders[num_b].player+"}",2);
+		attackNowMachine(enemyBuiders[num_b],true);
+		attackNowCyborg(enemyBuiders[num_b],true);
+		return;
+	}
+	else if( (u_warcyborgs_c + u_warriors_c) >= 10 ){
+		if(enemyUnits.length != 0){
+			for(var eu in enemyUnits){
+				debugMsg("Вражеский юнит ("+enemyUnits[eu].x+","+enemyUnits[eu].y+"){"+enemyUnits[eu].player+"}",2);
+				attackNowMachine(enemyUnits[eu],false);
+				attackNowCyborg(enemyUnits[eu],false);
+				return;
+			}
 		}
-		else if( (u_warcyborgs_c + u_warriors_c) >= 10 ){
-			if(enemyUnits.length != 0){
-				for(var eu in enemyUnits){
-					debugMsg("Вражеский юнит ("+enemyUnits[eu].x+","+enemyUnits[eu].y+"){"+e+"}",2);
-					attackNowMachine(enemyUnits[eu],false);
-					attackNowCyborg(enemyUnits[eu],false);
+		else {
+//			setWarEnv();
+//			var enemyStruct = enumStruct(e,BUILDING,me); // 3.2+ only
+//			var enemyStruct = enumStruct(e); // Получается что чит? Т.к. видит все строения, значит пока так и ждем версию 3.2
+/*
+			else if (enemyCyborgFactory.length != 0) {
+				for(var ec in enemyCyborgFactory){
+					debugMsg("Вражеский завод киборгов ("+enemyCyborgFactory[ec].x+","+enemyCyborgFactory[ec].y+"){"+e+"}",2);
+					attackNowMachine(enemyCyborgFactory[ec],false);
+					attackNowCyborg(enemyCyborgFactory[ec],false);
 				}
 				return;
 			}
-			else {
-				setWarEnv();
-//				var enemyStruct = enumStruct(e,BUILDING,me); // 3.2+ only
-//				var enemyStruct = enumStruct(e); // Получается что чит? Т.к. видит все строения, значит пока так и ждем версию 3.2
-				if(enemyFactory.length != 0){
-					for(var ef in enemyFactory){
-						debugMsg("Вражеский завод ("+enemyFactory[ef].x+","+enemyFactory[ef].y+"){"+e+"}",2);
-						attackNowMachine(enemyFactory[ef],false);
-						attackNowCyborg(enemyFactory[ef],false);
-					}
-					return;
-				}
-				else if (enemyCyborgFactory.length != 0) {
-					for(var ec in enemyCyborgFactory){
-						debugMsg("Вражеский завод киборгов ("+enemyCyborgFactory[ec].x+","+enemyCyborgFactory[ec].y+"){"+e+"}",2);
-						attackNowMachine(enemyCyborgFactory[ec],false);
-						attackNowCyborg(enemyCyborgFactory[ec],false);
-					}
-					return;
-				}
-				else if (enemyPower.length != 0) {
-					for(var ep in enemyPower){
-						debugMsg("Вражеская подстанция ("+enemyPower[ep].x+","+enemyPower[ep].y+"){"+e+"}",2);
-						attackNowMachine(enemyPower[ep],false);
-						attackNowCyborg(enemyPower[ep],false);
-					}
-					return;
-				}
-				else if (enemyLab.length != 0) {
-					for(var el in enemyLab){
-						debugMsg("Вражеская лаборатория ("+enemyLab[el].x+","+enemyLab[el].y+"){"+e+"}",2);
-						attackNowMachine(enemyLab[el],false);
-						attackNowCyborg(enemyLab[el],false);
-					}
-					return;
-				}
-/* 3.2+ only
-				else if (enemyStruct.length != 0) {
-					for(var es in enemyStruct){
-						debugMsg("Вражеское строение ("+enemyStruct[es].x+","+enemyStruct[es].y+"){"+e+"}",2);
-						attackNowMachine(enemyStruct[es],false);
-						attackNowCyborg(enemyStruct[es],false);
-					}
-					return;
-				}
 */
+			if (enemyPower.length != 0) {
+				for(var ep in enemyPower){
+					debugMsg("Вражеская подстанция ("+enemyPower[ep].x+","+enemyPower[ep].y+"){"+enemyPower[ep].player+"}",2);
+					attackNowMachine(enemyPower[ep],false);
+					attackNowCyborg(enemyPower[ep],false);
+					return;
+				}
 			}
+			else if (enemyLab.length != 0) {
+				for(var el in enemyLab){
+					debugMsg("Вражеская лаборатория ("+enemyLab[el].x+","+enemyLab[el].y+"){"+enemyLab[el].player+"}",2);
+					attackNowMachine(enemyLab[el],false);
+					attackNowCyborg(enemyLab[el],false);
+					return;
+				}
+			}
+/* 3.2+ only
+			else if (enemyStruct.length != 0) {
+				for(var es in enemyStruct){
+					debugMsg("Вражеское строение ("+enemyStruct[es].x+","+enemyStruct[es].y+"){"+e+"}",2);
+					attackNowMachine(enemyStruct[es],false);
+					attackNowCyborg(enemyStruct[es],false);
+				}
+				return;
+			}
+*/
 		}
+	}
 //	}
 
 	if(scavengerPlayer!=-1){
@@ -1037,13 +1079,16 @@ function myEyes(){
 			}
 		}
 		if (num_b > num_r && (u_warcyborgs_c + u_warriors_c) >= 4 ){
-			debugMsg("Атакую качалку гопников ("+enemyRigs[num_r].x+","+enemyRigs[num_r].y+"){"+e+"}",2);
+			debugMsg("Атакую качалку гопников ("+enemyRigs[num_r].x+","+enemyRigs[num_r].y+"){"+enemyRigs[num_r].player+"}",2);
 			attackNowMachine(enemyRigs[num_r],true);
 			attackNowCyborg(enemyRigs[num_r],true);
 			return;
 		}
 	}
-	if((u_warcyborgs_c + u_warriors_c)>20){debugMsg((u_warcyborgs_c + u_warriors_c)+" кол-во войск бездельничают",2);}
+	if((u_warcyborgs_c + u_warriors_c)>20){
+		debugMsg((u_warcyborgs_c + u_warriors_c)+" кол-во войск бездельничают",2);
+	}
+
 }
 
 
@@ -1463,7 +1508,7 @@ function getBuilder(){
 			if(tmp_set && bc_factory_r != 0){
 				for(var r in bc_oil){
 					//Если строитель очень близко со свободным ресурсов - принудительный захват
-					if(distBetweenTwoPoints(bc_oil[r].x,bc_oil[r].y,builders[i].x,builders[i].y) <= 7){
+					if(distBetweenTwoPoints(bc_oil[r].x,bc_oil[r].y,builders[i].x,builders[i].y) <= 10){
 						orderDroidBuild(builders[i],DORDER_BUILD,b_rig,bc_oil[r].x,bc_oil[r].y,0);
 						debugMsg("Принудительный захват ресурса строителем",2);
 						tmp_set = false;
@@ -1682,7 +1727,7 @@ function eventDroidIdle(droid) {
 			if(distBetweenTwoPoints(droid.x,droid.y,base_x,base_y)>10 && my_money > 500){
 				debugMsg("Холоп далеко от базы ("+droid.x+","+droid.y+")",3);
 				for (var r in bc_oil){
-					if( distBetweenTwoPoints(droid.x,droid.y,bc_oil[r].x,bc_oil[r].y) < 20 ){
+					if( distBetweenTwoPoints(droid.x,droid.y,bc_oil[r].x,bc_oil[r].y) < rigDefenceRange ){
 						debugMsg("Холоп ("+droid.x+","+droid.y+") рядом с ресурсом ("+bc_oil[r].x+","+bc_oil[r].y+")",2);
 						if (isStructureAvailable(b_light_defence,me)){ //В дальнейшем заменить пушку на переменную
 							var pos = pickStructLocation(droid,b_light_defence,bc_oil[r].x,bc_oil[r].y);
