@@ -1,5 +1,5 @@
 const vernum    = "0.13";
-const verdate   = "xx.12.2013";
+const verdate   = "28.12.2013";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
@@ -451,7 +451,7 @@ function longCycle(){
 		if (getDistance(targetXY) < 3 ) continue;
 		orderDroidLoc(u_warcyborgs[w],DORDER_MOVE,targetXY.x,targetXY.y);
 		debugMsg("Отправляю разведку на точку игрока ["+p+"] ("+targetXY.x+","+targetXY.y+")",1);
-		p=p+1;
+		p++;
 	}
 
 
