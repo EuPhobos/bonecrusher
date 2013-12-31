@@ -1,7 +1,9 @@
-const vernum    = "0.13";
+const vernum    = "0.14";
 const verdate   = "xx.12.2013";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
+
+include("multiplay/skirmish/bc-func.js");
 
 // Предустановленная тактика игры
 // 1 - AI vs AI (1x1)
@@ -364,8 +366,10 @@ function lets_go() {
 			}
 			else if (tmp_rnd == 2){
 				debugMsg("Значит база на случайной локации",2);
-				base_x = tmp_builders[0].x+Math.round(Math.random()*5);
-				base_y = tmp_builders[0].y+Math.round(Math.random()*5);
+//				base_x = tmp_builders[0].x+Math.round(Math.random()*4);
+//				base_y = tmp_builders[0].y+Math.round(Math.random()*4);
+				base_x = p_start.x+Math.round(Math.random()*4);
+				base_y = p_start.y+Math.round(Math.random()*4);
 			}
 			else if (tmp_rnd == 3){
 				debugMsg("Значит база на стартовой локации",2);
@@ -949,7 +953,7 @@ function myEyes(){
 	var en_rig = Infinity;
 	var num_r = Infinity;
 
-	if(enemyFactory.length != 0 && (u_warcyborgs_c + u_warriors_c) >= 20){
+	if(enemyFactory.length != 0 && (u_warcyborgs_c + u_warriors_c) >= 35){
 		var fact  = Infinity;
 		var tmp   = Infinity;
 		debugMsg("Обнаружено вражеских заводов: "+enemyFactory.length,5);
@@ -1784,7 +1788,13 @@ function eventAttacked(victim, attacker) {
 		//Не отвечаем огнём по союзнику
 		return;
 	}
-	
+
+	target = isBeingRepaired(attacker);	
+	if ( target != false ){
+		debugMsg("Должен убить сначала ремонтника ("+target.x+","+target.y+") ["+target.player+"]",3);
+		attacker = target;
+	}
+
 	if (victim.type == DROID) {
 		if (victim.droidType == DROID_CONSTRUCT){
 			debugMsg("Наши строители атакованы!",2);
