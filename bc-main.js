@@ -1,5 +1,5 @@
-const vernum    = "0.14";
-const verdate   = "xx.12.2013";
+const vernum    = "0.15";
+const verdate   = "xx.01.2014";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
@@ -80,12 +80,15 @@ const mr_lab			= "R-Struc-Research-Module";
 
 const research_way_1 = [
 	"R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
-	"R-Sys-Engineering01",			//Инженерия (старт)
+	"R-Wpn-MG-Damage01",
+//	"R-Wpn-MG-Damage03",
 	"R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
+	"R-Wpn-MG-Damage04",			//APDSB MG Bullets Mk3
+//	"R-Sys-Engineering01",			//Инженерия (старт)
 //	"R-Sys-Sensor-Turret01",		//Сенсорная башня (для лидера)
 	"R-Wpn-Flamer01Mk1",			//Огнемётная башня
 	"R-Struc-Factory-Cyborg",		//Завод киборгов
-	"R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
+//	"R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
 	"R-Struc-Research-Module",		//Модуль для лаборотории
 	"R-Wpn-Rocket05-MiniPod",		//Скорострельная ракетница
 	"R-Vehicle-Prop-Halftracks",	//Полугусенецы
@@ -105,24 +108,38 @@ const research_way_1 = [
 //	"Emplacement-RotHow",			//Самая последняя артиллерия (финал)
 	"R-Sys-Sensor-UpLink",			//Открыть всю карту
 ];
+
+const research_way_power = [
+	"R-Struc-Power-Upgrade03a",
+]
+
 const research_way_2 = [
 	"R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
 	"R-Cyborg-Armor-Heat09",		//Термостойкая броня киборгов (финал)
 ]
 const research_way_3 = [
 	"R-Sys-Autorepair-General",		//Автопочинка
-	"R-Defense-Wall-RotMg",
+//	"R-Defense-Wall-RotMg",
 ];
+
 const research_way_4 = [
-	"R-Wpn-HvArtMissile",
+	"R-Wpn-MG-Damage08",
 	"R-Wpn-MG5",
 ];
 
-const research_way = [
+const research_way_5 = [
+	"R-Wpn-Rocket-ROF02",
+	"R-Wpn-HvArtMissile",
+];
+
+//Переменная приоритетов путей исследований
+var research_way = [
 research_way_1,
 research_way_2,
+research_way_power,
 research_way_3,
 research_way_4,
+research_way_5,
 ];
 
 //for ( var r in research_way ){
@@ -435,6 +452,8 @@ function lets_go() {
 	}
 	
 	buildSome();
+//	doResearch();
+	queue("doResearch", 2000);
 //	setTimer("moveToAlly", 5000)
 //	removeTimer("lets_go");
 }
@@ -758,7 +777,7 @@ function buildSome(){
 //	checkDroidBody();
 //	checkDroidWheel();
 //	checkDroidTurret();
-	researchSome();
+//	researchSome();
 	
 	
 	//Приоритет завод, если нет РАБОЧЕГО завода, строим свободными холопами
@@ -805,12 +824,12 @@ function buildSome(){
         return;
     }
 */
-    else if (bc_factory_c < 2 && my_money > 950){
-        buildBuilding(b_factory,base_x,base_y);
+    else if (bc_lab_c < 2 && my_money > 850){
+        buildBuilding(b_lab,base_x,base_y);
         return;
     }
-    else if (bc_lab_c < 2 && my_money > 1000){
-        buildBuilding(b_lab,base_x,base_y);
+    else if (bc_factory_c < 2 && my_money > 950){
+        buildBuilding(b_factory,base_x,base_y);
         return;
     }
     else if (bc_lab_c < 3 && my_money > 1200){
@@ -1712,6 +1731,9 @@ function eventDroidBuilt(droid, structure) {
 
 //Срабатывает при завершении строительства здания
 function eventStructureBuilt(structure, droid){
+
+	if ( structure.stattype == RESEARCH_LAB ) queue("doResearch", 2000);
+
 	buildSome();
 }
 
@@ -1780,7 +1802,10 @@ function eventResearched(research, structure) {
 	//Установка колёс для постройки машин
 //	if(research.name == "R-Vehicle-Prop-Halftracks") {d_wheel = "HalfTrack";debugMsg("bc: Ура! Теперь наши танчики обуты!",2);}
 				
-	researchSome();
+//	researchSome();
+
+//	doResearch();
+	queue("doResearch", 2000);
 }
 
 function eventAttacked(victim, attacker) {
