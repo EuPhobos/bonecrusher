@@ -66,7 +66,7 @@ function doResearch(){
 		debugMsg("doResearch: Путей "+research_way.length+", путь "+_r+" завершён",4);
 		research_way.splice(_r,1);
 		debugMsg("doResearch: Осталось путей "+research_way.length,4);
-		_r--;
+		_r=0;
 	}
 
 	for ( var l in labs ){

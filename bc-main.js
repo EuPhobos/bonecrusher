@@ -1,4 +1,4 @@
-const vernum    = "0.15";
+const vernum    = "0.16";
 const verdate   = "xx.01.2014";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
@@ -77,17 +77,33 @@ const mr_power 			= "R-Struc-PowerModuleMk1";
 const mr_factory 		= "R-Struc-Factory-Module";
 const mr_lab			= "R-Struc-Research-Module";
 
+const research_primary = [
+	"R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
+	"R-Wpn-MG-Damage02",
+	"R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
+];
+
+const research_rockets = [
+	"R-Wpn-Rocket-Damage02",		//HE Rockets Mk2
+	"R-Wpn-Rocket02-MRL",			//Mini-Rocket Array
+	"R-Wpn-Rocket-Accuracy01",
+	"R-Wpn-Rocket-ROF03",
+	"R-Wpn-Rocket-Damage09",
+	"R-Wpn-Rocket-Accuracy02",
+	"R-Cyborg-Hvywpn-TK",
+	"R-Cyborg-Hvywpn-A-T",
+	"R-Wpn-HvArtMissile",
+	"R-Wpn-Missile-ROF03",
+	"R-Wpn-Missile-Damage03",
+];
 
 const research_way_1 = [
-	"R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
-	"R-Wpn-MG-Damage01",
 //	"R-Wpn-MG-Damage03",
-	"R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
+	"R-Wpn-Flamer01Mk1",			//Огнемётная башня
+	"R-Struc-Factory-Cyborg",		//Завод киборгов
 	"R-Wpn-MG-Damage04",			//APDSB MG Bullets Mk3
 //	"R-Sys-Engineering01",			//Инженерия (старт)
 //	"R-Sys-Sensor-Turret01",		//Сенсорная башня (для лидера)
-	"R-Wpn-Flamer01Mk1",			//Огнемётная башня
-	"R-Struc-Factory-Cyborg",		//Завод киборгов
 //	"R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
 	"R-Struc-Research-Module",		//Модуль для лаборотории
 	"R-Wpn-Rocket05-MiniPod",		//Скорострельная ракетница
@@ -115,7 +131,6 @@ const research_way_power = [
 
 const research_way_2 = [
 	"R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
-	"R-Cyborg-Armor-Heat09",		//Термостойкая броня киборгов (финал)
 ]
 const research_way_3 = [
 	"R-Sys-Autorepair-General",		//Автопочинка
@@ -128,12 +143,13 @@ const research_way_4 = [
 ];
 
 const research_way_5 = [
-	"R-Wpn-Rocket-ROF02",
-	"R-Wpn-HvArtMissile",
+	"R-Cyborg-Armor-Heat09",		//Термостойкая броня киборгов (финал)
 ];
 
 //Переменная приоритетов путей исследований
 var research_way = [
+research_primary,
+research_rockets,
 research_way_1,
 research_way_2,
 research_way_power,
