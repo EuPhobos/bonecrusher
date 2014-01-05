@@ -98,6 +98,7 @@ const research_rockets = [
 ];
 
 const research_way_1 = [
+	"R-Wpn-MG2Mk1",
 //	"R-Wpn-MG-Damage03",
 	"R-Wpn-Flamer01Mk1",			//Огнемётная башня
 	"R-Struc-Factory-Cyborg",		//Завод киборгов
@@ -151,8 +152,8 @@ var research_way = [
 research_primary,
 research_rockets,
 research_way_1,
-research_way_2,
 research_way_power,
+research_way_2,
 research_way_3,
 research_way_4,
 research_way_5,
@@ -253,6 +254,7 @@ const d_machine_turrets=[
 //var p_start = "";
 var base_x = false;
 var base_y = false;
+var base = new Object();
 
 var bc_factory = "";
 var bc_factory_c = "";
@@ -342,8 +344,9 @@ function lets_go() {
 
 	//Кол-во точек ресурсов (разок читернули, что бы получить полный список ресурсов)
 	//За чит не считается, т.к. при старте игры, все точки нанесены на карту, и игрок о них знает.
-    bc_oil_all   = enumFeature(ALL_PLAYERS, b_oil);
+    bc_oil_all	= enumFeature(ALL_PLAYERS, b_oil);
 
+	for ( var e = 0; e < maxPlayers; ++e ) bc_oil_all = bc_oil_all.concat(enumStruct(e,RESOURCE_EXTRACTOR));
 	if(scavengers == true){
 		bc_oil_all   = bc_oil_all.concat(enumStruct(scavengerPlayer, b_rig));
 	}
@@ -381,21 +384,24 @@ function lets_go() {
 			num = r;
 		}
 	}
+	var tmp_builders = enumDroid(me,DROID_CONSTRUCT);
+	base = tmp_builders[0];
 	//Немножко добавлю случайности в постройку базы, для разнообразия на частых картах
 	if(num){
-		var tmp_builders = enumDroid(me,DROID_CONSTRUCT);
 		if(tmp_builders.length <= 4){
-			var tmp_rnd = Math.round(Math.random()*2);
+			var tmp_rnd = Math.round(Math.random()*1);
 			debugMsg("Случайность? Выпало "+tmp_rnd,3);
 			if(tmp_rnd == 0){
 				debugMsg("Значит база возле ближайшей вышки",2);
 				base_x = bc_oil[num].x;
 				base_y = bc_oil[num].y;
+				base = bc_oil[num];
 			}
 			else if (tmp_rnd == 1){
 				debugMsg("Значит база у первого строителя",2);
 				base_x = tmp_builders[0].x;
 				base_y = tmp_builders[0].y;
+				base = tmp_builders[0];
 			}
 			else if (tmp_rnd == 2){
 				debugMsg("Значит база на случайной локации",2);
@@ -423,11 +429,51 @@ function lets_go() {
 		base_y = p_start.y;
 	}
     debugMsg("На карте имеется "+bc_oil_all.length+" ресурсов",2);
-    for (var o in bc_oil_all){
+
+//	bc_oil_all = sortByDistance( bc_oil_all, p_start, null );
+//	bc_oil_all = sortByDistance( bc_oil_all, p_start, 1 );
+
+	allResources = new Array();
+
+    for (var o=0; o<bc_oil_all.length; ++o){
+//		allResources[o] = new Object();
+//		allResources[o].x = bc_oil_all[o].x;
+//		allResources[o].y = bc_oil_all[o].y;
+		var obj = {
+			x: bc_oil_all[o].x,
+			y: bc_oil_all[o].y,
+			sortable: true,
+			resizeable: true
+		};
+		allResources.push(obj);
+
         var tmp_range = distBetweenTwoPoints(bc_oil_all[o].x, bc_oil_all[o].y, base_x, base_y);
         debugMsg("Ресурс ("+bc_oil_all[o].x+","+bc_oil_all[o].y+") ["+tmp_range+"] {"+bc_oil_all[o].player+"}",2);
     }
 
+	debugMsg("Основной логике переданы только координаты их "+allResources.length+" точек ресурсов", 2);
+
+	allResources = sortByDistance( allResources, base, null );
+
+	for ( var i in allResources ){
+		debugMsg("Передан ресурс ("+allResources[i].x+","+allResources[i].y+") ["+distBetweenTwoPoints(allResources[i].x,allResources[i].y,base.x,base.y)+"]",2);
+	}
+
+	iSee = getSeeResources();
+
+	debugMsg("В поле зрения "+iSee.length+" ресурсов",2);
+
+	for ( var i in iSee ) {
+		debugMsg("Вижу ресурс ("+iSee[i].x+","+iSee[i].y+")",2);
+	}
+
+	notSee = getUnknownResources();
+
+	debugMsg("А так же не видно "+notSee.length+" ресурсов",2);
+
+	for ( var i in notSee ) {
+		debugMsg("Не вижу ресурс ("+notSee[i].x+","+notSee[i].y+")",2);
+	}
 
 	// Ну здесь мы просто обязаны разок "читернуть" при старте игры... =(
 	// Функция проверяющая есть ли игрок на карте вообще:
@@ -979,7 +1025,7 @@ function myEyes(){
 //		tmp = enumStruct(e,CYBORG_FACTORY,me);
 //		if(tmp.length!=0)enemyFactory.push(tmp);
 //		enemyCyborgFactory = enemyCyborgFactory.concat(enumStruct(e,CYBORG_FACTORY,me));
-		enemyFactory = enemyFactory.concat(enemyCyborgFactory);
+//		enemyFactory = enemyFactory.concat(enemyCyborgFactory);
 		enemyPower = enemyPower.concat(enumStruct(e,POWER_GEN,me));
 		enemyLab = enemyLab.concat(enumStruct(e,RESEARCH_LAB,me));
 	}	
@@ -1825,6 +1871,9 @@ function eventResearched(research, structure) {
 }
 
 function eventAttacked(victim, attacker) {
+
+//	return;
+
     if(allianceExistsBetween(attacker.player, me)){
 		//Не отвечаем огнём по союзнику
 		return;
@@ -1879,7 +1928,8 @@ function eventStartLevel() {
 	setTimer("buildSome", 2000);			//Основная функция для развития
 	setTimer("buildSomeMachine",4000);		//Функция постройки армии машин
 	setTimer("buildSomeCyborg",3000);		//Функция постройки армии киборгов
-	setTimer("myEyes",2000);				//Функция наблюдения (не читерская, основываясь на тумане войны)
+//	setTimer("myEyes",2000);				//Функция наблюдения и атаки(основная, не читерская, основываясь на тумане войны)
+	setTimer("getTarget",1000);				//Функция наблюдения и атаки(основная, не читерская, новая)
 	queue("lets_go", 1000);					//Функция инициализации
 	setTimer("longCycle", 30000);			//Функция балансировки армии/строителей и реинициализации переменных
 //	setTimer("someDebug", 30000);			//Дебаг
