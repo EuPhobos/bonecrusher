@@ -20,8 +20,8 @@ const rigDefenceRange = 10; // С какого расстояния начина
 const max_power = 10; //Максимально возможное кол-во построек электростанций
 
 
-const u_warriors_min   = 10;
-const u_warcyborgs_min = 5;
+const u_warriors_min   = 20;
+const u_warcyborgs_min = 15;
 
 // Небольшой хак для "гопников"
 const scavengerPlayer = -1;
@@ -446,9 +446,9 @@ function lets_go() {
 			resizeable: true
 		};
 		allResources.push(obj);
-
+		var tmp_reach = droidCanReach(tmp_builders[0], bc_oil_all[o].x, bc_oil_all[o].y);
         var tmp_range = distBetweenTwoPoints(bc_oil_all[o].x, bc_oil_all[o].y, base_x, base_y);
-        debugMsg("Ресурс ("+bc_oil_all[o].x+","+bc_oil_all[o].y+") ["+tmp_range+"] {"+bc_oil_all[o].player+"}",2);
+        debugMsg("Ресурс ("+bc_oil_all[o].x+","+bc_oil_all[o].y+") ["+tmp_range+"] {"+bc_oil_all[o].player+"} _"+tmp_reach,2);
     }
 
 	debugMsg("Основной логике переданы только координаты их "+allResources.length+" точек ресурсов", 2);
@@ -518,6 +518,7 @@ function lets_go() {
 	queue("doResearch", 2000);
 //	setTimer("moveToAlly", 5000)
 //	removeTimer("lets_go");
+	setTimer("getTarget",1000);				//Функция наблюдения и атаки(основная, не читерская, новая)
 }
 
 //Функция распределения войск и групп
@@ -851,9 +852,9 @@ function buildSome(){
 		// Если заводов нет, и не начинали строить - строим
 		else{
 			//Строим завод на стартовой точке
-			buildBuilding(b_factory,base_x,base_y);
+			if(buildBuilding(b_factory,base_x,base_y)) return;
 		}
-		return
+//		return
 	}
     //Приоритет вышки, если их меньше 2, строим вышки!
 //	else if (bc_rig_c < 4 && bc_oil_c >= 4){
@@ -862,23 +863,23 @@ function buildSome(){
 //        return;
 //    }
     //Приоритет лабаротории, хотя бы 1 должна быть однозначно!
-    else if (bc_lab_r.length == 0){
+    if (bc_lab_r.length == 0){
         if(bc_lab_c != 0){
             helpBuild();
         }else{
-            buildBuilding(b_lab,base_x,base_y);
+            if(buildBuilding(b_lab,base_x,base_y)) return;
         }
-        return;
+//        return;
     }
 	//И так же необходим коммандный центр
-	else if (bc_cc_c == 0){
-		buildBuilding(b_cc,base_x,base_y);
-		return;
+	if (bc_cc_c == 0){
+		if(buildBuilding(b_cc,base_x,base_y)) return;
+//		return;
 	}
     //Если вышек больше(или ровно) чем генераторов, строим по приоритету дополнительный генератор
-    else if ((bc_power_c*4) <=  bc_rig_c && (bc_power_c < max_power)){
-        buildBuilding(b_power,base_x,base_y);
-        return;
+    if ((bc_power_c*4) <  bc_rig_c && (bc_power_c < max_power)){
+        if(buildBuilding(b_power,base_x,base_y)) return
+//      return;
     }
 /*
     else if (bc_rig_c < 3 && bc_oil_c >= 3){
@@ -886,23 +887,23 @@ function buildSome(){
         return;
     }
 */
-    else if (bc_lab_c < 2 && my_money > 850){
-        buildBuilding(b_lab,base_x,base_y);
-        return;
+    if (bc_factory_c < 3 && my_money > 800){
+        if(buildBuilding(b_factory,base_x,base_y)) return;
+//        return;
     }
-    else if (bc_factory_c < 2 && my_money > 950){
-        buildBuilding(b_factory,base_x,base_y);
-        return;
+    if (bc_lab_c < 3 && my_money > 850){
+        if(buildBuilding(b_lab,base_x,base_y)) return;
+//        return;
     }
-    else if (bc_lab_c < 3 && my_money > 1200){
-        buildBuilding(b_lab,base_x,base_y);
-        return;
+    if (bc_lab_c < 4 && my_money > 1200){
+        if(buildBuilding(b_lab,base_x,base_y)) return;
+//        return;
     }
-	else if (isStructureAvailable(b_cyborg,me) && bc_cyborg_c < 2 && my_money > 600){
-		buildBuilding(b_cyborg,base_x,base_y);
-		return;
+	if (isStructureAvailable(b_cyborg,me) && bc_cyborg_c < 2 && my_money > 600){
+		if(buildBuilding(b_cyborg,base_x,base_y)) return;
+//		return;
 	}
-	else if (bc_rig_c < 4 && bc_oil_c >= 4){
+	if (bc_rig_c < 4 && bc_oil_c >= 4){
 		buildRig();
 		return;
 	}
@@ -969,9 +970,9 @@ function buildSome(){
 		if(random_builds.length != 0){
 			var rand = rnd(random_builds.length);
 			random_building = random_builds[rand];
-			buildBuilding(random_building,base_x,base_y);
 			debugMsg("Ткнув пальцем в небо, хочу построить ["+random_building+"] rnd("+rand+") len("+random_builds.length+")",2);
-			return;
+			if(buildBuilding(random_building,base_x,base_y)) return;
+//			return;
 		}
 	}
 	
@@ -1405,7 +1406,7 @@ function huntRig(){
                 }
             }
 			// Пропускаем если вышка числится как наша, если радиус слишком далёк или если вышка пренадлежит союзнику
-            if(o_found || getDistance(bc_oil_all[o]) > searchOil_range){continue;}
+            if(o_found || getDistance(bc_oil_all[o]) > searchOil_range ){continue;}
             else{
 //				if(allianceExistsBetween(bc_oil_target.player, me)){continue;}
 				if( getDistance(bc_oil_all[o]) < bc_oil_target_dist){
@@ -1551,13 +1552,17 @@ function buildBuilding(what, x, y){
 			// Строим
 			debugMsg("Строю: ("+pos.x+","+pos.y+") ["+what+"]",3);
 			orderDroidBuild(builder,DORDER_BUILD,what,pos.x,pos.y,0);
+			return true;
 		} else {
 			// Облом
 			debugMsg("Не найдено подходящей площадки для постройки",1);
+			return false;
 		}
 	}else{
 			debugMsg("["+what+"] - строение не доступно",1);
+			return false;
 	}
+	return false;
 }
 
 // Проверяем занятость строителей
@@ -1872,7 +1877,7 @@ function eventResearched(research, structure) {
 
 function eventAttacked(victim, attacker) {
 
-//	return;
+	return;
 
     if(allianceExistsBetween(attacker.player, me)){
 		//Не отвечаем огнём по союзнику
@@ -1929,7 +1934,6 @@ function eventStartLevel() {
 	setTimer("buildSomeMachine",4000);		//Функция постройки армии машин
 	setTimer("buildSomeCyborg",3000);		//Функция постройки армии киборгов
 //	setTimer("myEyes",2000);				//Функция наблюдения и атаки(основная, не читерская, основываясь на тумане войны)
-	setTimer("getTarget",1000);				//Функция наблюдения и атаки(основная, не читерская, новая)
 	queue("lets_go", 1000);					//Функция инициализации
 	setTimer("longCycle", 30000);			//Функция балансировки армии/строителей и реинициализации переменных
 //	setTimer("someDebug", 30000);			//Дебаг
