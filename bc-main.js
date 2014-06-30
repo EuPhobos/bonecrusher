@@ -4,6 +4,7 @@ const vername   = "BoneCrusher!";
 const shortname = "bc";
 
 include("multiplay/skirmish/bc-func.js");
+include("multiplay/skirmish/bc-builders.js");
 
 // Предустановленная тактика игры
 // 1 - AI vs AI (1x1)
@@ -445,8 +446,9 @@ function lets_go() {
 			sortable: true,
 			resizeable: true
 		};
-		allResources.push(obj);
 		var tmp_reach = droidCanReach(tmp_builders[0], bc_oil_all[o].x, bc_oil_all[o].y);
+		if ( tmp_reach ) allResources.push(obj);
+//		allResources.push(obj);
         var tmp_range = distBetweenTwoPoints(bc_oil_all[o].x, bc_oil_all[o].y, base_x, base_y);
         debugMsg("Ресурс ("+bc_oil_all[o].x+","+bc_oil_all[o].y+") ["+tmp_range+"] {"+bc_oil_all[o].player+"} _"+tmp_reach,2);
     }
@@ -1192,8 +1194,10 @@ function buildSomeMachine(){
 //            debugMsg("bc_cc.length="+bc_cc.length+"; bc_cc_c="+bc_cc_c+"; bc_cc_r.length="+bc_cc_r.length,2);
 			if ( d_truck_min > u_builders_c || need_builder == true || forced_builders != 0){
 				if(forced_builders > 0)forced_builders--;
+				var _wheel = bd_machine_propulsions[d_wheel];
+				if ( getResearch("R-Vehicle-Prop-Hover").done ) _wheel = "hover01";
 				debugMsg("Кол-во строителей: "+u_builders_c+"/"+d_truck_normal+" нужда в строителях: "+need_builder,2);
-				buildDroid(bc_factory[f], "Truck Builder", bd_machine_bodys[d_body], bd_machine_propulsions[d_wheel], "", DROID_CONSTRUCT, "Spade1Mk1");
+				buildDroid(bc_factory[f], "Truck Builder", bd_machine_bodys[d_body], _wheel, "", DROID_CONSTRUCT, "Spade1Mk1");
 				need_builder = false;
 			}
             else if( (my_money > 1000 || u_warriors_min > u_warriors_c) && bd_machine_turrets.length != 0 && bc_cc_r.length != 0){
@@ -1355,6 +1359,7 @@ function buildRig(){
 		//получаем дистанцию от строителя до свободного ресурса
 //		if(propulsionCanReach("wheeled01",builder.x,builder.y,bc_oil[r].x,bc_oil[r].y)){
 			resource_near = distBetweenTwoPoints(builder.x,builder.y,bc_oil[r].x,bc_oil[r].y); //Ищем ближайший ресурс от выбранного строителя
+			if (!droidCanReach(builder, bc_oil[r].x, bc_oil[r].y)) continue;
 			//сравниваем все дистанции оставляя наименьшию
 			if(resource_near < resource){
 				resource = resource_near;
@@ -1855,11 +1860,12 @@ function eventResearched(research, structure) {
     debugMsg("Новая технология ["+research.name+"]",2);
 	
 	//Установка пушек для постройки машин
-	if(research.name == "R-Wpn-MG1Mk1") {
-		debugMsg("Ура! У нас новый лёгкий пулемёт для машин, создаю армию",2);
-		listMachine();
+//	if(research.name == "R-Wpn-MG1Mk1") {
+//		debugMsg("Ура! У нас новый лёгкий пулемёт для машин, создаю армию",2);
+	listMachine();
+	listCyborgs();
 		//d_turret = "MG1Mk1";debugMsg("Ура! У нас новый лёгкий пулемёт для машин",2);
-	}
+//	}
 //	if(research.name == "R-Wpn-Flamer01Mk1") {d_turret = "Flame1Mk1";debugMsg("bc: Ура! У нас новый лёгкий напалм для машин",2);}
 //	if(research.name == "R-Wpn-MG3Mk1") {d_turret = "MG3Mk1";debugMsg("bc: Ура! У нас тяжёлый пулемёт для машин",2);}
 	
@@ -1935,6 +1941,6 @@ function eventStartLevel() {
 	setTimer("buildSomeCyborg",3000);		//Функция постройки армии киборгов
 //	setTimer("myEyes",2000);				//Функция наблюдения и атаки(основная, не читерская, основываясь на тумане войны)
 	queue("lets_go", 1000);					//Функция инициализации
-	setTimer("longCycle", 30000);			//Функция балансировки армии/строителей и реинициализации переменных
+//	setTimer("longCycle", 30000);			//Функция балансировки армии/строителей и реинициализации переменных
 //	setTimer("someDebug", 30000);			//Дебаг
 }

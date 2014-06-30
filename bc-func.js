@@ -43,7 +43,7 @@ function isBeingRepaired(who){
 }
 
 //Функция предерживается приоритетов исследований
-//и ровномерно распределяет по свободным лаборатория
+//и ровномерно распределяет по свободным лабораториям
 //и должна вызыватся в 3-х случаях (не в цикле)
 //1. При старте игры
 //2. При постройке лабаротории
@@ -67,6 +67,10 @@ function doResearch(){
 		research_way.splice(_r,1);
 		debugMsg("doResearch: Осталось путей "+research_way.length,4);
 		_r=0;
+		if ( research_way.length == 0 ) {
+			debugMsg("doResearch: Исследовательские пути завершены! Останов.",3);
+			return;
+		}
 	}
 
 	for ( var l in labs ){
@@ -153,10 +157,10 @@ function getTarget(){
 	var targExtractors = new Array();		//Только качалки для дальнейшего разбора
 	var targDroid = new Array();			//Все вражеские юниты
 	var targStruct = new Array();	//не использую пока
-	var targFactory = new Array();
-	var targBuilding = new Array();
-	var targDefence = new Array();
-	var targPrioriy = new Array();
+	var targFactory = new Array();			//Производственные сооружения
+	var targBuilding = new Array();			//Прочие строения
+	var targDefence = new Array();			//Защитные вышки и сканеры
+	var targPriority = new Array();	//не используется
 	//Цикл для вражеских игроков(ботов)
 	for ( var e = 0; e < maxPlayers; ++e ) {
 		if ( allianceExistsBetween(me,e) ) continue;
@@ -165,8 +169,11 @@ function getTarget(){
 		targExtractors = targExtractors.concat(tmp);
 		targResource = targResource.concat(tmp);
 		targResource = targResource.concat(enumDroid(e, DROID_CONSTRUCT, me));
+		targResource = targResource.concat(enumDroid(e, 10, me));
 		targDroid = targDroid.concat(enumDroid(e, DROID_WEAPON, me));
 		targDroid = targDroid.concat(enumDroid(e, DROID_CYBORG, me));
+		targDroid = targDroid.concat(enumDroid(e, DROID_REPAIR, me));
+		targDroid = targDroid.concat(enumDroid(e, 11, me));
 		targFactory = targFactory.concat(enumStruct(e,FACTORY,me));
 		targFactory = targFactory.concat(enumStruct(e,CYBORG_FACTORY,me));
 		targFactory = targFactory.concat(enumStruct(e,REARM_PAD,me));
@@ -183,6 +190,7 @@ function getTarget(){
 	if ( scavengerPlayer != -1 ) {
 		targResource = targResource.concat(enumStruct(scavengerPlayer, RESOURCE_EXTRACTOR, me));
 		targDroid = targDroid.concat(enumDroid(scavengerPlayer, DROID_WEAPON, me));
+		targDroid = targDroid.concat(enumDroid(scavengerPlayer, DROID_PERSON, me));
 		targDefence = targDefence.concat(enumStruct(scavengerPlayer,DEFENSE,me));
 	}
 	
@@ -209,8 +217,8 @@ function getTarget(){
 	var factLen = targFactory.length;
 	var defLen = targDefence.length;
 	var buildLen = targBuilding.length;
-	if ( (factLen != 0 || defLen != 0 || buildLen != 0) && armyLen > 15 ){
-		if ( defLen != 0 && armyLen < 20 ) {
+	if ( (factLen != 0 || defLen != 0 || buildLen != 0) && armyLen > 5 ){
+		if ( defLen != 0 && armyLen < 10 ) {
 			targDefence = sortByDistance(targDefence,base,1);
 			attackObjects(targDefence,myArmy,1);
 			return;
