@@ -132,7 +132,7 @@ const research_way_power = [
 ]
 
 const research_way_2 = [
-	"R-Struc-Research-Upgrade06",
+	"R-Struc-Research-Upgrade09",
 	"R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
 	"R-Vehicle-Engine09",
 ]
@@ -395,27 +395,28 @@ function lets_go() {
 	if(num){
 		if(tmp_builders.length <= 4){
 			var tmp_rnd = Math.round(Math.random()*1);
-			debugMsg("Случайность? Выпало "+tmp_rnd,3);
-			if(tmp_rnd == 0){
+			debugMsg("Случайность? Выпало "+tmp_rnd,2);
+/*			if(tmp_rnd == 0){
 				debugMsg("Значит база возле ближайшей вышки",2);
 				base_x = bc_oil[num].x;
 				base_y = bc_oil[num].y;
 				base = bc_oil[num];
 			}
-			else if (tmp_rnd == 1){
+*/
+			if (tmp_rnd == 0){
 				debugMsg("Значит база у первого строителя",2);
 				base_x = tmp_builders[0].x;
 				base_y = tmp_builders[0].y;
 				base = tmp_builders[0];
 			}
-			else if (tmp_rnd == 2){
+			else if (tmp_rnd == 1){
 				debugMsg("Значит база на случайной локации",2);
 //				base_x = tmp_builders[0].x+Math.round(Math.random()*4);
 //				base_y = tmp_builders[0].y+Math.round(Math.random()*4);
 				base_x = p_start.x+Math.round(Math.random()*4);
 				base_y = p_start.y+Math.round(Math.random()*4);
 			}
-			else if (tmp_rnd == 3){
+			else if (tmp_rnd == 2){
 				debugMsg("Значит база на стартовой локации",2);
 				base_x = p_start.x;
 				base_y = p_start.y;
