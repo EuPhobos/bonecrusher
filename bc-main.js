@@ -132,7 +132,9 @@ const research_way_power = [
 ]
 
 const research_way_2 = [
+	"R-Struc-Research-Upgrade06",
 	"R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
+	"R-Vehicle-Engine09",
 ]
 const research_way_3 = [
 	"R-Sys-Autorepair-General",		//Автопочинка
@@ -146,6 +148,8 @@ const research_way_4 = [
 
 const research_way_5 = [
 	"R-Cyborg-Armor-Heat09",		//Термостойкая броня киборгов (финал)
+	"R-Defense-MassDriver",
+	"R-Vehicle-Body14",
 ];
 
 //Переменная приоритетов путей исследований
@@ -889,18 +893,23 @@ function buildSome(){
         return;
     }
 */
+    if (bc_factory_c < 2 && my_money > 300){
+        if(buildBuilding(b_factory,base_x,base_y)) return;
+    }
+    if (bc_lab_c < 3 && my_money > 200){
+        if(buildBuilding(b_lab,base_x,base_y)) return;
+    }
     if (bc_factory_c < 3 && my_money > 800){
         if(buildBuilding(b_factory,base_x,base_y)) return;
-//        return;
     }
-    if (bc_lab_c < 3 && my_money > 850){
+    if (bc_lab_c < 4 && my_money > 500){
+        if(buildBuilding(b_lab,base_x,base_y)) return;
+    }
+    if (bc_lab_c < 5 && my_money > 1000){
         if(buildBuilding(b_lab,base_x,base_y)) return;
 //        return;
     }
-    if (bc_lab_c < 4 && my_money > 1200){
-        if(buildBuilding(b_lab,base_x,base_y)) return;
-//        return;
-    }
+
 	if (isStructureAvailable(b_cyborg,me) && bc_cyborg_c < 2 && my_money > 600){
 		if(buildBuilding(b_cyborg,base_x,base_y)) return;
 //		return;
