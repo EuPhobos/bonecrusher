@@ -1,5 +1,5 @@
-const vernum    = "0.16";
-const verdate   = "25.05.2015";
+const vernum    = "0.17";
+const verdate   = "16.06.2015";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
@@ -356,7 +356,8 @@ function lets_go() {
 		bc_oil_all   = bc_oil_all.concat(enumStruct(scavengerPlayer, b_rig));
 	}
 	// Получаем свою стартовую позицию
-	p_start = startPositions[playerData[me].position];
+	p_start = startPositions[me];
+//	p_start = startPositions[playerData[me].position];
 //	p_start = enumDroid(me, DROID_CONSTRUCT)[0];
 
 	debugMsg("Похоже это моя стартовая позиция: ("+p_start.x+","+p_start.y+")",2);
