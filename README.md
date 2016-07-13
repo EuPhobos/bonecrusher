@@ -8,3 +8,5 @@ Installation for linux:
 Go to ~/.warzone2100-3.1/multiplay/skirmish/ location
 (make if not exist "mkdir -p ~/.warzone2100-3.1/multiplay/skirmish")
 and run "git clone https://github.com/EuPhobos/bonecrusher.git ."
+
+make sure that files *.js and *.ai in skirmish directory
