@@ -1,5 +1,5 @@
-const vernum    = "0.17";
-const verdate   = "16.06.2015";
+const vernum    = "0.18";
+const verdate   = "09.01.2017";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
@@ -21,8 +21,8 @@ const rigDefenceRange = 10; // С какого расстояния начина
 const max_power = 10; //Максимально возможное кол-во построек электростанций
 
 
-const u_warriors_min   = 20;
-const u_warcyborgs_min = 15;
+const u_warriors_min   = 10;
+const u_warcyborgs_min = 7;
 
 // Небольшой хак для "гопников"
 const scavengerPlayer = -1;
@@ -106,16 +106,16 @@ const research_way_1 = [
 	"R-Wpn-MG-Damage04",			//APDSB MG Bullets Mk3
 //	"R-Sys-Engineering01",			//Инженерия (старт)
 //	"R-Sys-Sensor-Turret01",		//Сенсорная башня (для лидера)
-//	"R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
-	"R-Struc-Research-Module",		//Модуль для лаборотории
-	"R-Wpn-Rocket05-MiniPod",		//Скорострельная ракетница
+	"R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
+	"R-Wpn-MG3Mk1",					//Тяжолопулемётная башня
 	"R-Vehicle-Prop-Halftracks",	//Полугусенецы
-	"R-Wpn-Cannon1Mk1",				//Пушечная башня
 	"R-Vehicle-Body05",				//Средняя начальная броня
 	"R-Vehicle-Prop-Hover",			//Ховер для строителей
+	"R-Struc-Research-Module",		//Модуль для лаборотории
+	"R-Wpn-Rocket05-MiniPod",		//Скорострельная ракетница
+	"R-Wpn-Cannon1Mk1",				//Пушечная башня
 	"R-Wpn-Mortar01Lt",				//Гранатное орудие
 	"R-Wpn-Rocket02-MRL",			//Ракетная батарея
-//	"R-Wpn-MG3Mk1",					//Тяжолопулемётная башня
 	"R-Wpn-MG4",					//Штурмовой пулемёт
 	"R-Vehicle-Body11",				//Тяжёлая начальная броня
 	"R-Vehicle-Prop-Tracks",		//Гусенецы
@@ -129,13 +129,20 @@ const research_way_1 = [
 
 const research_way_power = [
 	"R-Struc-Power-Upgrade03a",
-]
+];
+
+const research_way_defence = [
+	"R-Defense-Tower06",
+	"R-Defense-WallTower-HPVcannon",
+	"R-Defense-MRL",
+	"R-Defense-HvyHowitzer",
+];
 
 const research_way_2 = [
 	"R-Struc-Research-Upgrade09",
 	"R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
 	"R-Vehicle-Engine09",
-]
+];
 const research_way_3 = [
 	"R-Sys-Autorepair-General",		//Автопочинка
 //	"R-Defense-Wall-RotMg",
@@ -155,9 +162,10 @@ const research_way_5 = [
 //Переменная приоритетов путей исследований
 var research_way = [
 research_primary,
-research_rockets,
-research_way_1,
 research_way_power,
+research_way_1,
+research_rockets,
+research_way_defence,
 research_way_2,
 research_way_3,
 research_way_4,
@@ -324,6 +332,8 @@ var need_builder = false;
 //var player_enemy = [];
 
 var forced_builders = 2; //В начале игры, в первом заводе полюбому строим 2 строителя
+var ev_attacked = true; // Триггер для eventAttacked
+var all_events = false;
 
 //Группы дроидов
 var resHunters = newGroup();
@@ -416,11 +426,13 @@ function lets_go() {
 //				base_y = tmp_builders[0].y+Math.round(Math.random()*4);
 				base_x = p_start.x+Math.round(Math.random()*4);
 				base_y = p_start.y+Math.round(Math.random()*4);
+				base = p_start;
 			}
 			else if (tmp_rnd == 2){
 				debugMsg("Значит база на стартовой локации",2);
 				base_x = p_start.x;
 				base_y = p_start.y;
+				base = p_start;
 			}
 		}
 		else{
@@ -428,12 +440,14 @@ function lets_go() {
 			debugMsg("...нууу.. ладно. Так поиграем, строю базу основываясь на стартовой позиции",1);
 			base_x = p_start.x;
 			base_y = p_start.y;
+			base = p_start;
 		}
 	}
 	else{
 		debugMsg("Внимание! Не видно ближайших ресурсов!",1);
 		base_x = p_start.x;
 		base_y = p_start.y;
+		base = p_start;
 	}
     debugMsg("На карте имеется "+bc_oil_all.length+" ресурсов",2);
 
@@ -524,9 +538,10 @@ function lets_go() {
 	buildSome();
 //	doResearch();
 	queue("doResearch", 2000);
+	all_events = true;
 //	setTimer("moveToAlly", 5000)
 //	removeTimer("lets_go");
-	setTimer("getTarget",1000);				//Функция наблюдения и атаки(основная, не читерская, новая)
+//	setTimer("getTarget",5000);				//Функция наблюдения и атаки(основная, не читерская, новая)
 }
 
 //Функция распределения войск и групп
@@ -788,6 +803,9 @@ function setEnv(){
 	bc_power_c = countStruct(b_power,me);
 	bc_power_r = countReadyBuildings(bc_power);
 
+	u_builders   = enumDroid(me,DROID_CONSTRUCT);
+	u_builders_c = u_builders.length;
+	
 	//Кол-во вышек
     bc_rig      = enumStruct(me,RESOURCE_EXTRACTOR);
     bc_rig_c    = countStruct(b_rig,me);
@@ -814,9 +832,6 @@ function setEnv(){
 	//Кол-во воздушных заводов
 	bc_vtol_c = countStruct(b_vtol,me);
 	
-	u_builders   = enumDroid(me,DROID_CONSTRUCT);
-	u_builders_c = u_builders.length;
-	
 }
 
 function setGroupEnv(){
@@ -836,6 +851,8 @@ function setWarEnv(){
 	u_warcyborgs   = enumDroid(me,DROID_CYBORG);
 	if(u_warcyborgs.length)u_warcyborgs_c = u_warcyborgs.length;
 	else u_warcyborgs_c = 0;
+	
+	ev_attacked = true; //Сбрасываем триггер eventAttacked
 }
 
 
@@ -879,6 +896,7 @@ function buildSome(){
         }
 //        return;
     }
+    
 	//И так же необходим коммандный центр
 	if (bc_cc_c == 0){
 		if(buildBuilding(b_cc,base_x,base_y)) return;
@@ -889,17 +907,21 @@ function buildSome(){
         if(buildBuilding(b_power,base_x,base_y)) return
 //      return;
     }
-/*
+
+    
+	if(!helpBuild())huntRig(); //Первым свободным дроидом, захват вышки или помощь в починке/строительстве
+    
+    /*
     else if (bc_rig_c < 3 && bc_oil_c >= 3){
         buildRig();
         return;
     }
 */
+	if (bc_lab_c < 3 && my_money > 200){
+        if(buildBuilding(b_lab,base_x,base_y)) return;
+    }
     if (bc_factory_c < 2 && my_money > 300){
         if(buildBuilding(b_factory,base_x,base_y)) return;
-    }
-    if (bc_lab_c < 3 && my_money > 200){
-        if(buildBuilding(b_lab,base_x,base_y)) return;
     }
     if (bc_factory_c < 3 && my_money > 800){
         if(buildBuilding(b_factory,base_x,base_y)) return;
@@ -912,6 +934,10 @@ function buildSome(){
 //        return;
     }
 
+   	if (isStructureAvailable(b_cyborg,me) && bc_cyborg_c < 1 && my_money > 300){
+		if(buildBuilding(b_cyborg,base_x,base_y)) return;
+	}
+    
 	if (isStructureAvailable(b_cyborg,me) && bc_cyborg_c < 2 && my_money > 600){
 		if(buildBuilding(b_cyborg,base_x,base_y)) return;
 //		return;
@@ -939,8 +965,25 @@ function buildSome(){
 			}
 		}
     }
-	
+
+	if (getResearch(mr_lab).done){
+		for(var l in bc_lab){
+			if(bc_lab[l].modules < 1){
+				installModule(bc_lab[l],m_lab);
+				return;
+			}
+		}
+    }
+    
     if (getResearch(mr_factory).done){
+		for(var f in bc_factory){
+			if(bc_factory[f].modules < 1){
+				installModule(bc_factory[f],m_factory);
+				return;
+			}
+		}
+    }
+    if (getResearch(mr_factory).done && getResearch("R-Vehicle-Metals02").done){
 		for(var f in bc_factory){
 			if(bc_factory[f].modules < 2){
 				installModule(bc_factory[f],m_factory);
@@ -949,14 +992,7 @@ function buildSome(){
 		}
     }
 
-    if (getResearch(mr_lab).done){
-		for(var l in bc_lab){
-			if(bc_lab[l].modules < 1){
-				installModule(bc_lab[l],m_lab);
-				return;
-			}
-		}
-    }
+
 /*
     else if (getResearch(mr_factory).done){
         countModules(m_factory);
@@ -999,7 +1035,7 @@ function buildSome(){
 //		countModules();
 
 		//Если триггер builder_scout активен, отправляем строить пушку на вражескую базу
-		if(builder_scout && isStructureAvailable(b_light_defence,me)){builderScout();}
+		if(builder_scout && isStructureAvailable(b_light_defence,me) && my_money > 2000){builderScout();}
 		else{
 			if(huntRig()){return;}
 			debugMsg("Строители бездельничают!",3);
@@ -1211,7 +1247,8 @@ function buildSomeMachine(){
 				buildDroid(bc_factory[f], "Truck Builder", bd_machine_bodys[d_body], _wheel, "", DROID_CONSTRUCT, "Spade1Mk1");
 				need_builder = false;
 			}
-            else if( (my_money > 1000 || u_warriors_min > u_warriors_c) && bd_machine_turrets.length != 0 && bc_cc_r.length != 0){
+            else if( (my_money > 2000 || u_warriors_min > u_warriors_c || ( getResearch("R-Wpn-MG2Mk1").done && getResearch("R-Vehicle-Body05").done && getResearch("R-Vehicle-Prop-Halftracks").done) )
+				&& bd_machine_turrets.length != 0 && bc_cc_r.length != 0){
 				debugMsg("Части машин: "+bd_machine_propulsions.length+"/"+d_machine_propulsions.length+"-ходовых, "+bd_machine_bodys.length+"/"+d_machine_bodys.length+"-брони, "+bd_machine_turrets.length+"/"+d_machine_turrets.length+"-башен: Собираю ["+(d_wheel+1)+"|"+(d_body+1)+"|"+(d_turret+1)+"]",2);
 				for (var r in bd_machine_propulsions){
 					debugMsg("Ходовая: ["+bd_machine_propulsions[r]+"]",3);
@@ -1236,7 +1273,7 @@ function buildSomeCyborg(){
 	setWarEnv();
     listCyborgs();
 	for (var c in bc_cyborg){
-        if( factoryReady(bc_cyborg[c]) && bd_cyborgs.length != 0 && (my_money > 1000 || u_warcyborgs_min > u_warcyborgs_c) ) {
+        if( factoryReady(bc_cyborg[c]) && bd_cyborgs.length != 0 && (my_money > 1000 || u_warcyborgs_min > u_warcyborgs_c) && (u_warriors_c/2) > u_warcyborgs_c) {
 			var rand = Math.round(Math.random()*(bd_cyborgs.length-1));
 			debugMsg("Список киборгов: "+bd_cyborgs.length+", строю: "+(rand+1)+" ["+bd_cyborgs[rand][1]+", "+bd_cyborgs[rand][2]+"]",2);
 			buildDroid(bc_cyborg[c], "Cyborg["+bd_cyborgs[rand][2]+"]", bd_cyborgs[rand][1], "CyborgLegs", "", DROID_CYBORG, bd_cyborgs[rand][2]);
@@ -1406,27 +1443,27 @@ function huntRig(){
 	}
 
 
-	var bc_oil_all_c = bc_oil_all.length;
+	var bc_oil_all_c = allResources.length;
 	var bc_oil_target_dist = Infinity;
 	var bc_oil_target = false;
 
 	if(bc_rig_c < bc_oil_all_c){
 		debugMsg("Занято мною ресурсов "+bc_rig_c+"/"+bc_oil_all_c, 2);
         var w = 0;
-        for ( var o in bc_oil_all){
+        for ( var o in allResources){
 			var o_found = false;
             for ( var r in bc_rig){
-				if(bc_oil_all[o].x == bc_rig[r].x && bc_oil_all[o].y == bc_rig[r].y){
+				if(allResources[o].x == bc_rig[r].x && allResources[o].y == bc_rig[r].y){
 					o_found = true;
                     break;
                 }
             }
 			// Пропускаем если вышка числится как наша, если радиус слишком далёк или если вышка пренадлежит союзнику
-            if(o_found || getDistance(bc_oil_all[o]) > searchOil_range ){continue;}
+            if(o_found || getDistance(allResources[o]) > searchOil_range ){continue;}
             else{
 //				if(allianceExistsBetween(bc_oil_target.player, me)){continue;}
-				if( getDistance(bc_oil_all[o]) < bc_oil_target_dist){
-					bc_oil_target = bc_oil_all[o]
+				if( getDistance(allResources[o]) < bc_oil_target_dist){
+					bc_oil_target = allResources[o];
 					bc_oil_target_dist = getDistance(bc_oil_target);
 				}
             }
@@ -1654,6 +1691,7 @@ function moveToAlly(){
 
 function changeAttackTarget(target){
 	setWarEnv();
+	debugMsg("changeAttackTarget:");
 	for ( var w in u_warriors){
 		if(distBetweenTwoPoints(u_warriors[w].x,u_warriors[w].y,target.x,target.y) <= 20){
 			orderDroidObj(u_warriors[w],DORDER_ATTACK,target);
@@ -1789,6 +1827,9 @@ function debugMsg(msg,level){
 //Нихрена не работает, а должно было срабатывать при начале постройки здания
 //А вот нифига, этот триггер срабатывает при выходе из завода нового юнита.
 function eventDroidBuilt(droid, structure) {
+	
+	if(!all_events) return;
+	
 //	debug("bc: Новый юнит вышел на свет");
 	switch (droid.droidType) {
 		case DROID_WEAPON: {
@@ -1799,6 +1840,7 @@ function eventDroidBuilt(droid, structure) {
 				orderDroidLoc(droid, DORDER_MOVE, e_lastattack_b.x, e_lastattack_b.y);
 			}
 			// Ищем кого бы убить
+			getTarget();
 			break;
 		}
 		case DROID_CONSTRUCT: {
@@ -1815,18 +1857,71 @@ function eventDroidBuilt(droid, structure) {
 //Срабатывает при завершении строительства здания
 function eventStructureBuilt(structure, droid){
 
+	if(!all_events) return;
+	
 	if ( structure.stattype == RESEARCH_LAB ) queue("doResearch", 2000);
 
 	buildSome();
 }
 
+//Если произошла передача от игрока к игроку
+function eventObjectTransfer(gameObject, from) {
+	
+	if(!all_events) return;
+	
+	if (gameObject.player == me) { // Что то получили
+		if (allianceExistsBetween(me,from)) { // От союзника
+			switch (droid.droidType) {
+				case DROID_WEAPON: {
+					break;
+				}
+				case DROID_CONSTRUCT: {
+					buildSome();
+					break;
+				}
+			}
+		} else { // От врага, возможно перевербовка
+			
+		}
+	} else { // Что-то передали
+		if (allianceExistsBetween(gameObject.player,from)) { // Союзнику
+     
+		} else { // Похоже наших вербуют!!!
+			
+		}
+	}
+}
+
+function eventObjectSeen(sensor, gameObject) {
+	
+	if(!all_events) return;
+	
+	switch (gameObject.type) {
+		case STRUCTURE: {
+			if (!allianceExistsBetween(me,gameObject.player)) {
+			debugMsg(sensor.name+" spotted an enemy structure: "+gameObject.name);
+			}
+		}
+		case DROID: {
+			if (!allianceExistsBetween(me,gameObject.player)) {
+				getTarget();
+			}
+		}
+		case FEATURE: {
+			getTarget();
+			buildRig();
+		}
+	}
+}
 
 // Обязательно использовать
 function eventDroidIdle(droid) {
-//	debug("bc: Имеются халявщики");
+
+	if(!all_events) return;
+	
 	switch (droid.droidType) {
 		case DROID_WEAPON: {
-			// Ищем кого бы убить
+			getTarget();
 			break;
 		}
 		case DROID_CONSTRUCT: {
@@ -1894,7 +1989,7 @@ function eventResearched(research, structure) {
 
 function eventAttacked(victim, attacker) {
 
-	return;
+	if(!all_events) return;
 
     if(allianceExistsBetween(attacker.player, me)){
 		//Не отвечаем огнём по союзнику
@@ -1907,24 +2002,33 @@ function eventAttacked(victim, attacker) {
 		attacker = target;
 	}
 
-	if (victim.type == DROID) {
+	if (victim.type == DROID && ev_attacked) {
 		if (victim.droidType == DROID_CONSTRUCT){
 			debugMsg("Наши строители атакованы!",2);
 			goToSafe(victim);
-			attackNowMachine(attacker,true);
-			attackNowCyborg(attacker,true);
+			getTarget(attacker);
+			ev_attacked = false;
+//			attackNowMachine(attacker,true);
+//			attackNowCyborg(attacker,true);
 		}
 		else if(victim.type == DROID_WEAPON || victim.type == DROID_CYBORG){
-			changeAttackTarget(attacker);
+			debugMsg("Наши войска атакованы!",2);
+			getTarget(attacker, 2);
+			ev_attacked = false;
+//			changeAttackTarget(attacker);
 		}
 		else if(getDistance(attacker) < 20){
-			attackNowMachine(attacker,true);
-			attackNowCyborg(attacker,true);
+			getTarget(attacker, 10);
+			ev_attacked = false;
+//			attackNowMachine(attacker,true);
+//			attackNowCyborg(attacker,true);
 
 		}
 		else{
-			attackNowMachine(attacker,false);
-			attackNowCyborg(attacker,false);
+			getTarget(attacker);
+			ev_attacked = false;
+//			attackNowMachine(attacker,false);
+//			attackNowCyborg(attacker,false);
 		}
 	}else{
 		
@@ -1933,14 +2037,18 @@ function eventAttacked(victim, attacker) {
 		debugMsg("Наши строения атакованы!",2);
 		if(getDistance(attacker) < 20){
 			//Если атакующий очень близко с базой, атаковать всем что есть
-			attackNowCyborg(attacker,true);
-			attackNowMachine(attacker,true);
+			getTarget(attacker, 10);
+			ev_attacked = false;
+//			attackNowCyborg(attacker,true);
+//			attackNowMachine(attacker,true);
 
 		}
 		else{
+			getTarget(attacker, 5);
+			ev_attacked = false;
 			//Если атакующий далеко от базы, атаковать по возможности группой
-			attackNowCyborg(attacker,false);
-			attackNowMachine(attacker,false);
+//			attackNowCyborg(attacker,false);
+//			attackNowMachine(attacker,false);
 
 		}
 	}
