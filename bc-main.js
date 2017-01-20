@@ -25,7 +25,7 @@ const u_warriors_min   = 10;
 const u_warcyborgs_min = 7;
 
 // Небольшой хак для "гопников"
-const scavengerPlayer = -1;
+var scavengerPlayer = -1;
 if(scavengers == true){
 	switch(maxPlayers){
 		case 2:
@@ -82,6 +82,8 @@ const research_primary = [
 	"R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
 	"R-Wpn-MG-Damage02",
 	"R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
+	"R-Vehicle-Prop-Halftracks",	//Полугусенецы
+	"R-Vehicle-Body05",				//Средняя начальная броня
 ];
 
 const research_rockets = [
@@ -101,7 +103,6 @@ const research_rockets = [
 const research_way_1 = [
 	"R-Wpn-MG2Mk1",
 //	"R-Wpn-MG-Damage03",
-	"R-Wpn-Flamer01Mk1",			//Огнемётная башня
 	"R-Struc-Factory-Cyborg",		//Завод киборгов
 	"R-Wpn-MG-Damage04",			//APDSB MG Bullets Mk3
 //	"R-Sys-Engineering01",			//Инженерия (старт)
@@ -114,6 +115,7 @@ const research_way_1 = [
 	"R-Struc-Research-Module",		//Модуль для лаборотории
 	"R-Wpn-Rocket05-MiniPod",		//Скорострельная ракетница
 	"R-Wpn-Cannon1Mk1",				//Пушечная башня
+	"R-Wpn-Flamer01Mk1",			//Огнемётная башня
 	"R-Wpn-Mortar01Lt",				//Гранатное орудие
 	"R-Wpn-Rocket02-MRL",			//Ракетная батарея
 	"R-Wpn-MG4",					//Штурмовой пулемёт
@@ -541,7 +543,7 @@ function lets_go() {
 	all_events = true;
 //	setTimer("moveToAlly", 5000)
 //	removeTimer("lets_go");
-//	setTimer("getTarget",5000);				//Функция наблюдения и атаки(основная, не читерская, новая)
+	setTimer("getTarget",5000);				//Функция наблюдения и атаки(основная, не читерская, новая)
 }
 
 //Функция распределения войск и групп

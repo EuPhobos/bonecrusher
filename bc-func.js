@@ -127,7 +127,7 @@ function sortByDistance(arr, obj, num){
 			if( distBetweenTwoPoints( obj.x, obj.y, a.x, a.y ) < distBetweenTwoPoints( obj.x, obj.y, b.x, b.y ) ) return -1;
 			if( distBetweenTwoPoints( obj.x, obj.y, a.x, a.y ) > distBetweenTwoPoints( obj.x, obj.y, b.x, b.y ) ) return 1;
 			return 0;
-		});	
+		});
 	}
 
 	if ( num == 0 ) return arr;
@@ -253,8 +253,8 @@ function getTarget(target, num){
 	var defLen = targDefence.length;
 	var buildLen = targBuilding.length;
 	if ( (factLen != 0 || defLen != 0 || buildLen != 0) && armyLen > 5 ){
-		if( armyLen > 10 ){
-			if ( defLen != 0 && armyLen > 20 ) {
+		if( armyLen > 5 ){
+			if ( defLen != 0 && armyLen > 10 ) {
 				targDefence = sortByDistance(targDefence,base,1);
 				debugMsg("getTarget: 256");
 				attackObjects(targDefence,myArmy,2);
@@ -292,7 +292,7 @@ function getTarget(target, num){
 	//if ( targResource.length == 0 ) {
 		unknownRigs = getUnknownResources();
 		unknownRigs = sortByDistance(unknownRigs,base,null)
-		units = 3; //По 2 танка на точку
+		units = 2; //По 2 танка на точку
 		for ( var i = 0, len = myArmy.length; i < len; ++i ) {
 			if ( i >= unknownRigs.length ) break;
 			if (myArmy[i].order != DORDER_MOVE) {
