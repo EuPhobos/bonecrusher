@@ -10,11 +10,12 @@ include("multiplay/skirmish/bc-builders.js");
 // 1 - AI vs AI (1x1)
 // 2 - AI vs AI (2x2)
 // 3 - AI vs Human
-const cb_tactics      = 1; 
+const cb_tactics     	= 1; 
 
-const d_truck_min	  = 1;
-const d_truck_normal  = 4;
-const d_truck_max	  = 8;
+const d_truck_min	 	= 1;
+const d_truck_normal 	= 5;
+const d_truck_max		= 8;
+const base_range 		= 40; // В каких пределах работают основные строители (не охотники)
 
 const searchOil_range = 40; // Как далеко мы ищем ресурсы
 const rigDefenceRange = 10; // С какого расстояния начинать строить защиту ресурсам
@@ -84,6 +85,7 @@ const research_primary = [
 	"R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
 	"R-Vehicle-Prop-Halftracks",	//Полугусенецы
 	"R-Vehicle-Body05",				//Средняя начальная броня
+	"R-Defense-Pillbox01"			//Пулемётный бункер
 ];
 
 const research_rockets = [
@@ -134,6 +136,7 @@ const research_way_power = [
 ];
 
 const research_way_defence = [
+	"R-Defense-Pillbox01",
 	"R-Defense-Tower06",
 	"R-Defense-WallTower-HPVcannon",
 	"R-Defense-MRL",
@@ -342,8 +345,10 @@ var resHunters = newGroup();
 var resDefenders = newGroup();
 var enemyAttackers = newGroup();
 var enemyAttackersLeader = newGroup();
-var baseDefenders = newGroup();
-var baseBuilders = newGroup();
+//var baseDefenders = newGroup();
+//var baseBuilders = newGroup();
+var buildersMain = newGroup();
+var buildersHunters = newGroup();
 
 var g_resHunters = 0;
 var g_resDefenders = 0;
@@ -407,7 +412,7 @@ function lets_go() {
 	//Немножко добавлю случайности в постройку базы, для разнообразия на частых картах
 	if(num){
 		if(tmp_builders.length <= 4){
-			var tmp_rnd = Math.round(Math.random()*1);
+			var tmp_rnd = Math.round(Math.random()*2);
 			debugMsg("Случайность? Выпало "+tmp_rnd,2);
 /*			if(tmp_rnd == 0){
 				debugMsg("Значит база возле ближайшей вышки",2);
@@ -426,8 +431,8 @@ function lets_go() {
 				debugMsg("Значит база на случайной локации",2);
 //				base_x = tmp_builders[0].x+Math.round(Math.random()*4);
 //				base_y = tmp_builders[0].y+Math.round(Math.random()*4);
-				base_x = p_start.x+Math.round(Math.random()*4);
-				base_y = p_start.y+Math.round(Math.random()*4);
+				base_x = p_start.x+Math.round(Math.random()*5);
+				base_y = p_start.y+Math.round(Math.random()*5);
 				base = p_start;
 			}
 			else if (tmp_rnd == 2){
@@ -534,11 +539,13 @@ function lets_go() {
 	bd_machine_bodys[0] = d_machine_bodys[0][1]; //Первая броня доступна сразу
 	
 	for(var b in u_builders){
-		groupAddDroid(baseBuilders, u_builders[b]);
+		groupBuilders(u_builders[b]);
+//		groupAddDroid(baseBuilders, u_builders[b]);
 	}
 	
-	buildSome();
+//	buildSome();
 //	doResearch();
+	queue("buildersOrder", 1000);
 	queue("doResearch", 2000);
 	all_events = true;
 //	setTimer("moveToAlly", 5000)
@@ -789,7 +796,14 @@ function listCyborgs(){
 	}
 }
 
-
+// Функция считает количество переданых объектов, определяет статус постройки, считает и возвращает завершённые
+function countReadyBuildings(obj){
+	var obj_r=[];
+	for (var t in obj){
+		if(obj[t].status == BUILT) obj_r[t] = obj[t];
+	}
+	return obj_r;
+}
 function setEnv(){
 	//Опрашиваем только 1 раз кол-во энергии
 	my_money = playerPower(me);
@@ -841,8 +855,8 @@ function setGroupEnv(){
 	g_resDefenders = enumGroup(resDefenders);
 	g_enemyAttackers = enumGroup(enemyAttackers);
 	g_enemyAttackersLeader = enumGroup(enemyAttackersLeader);
-	g_baseDefenders = enumGroup(baseDefenders);
-	g_baseBuilders = enumGroup(baseBuilders);
+//	g_baseDefenders = enumGroup(baseDefenders);
+//	g_baseBuilders = enumGroup(baseBuilders);
 }
 
 function setWarEnv(){
@@ -1380,15 +1394,8 @@ function research_4(){
 	}
 }
 
-// Функция считает количество переданых объектов, определяет статус постройки, считает и возвращает завершённые
-function countReadyBuildings(what){
-	var what_r=[];
-	for (var t in what){
-		if(what[t].status == BUILT) what_r[t] = what[t];
-	}
-	return what_r;
-}
 
+/*
 // Функция поиска ближайших ресурсов и постройки на них вышек
 function buildRig(){
 //	debugMsg("План: Строим вышку",4);
@@ -1431,7 +1438,7 @@ function buildRig(){
 	}
 	return false;
 }
-
+*/
 // Функция поиска удалённых ресурсов и/или захват их силой
 function huntRig(){
 
@@ -1630,13 +1637,12 @@ function builderBusy(builder) {
 		return true;
 	if (builder.order == DORDER_DEMOLISH)
 		return true;
-	if (builder.order == DORDER_MOVE && getDistance(builder) > 3 )
-		return true;
+//	if (builder.order == DORDER_MOVE && getDistance(builder) > 3 ) return true;
 	return false;
 	
 }
 
-
+/*
 function getBuilder(){
 	// Выбираем всех строителей
 	setGroupEnv();
@@ -1678,7 +1684,7 @@ function getBuilder(){
 	}
 	return false;
 }
-
+*/
 
 
 // Тупо тестовая функция, удалить нахер
@@ -1770,17 +1776,6 @@ function countModules(module){
 //	}
 }
 
-//Устанавливаем модуль
-function installModule(building,module){
-	debugMsg("План: Установка модуля ("+building.x+","+building.y+") ["+module+"]",4);
-	var builder = getBuilder();
-	if(!builder){
-		debugMsg("Нет свободных строителей для установки модуля",1);
-		return false;
-	}
-	orderDroidBuild(builder, DORDER_BUILD, module, building.x, building.y)
-}
-
 
 //Функция должна решить где безопасное место (пока отправляет тупо "домой")
 function goToSafe(who){
@@ -1847,10 +1842,12 @@ function eventDroidBuilt(droid, structure) {
 		}
 		case DROID_CONSTRUCT: {
 			
-			groupAddDroid(baseBuilders, droid);
-			need_builder = false;
+			groupBuilders(droid);
+			queue("buildersOrder", 2000);
+//			groupAddDroid(baseBuilders, droid);
+//			need_builder = false;
 			// Строим что ни будь
-			buildSome();
+//			buildSome();
 			break;
 		}
 	}
@@ -1862,8 +1859,8 @@ function eventStructureBuilt(structure, droid){
 	if(!all_events) return;
 	
 	if ( structure.stattype == RESEARCH_LAB ) queue("doResearch", 2000);
-
-	buildSome();
+	buildersOrder();
+//	buildSome();
 }
 
 //Если произошла передача от игрока к игроку
@@ -1878,7 +1875,8 @@ function eventObjectTransfer(gameObject, from) {
 					break;
 				}
 				case DROID_CONSTRUCT: {
-					buildSome();
+//					buildSome();
+					buildersOrder();
 					break;
 				}
 			}
@@ -1901,7 +1899,8 @@ function eventObjectSeen(sensor, gameObject) {
 	switch (gameObject.type) {
 		case STRUCTURE: {
 			if (!allianceExistsBetween(me,gameObject.player)) {
-			debugMsg(sensor.name+" spotted an enemy structure: "+gameObject.name);
+				debugMsg("eventObjectSeen: "+ sensor.name+" обнаружил вражеское строение: "+gameObject.name);
+				getTarget();
 			}
 		}
 		case DROID: {
@@ -1911,7 +1910,8 @@ function eventObjectSeen(sensor, gameObject) {
 		}
 		case FEATURE: {
 			getTarget();
-			buildRig();
+//			buildRig();
+			buildersOrder();
 		}
 	}
 }
@@ -1927,6 +1927,8 @@ function eventDroidIdle(droid) {
 			break;
 		}
 		case DROID_CONSTRUCT: {
+			buildersOrder();
+			/*
 			//Если строитель бездельничает в дали от базы
 			setEnv();
 			debugMsg("Имеется холоп ("+droid.x+","+droid.y+")",4);
@@ -1953,6 +1955,7 @@ function eventDroidIdle(droid) {
 			}
 			//Иначе вернуться домой
 			else if( getDistance(droid) > 20 )goToSafe(droid);
+			*/
 			break;
 		}
 		case DROID_SENSOR: {
@@ -1972,6 +1975,13 @@ function eventResearched(research, structure) {
 //		debugMsg("Ура! У нас новый лёгкий пулемёт для машин, создаю армию",2);
 	listMachine();
 	listCyborgs();
+	
+	switch(research.name){
+		case "R-Defense-Pillbox01":defence.push("PillBox1"); break;
+		case "R-Defense-Tower01":defence.push("GuardTower1"); break;
+		case "R-Defense-Tower06":defence.push("GuardTower6"); break;
+	}
+		
 		//d_turret = "MG1Mk1";debugMsg("Ура! У нас новый лёгкий пулемёт для машин",2);
 //	}
 //	if(research.name == "R-Wpn-Flamer01Mk1") {d_turret = "Flame1Mk1";debugMsg("bc: Ура! У нас новый лёгкий напалм для машин",2);}
@@ -2057,9 +2067,10 @@ function eventAttacked(victim, attacker) {
 }
 
 function eventStartLevel() {
-	setTimer("buildSome", 2000);			//Основная функция для развития
+//	setTimer("buildSome", 2000);			//Основная функция для развития
 	setTimer("buildSomeMachine",4000);		//Функция постройки армии машин
 	setTimer("buildSomeCyborg",3000);		//Функция постройки армии киборгов
+	setTimer("defenceQueue", 10000);		//Функция очереди защитных сооружений
 //	setTimer("myEyes",2000);				//Функция наблюдения и атаки(основная, не читерская, основываясь на тумане войны)
 	queue("lets_go", 1000);					//Функция инициализации
 //	setTimer("longCycle", 30000);			//Функция балансировки армии/строителей и реинициализации переменных

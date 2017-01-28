@@ -101,10 +101,11 @@ function doResearch(){
 //arr - сортируемый массив
 //obj - игровой объект в отношении чего сортируем массив
 //num - кол-во возвращённых ближайших объектов
+//reach - если задано, и если obj не может добраться на своём propulsion до arr[n], то из массива arr будут изъяты эти результаты
 //если num не передан, возвращает полный сортированный массив
 //если num равен 1, то всё равно возвращается массив но с единственным объектом
-function sortByDistance(arr, obj, num){
-
+function sortByDistance(arr, obj, num, reach){
+	if ( typeof reach === "underfined" ) reach = false;
 	if ( typeof num === "undefined" || num == null ) num = 0;
 	else if ( arr.length == 1 ) num = 1;
 
@@ -113,6 +114,7 @@ function sortByDistance(arr, obj, num){
 		var b = Infinity;
 		var c = new Array();
 		for ( var i in arr ) {
+			if(reach)if(!droidCanReach(obj, arr[i].x, arr[i].y))continue;
 			a = distBetweenTwoPoints( obj.x, obj.y, arr[i].x, arr[i].y );
 			if ( a < b ) {
 				b = a;
@@ -130,6 +132,11 @@ function sortByDistance(arr, obj, num){
 		});
 	}
 
+	if(reach){arr = arr.filter( function(e){
+		if(!droidCanReach(obj,e.x,e.y)) return false;
+		return true;
+	});}
+	
 	if ( num == 0 ) return arr;
 
 	if ( num >= arr.length ) num = (arr.length-1);
@@ -153,7 +160,7 @@ var myArmy, armyLen;
 
 function enumTargets(){
 	//Цикл для вражеских игроков(ботов)
-	debugMsg("enumTargets()");
+//	debugMsg("enumTargets()");
 	
 	targResource = new Array();			//Общая цель ресурсов и строителей
 	targExtractors = new Array();		//Только качалки для дальнейшего разбора
@@ -221,7 +228,7 @@ function enumTargets(){
 // изначально будет неоптимизированная но продуманная
 // должна полностью заменить старую функцию myEyes()
 function getTarget(target, num){
-	debugMsg("getTarget()");
+//	debugMsg("getTarget()");
 	if(!enumTargets()) return false;
 
 	if (target){
@@ -239,11 +246,11 @@ function getTarget(target, num){
 	if ( targDroid.length > 0 && armyLen >= targDroid.length) {
 		targDroid = sortByHealth(targDroid);
 		if(armyLen > 20) {
-			debugMsg("getTarget: 239");
+//			debugMsg("getTarget: 239");
 			attackObjects(targDroid, myArmy, 4);
 		}
 		else {
-			debugMsg("getTarget: 243");
+//			debugMsg("getTarget: 243");
 			attackObjects(targDroid, myArmy, 2);
 		}
 		return true;
@@ -253,41 +260,41 @@ function getTarget(target, num){
 	var defLen = targDefence.length;
 	var buildLen = targBuilding.length;
 	if ( (factLen != 0 || defLen != 0 || buildLen != 0) && armyLen > 5 ){
-		if( armyLen > 5 ){
-			if ( defLen != 0 && armyLen > 10 ) {
+//		if( armyLen > 5 ){
+			if ( defLen != 0 && armyLen > 20 ) {
 				targDefence = sortByDistance(targDefence,base,1);
-				debugMsg("getTarget: 256");
+//				debugMsg("getTarget: 256");
 				attackObjects(targDefence,myArmy,2);
 				return true;
 			}else if ( defLen != 0 ){
 				targDefence = sortByDistance(targDefence,base,null);
-				debugMsg("getTarget: 261");
+//				debugMsg("getTarget: 261");
 				attackObjects(targDefence,myArmy,1);
 				return true;
 			}
 			
-			if ( buildLen != 0 && armyLen > 50 ){
+			if ( buildLen != 0 && armyLen > 40 ){
 				targBuilding = sortByDistance(targBuilding,base,null);
-				debugMsg("getTarget: 268");
+//				debugMsg("getTarget: 268");
 				attackObjects(targBuilding,myArmy,null);
 				return true;
 			}
-		}
+//		}
 
-		if( armyLen > 40 ) {
+		if( armyLen > 30 ) {
 			if ( factLen != 0 ){
 				targFactory = sortByDistance(targFactory,base,null);
-				debugMsg("getTarget: 277");
+//				debugMsg("getTarget: 277");
 				attackObjects(targFactory,myArmy,2);
 				return true;
 			}
 		}
 	}
 
-	if(armyLen > 5){ 
-		debugMsg("getTarget: 285");
-		if (attackObjects(targResource, myArmy, 3)) return true; 
-	}
+//	if(armyLen > 5){ 
+//		debugMsg("getTarget: 285");
+if (attackObjects(targResource, myArmy, 2)) return true; 
+//	}
 	
 	//if ( targResource.length == 0 ) {
 		unknownRigs = getUnknownResources();
@@ -296,7 +303,7 @@ function getTarget(target, num){
 		for ( var i = 0, len = myArmy.length; i < len; ++i ) {
 			if ( i >= unknownRigs.length ) break;
 			if (myArmy[i].order != DORDER_MOVE) {
-				debugMsg("getTarget: 296");
+//				debugMsg("getTarget: 296");
 				orderDroidLoc( myArmy[i], DORDER_MOVE, unknownRigs[Math.floor(i/units)].x+1,unknownRigs[Math.floor(i/units)].y+1 );
 				debugMsg("getTarget: Разведка на ("+unknownRigs[Math.floor(i/units)].x+","+unknownRigs[Math.floor(i/units)].y+") неразведанно "+unknownRigs.length,4);
 			}
@@ -323,7 +330,7 @@ function attackObjects(targets, warriors, num){
 	if ( num > 10 ) num = 10;
 	if ( warriors.length < num ) num = warriors.length;
 
-	debugMsg("attackObjects(): targets.length="+targets.length);
+//	debugMsg("attackObjects(): targets.length="+targets.length);
 	
 	targets = targets.slice(0, num);
 
@@ -336,7 +343,7 @@ function attackObjects(targets, warriors, num){
 
 	if ( targets.length >= warriors.length ) {
 		for ( var z = 0, len = warriors.length; z<len; ++z ) {
-			debugMsg("attackObjects: 337");
+//			debugMsg("attackObjects: 337");
 			orderDroidObj( warriors[z], DORDER_ATTACK, targets[z] );
 		}
 		return true;
@@ -351,22 +358,24 @@ function attackObjects(targets, warriors, num){
 			var busy = false;
 			for ( var j in targets ) { // Для каждой вражеской цели
 				if ( distBetweenTwoPoints ( targets[j].x,targets[j].y,warriors[n].x,warriors[n].y ) < 7 ) { //Опеределяем дистанцию цели для бойца
-					debugMsg("attackObjects: 351");
+/*					debugMsg("attackObjects: 351");
 					debugMsg("j="+j+"; id="+warriors[n].id+"; t.id="+targets[j].id+"; t.pl="+targets[j].player+"; tname="+targets[j].name+"; ttype="+targets[j].type);
 					try { found = objFromId(targets[j]); } catch(e) { found = false; }
 					if(!found) debugMsg("Error incoming!");
 					else debugMsg("t.id="+found.id+"; t.pl="+found.player+"; tname="+found.name+"; ttype="+found.type);
+*/
 					orderDroidObj( warriors[n], DORDER_ATTACK, targets[j] ); //Атакуем ближайшего, игнорируя приказ
 					busy = true;
 					break;
 				}
 			}
 			if ( busy ) continue; //Конкретный боец атакует ближайшего, он занят для приказа
-			debugMsg("attackObjects: 357");
+/*			debugMsg("attackObjects: 357");
 			debugMsg("i="+i+"; id="+warriors[n].id+"; t.id="+targets[i].id+"; t.pl="+targets[i].player+"; tname="+targets[i].name+"; ttype="+targets[i].type);
 			try { found = objFromId(targets[i]); } catch(e) { found = false; }
 			if(!found) debugMsg("Error incoming!");
 			else debugMsg("t.id="+found.id+"; t.pl="+found.player+"; tname="+found.name+"; ttype="+found.type);
+*/
 			orderDroidObj( warriors[n], DORDER_ATTACK, targets[i] );
 			if ( t >= a ){
 				debugMsg("getTarget: Атака на "+targets.length+" цели по "+a+" юнита ("+targets[i].x+","+targets[i].y+")",4);
@@ -401,10 +410,28 @@ function getSeeResources(){
 	iSee = new Array();
 	iSee = iSee.concat(enumFeature(me, "OilResource"));
 	for ( var e = 0; e < maxPlayers; ++e ){
-		if ( !allianceExistsBetween(me,e) ) continue; //Выкидываем вражеские
+//		if ( !allianceExistsBetween(me,e) ) continue; //Выкидываем вражеские
 		iSee = iSee.concat(enumStruct(e, RESOURCE_EXTRACTOR, me));
 	}
 
 	return iSee;
 	
+}
+
+//Функция возвращает все видимые вражеские ресурсы
+function getEnemyResources(){
+	var enemyRigs = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		var tmp = enumStruct(e, RESOURCE_EXTRACTOR, me);
+		enemyRigs = enemyRigs.concat(tmp);
+	}
+/*
+	playerData.forEach( function(player) {
+		if ( !allianceExistsBetween(me, player) ) { // enemy player
+			enemyRigs = enemyStructs.concat(enumStruct(player, RESOURCE_EXTRACTOR, me));
+		}
+	} );
+*/
+	return enemyRigs;
 }
