@@ -1,5 +1,5 @@
 const vernum    = "0.18";
-const verdate   = "09.01.2017";
+const verdate   = "05.02.2017";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
