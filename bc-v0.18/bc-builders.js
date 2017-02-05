@@ -135,6 +135,21 @@ function buildersOrder(order) {
 	//назначаем задания основным строителям
 	if(buildersMainLen != 0){enumGroup(buildersMain).forEach( function(obj, iter){
 		if(builderBusy(obj) == true) {debugMsg("buildersOrder(): Строитель занят "+iter);return;}
+
+		
+		//Модули на здания
+		if(getResearch("R-Struc-Factory-Module").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
+		if(getResearch("R-Struc-Factory-Module").done && getResearch("R-Vehicle-Metals02").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 2) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
+		if(getResearch("R-Struc-PowerModuleMk1").done && iter <= 2) { power_gen.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0PowMod1", e.x, e.y);});}
+		if(getResearch("R-Struc-Research-Module").done && iter <= 1) { research_lab.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0ResearchModule1", e.x, e.y);});}
+
+		//Если строители свободны, ищем чего-бы достроить или починить
+		var myBase = enumStruct(me);
+		for ( var b in myBase ){
+			if(getDistance(myBase[b]) > base_range)continue;
+			if(myBase[b].status == BEING_BUILT) {orderDroidObj(obj, DORDER_HELPBUILD, myBase[b]); return;}
+			if(myBase[b].health < 100) {orderDroidObj(obj, DORDER_REPAIR, myBase[b]); return;}
+		}
 		
 		//Завод, лаборатория,генератор,ком-центр! - вот залог хорошего пионера!
 		if(factory_ready.length == 0) { builderBuild(obj, "A0LightFactory", rotation); return; }
@@ -151,23 +166,12 @@ function buildersOrder(order) {
 		else if(research_lab_ready.length < 4 && my_money > 500) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
 		else if(research_lab_ready.length < 5 && my_money > 1000) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
 		else if(factory_ready.length < 5 && my_money > 1000){ builderBuild(obj, "A0LightFactory", rotation); return; }
-		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready < 1 && my_money > 300) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
-		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready < 5 && my_money > 1000) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
+		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length == 0 && my_money > 300) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
+		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 5 && my_money > 1000) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
 //		else { debugMsg("buildersOrder: Строителям нефиг делать"); }
 		
-		//Если строители свободны, ищем чего-бы достроить или починить
-		var myBase = enumStruct(me);
-		for ( var b in myBase ){
-			if(getDistance(myBase[b]) > base_range)continue;
-			if(myBase[b].status == BEING_BUILT) {orderDroidObj(obj, DORDER_HELPBUILD, myBase[b]); return;}
-			if(myBase[b].health < 100) {orderDroidObj(obj, DORDER_REPAIR, myBase[b]); return;}
-		}
 		
-		//Модули на здания
-		if(getResearch("R-Struc-PowerModuleMk1").done && iter <= 2) { power_gen.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0PowMod1", e.x, e.y);});}
-		if(getResearch("R-Struc-Research-Module").done && iter <= 2) { research_lab.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0ResearchModule1", e.x, e.y);});}
-		if(getResearch("R-Struc-Factory-Module").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
-		if(getResearch("R-Struc-Factory-Module").done && getResearch("R-Vehicle-Metals02").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 2) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
+
 		
 		if(oilHunt(obj, true)) return;
 		

@@ -3,8 +3,8 @@ const verdate   = "05.02.2017";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
-include("multiplay/skirmish/bc-func.js");
-include("multiplay/skirmish/bc-builders.js");
+include("multiplay/skirmish/bc-v"+vernum+"/bc-func.js");
+include("multiplay/skirmish/bc-v"+vernum+"/bc-builders.js");
 
 // Предустановленная тактика игры
 // 1 - AI vs AI (1x1)
@@ -1255,7 +1255,7 @@ function buildSomeMachine(){
 //			debugMsg("Части машин: "+bd_machine_propulsions.length+"/"+d_machine_propulsions.length+"-колёс, "+bd_machine_bodys.length+"/"+d_machine_bodys.length+"-брони, "+bd_machine_turrets.length+"/"+d_machine_turrets.length+"-башен: Собираю ["+d_wheel+"|"+d_body+"|"+d_turret+"]",3);
 //			var u_builders_c = countDroid(DROID_CONSTRUCT, me);
 //            debugMsg("bc_cc.length="+bc_cc.length+"; bc_cc_c="+bc_cc_c+"; bc_cc_r.length="+bc_cc_r.length,2);
-			if ( d_truck_min > u_builders_c || need_builder == true || forced_builders != 0){
+			if ( d_truck_min > u_builders_c || need_builder == true || forced_builders != 0 || (armyLen > 20 && my_money > 1000 && u_builders_c < d_truck_max)){
 				if(forced_builders > 0)forced_builders--;
 				var _wheel = bd_machine_propulsions[d_wheel];
 				if ( getResearch("R-Vehicle-Prop-Hover").done ) _wheel = "hover01";
