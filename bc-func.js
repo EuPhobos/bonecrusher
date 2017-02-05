@@ -155,14 +155,15 @@ function sortByHealth(arr){
 	return arr;
 }
 
-var targResource, targExtractors, targDroid, targStruct, targFactory, targBuilding, targDefence, targPriority;
+var targResource, targConstruct, targExtractors, targDroid, targStruct, targFactory, targBuilding, targDefence, targPriority;
 var myArmy, armyLen;
 
 function enumTargets(){
 	//Цикл для вражеских игроков(ботов)
 //	debugMsg("enumTargets()");
 	
-	targResource = new Array();			//Общая цель ресурсов и строителей
+	targResource = new Array();			//цель ресурсов
+	targConstruct = new Array();		//цель строители
 	targExtractors = new Array();		//Только качалки для дальнейшего разбора
 	targDroid = new Array();			//Все вражеские юниты
 	targStruct = new Array();			//не использую пока
@@ -177,8 +178,10 @@ function enumTargets(){
 		var tmp = enumStruct(e, RESOURCE_EXTRACTOR, me);
 		targExtractors = targExtractors.concat(tmp);
 		targResource = targResource.concat(tmp);
-		targResource = targResource.concat(enumDroid(e, DROID_CONSTRUCT, me));
-		targResource = targResource.concat(enumDroid(e, 10, me));
+//		targResource = targResource.concat(enumDroid(e, DROID_CONSTRUCT, me));
+//		targResource = targResource.concat(enumDroid(e, 10, me));
+		targConstruct = targConstruct.concat(enumDroid(e, DROID_CONSTRUCT, me));
+		targConstruct = targConstruct.concat(enumDroid(e, 10, me));
 		targDroid = targDroid.concat(enumDroid(e, DROID_WEAPON, me));
 		targDroid = targDroid.concat(enumDroid(e, DROID_CYBORG, me));
 		targDroid = targDroid.concat(enumDroid(e, DROID_REPAIR, me));
@@ -230,7 +233,7 @@ function enumTargets(){
 function getTarget(target, num){
 //	debugMsg("getTarget()");
 	if(!enumTargets()) return false;
-
+/*
 	if (target){
 		debugMsg("getTarget: Смена цели");
 		myArmy = sortByDistance(myArmy,target);
@@ -238,86 +241,69 @@ function getTarget(target, num){
 		attackObjects([target], myArmy, 1);
 		return;
 	}
-	else myArmy.reverse();
+	else 
+*/
+	myArmy.reverse();
 
 
-
+	var targets = new Array();
+	
+	targets = targets.concat(targDefence);
+	targets = targets.concat(targResource);
+	if(targDroid.length != 0) targets = targets.concat(targDroid.filter(function(e){if(getDistance(e) < base_range) return true; return false;}));
+	targets = sortByDistance(targets,base,null);
+	
+	if ( targets.length > 0 ){
+		if ( armyLen >= 2 ){
+			attackObjects(targets, myArmy, 1);
+			return true;
+		}
+		if ( armyLen >= 20 ){
+			attackObjects(targets, myArmy, 2);
+			return true;
+		}
+	}
+	
 
 	if ( targDroid.length > 0 && armyLen >= targDroid.length) {
 		targDroid = sortByHealth(targDroid);
 		if(armyLen > 20) {
-//			debugMsg("getTarget: 239");
-			attackObjects(targDroid, myArmy, 4);
+			attackObjects(targDroid, myArmy, 2);
+			return true;
 		}
 		else {
-//			debugMsg("getTarget: 243");
-			attackObjects(targDroid, myArmy, 2);
+			attackObjects(targDroid, myArmy, 1);
+			return true;
 		}
-		return true;
 	}
 
 	var factLen = targFactory.length;
-	var defLen = targDefence.length;
 	var buildLen = targBuilding.length;
-	if ( (factLen != 0 || defLen != 0 || buildLen != 0) && armyLen > 5 ){
-//		if( armyLen > 5 ){
-			if ( defLen != 0 && armyLen > 20 ) {
-				targDefence = sortByDistance(targDefence,base,1);
-//				debugMsg("getTarget: 256");
-				attackObjects(targDefence,myArmy,2);
-				return true;
-			}else if ( defLen != 0 ){
-				targDefence = sortByDistance(targDefence,base,null);
-//				debugMsg("getTarget: 261");
-				attackObjects(targDefence,myArmy,1);
-				return true;
-			}
-			
-			if ( buildLen != 0 && armyLen > 40 ){
-				targBuilding = sortByDistance(targBuilding,base,null);
-//				debugMsg("getTarget: 268");
-				attackObjects(targBuilding,myArmy,null);
-				return true;
-			}
-//		}
+	if ( buildLen != 0 && armyLen > 15 ){
+		targBuilding = sortByDistance(targBuilding,base,null);
+		attackObjects(targBuilding,myArmy,2);
+		return true;
+	}
+	if( armyLen > 30 && factLen != 0) {
+		targFactory = sortByDistance(targFactory,base,null);
+		targFactory = targets.concat(targResource); //После уничтожения всех заводов ищем строителей
+		attackObjects(targFactory,myArmy,4);
+		return true;
+	}
 
-		if( armyLen > 30 ) {
-			if ( factLen != 0 ){
-				targFactory = sortByDistance(targFactory,base,null);
-//				debugMsg("getTarget: 277");
-				attackObjects(targFactory,myArmy,2);
-				return true;
-			}
+
+	unknownRigs = getUnknownResources();
+	unknownRigs = sortByDistance(unknownRigs,base,null)
+	units = 2; //По 2 танка на точку
+	for ( var i = 0, len = myArmy.length; i < len; ++i ) {
+		if ( i >= unknownRigs.length ) break;
+		if (myArmy[i].order != DORDER_MOVE) {
+			orderDroidLoc( myArmy[i], DORDER_MOVE, unknownRigs[Math.floor(i/units)].x+1,unknownRigs[Math.floor(i/units)].y+1 );
+			debugMsg("getTarget: Разведка на ("+unknownRigs[Math.floor(i/units)].x+","+unknownRigs[Math.floor(i/units)].y+") неразведанно "+unknownRigs.length,4);
 		}
 	}
 
-//	if(armyLen > 5){ 
-//		debugMsg("getTarget: 285");
-if (attackObjects(targResource, myArmy, 2)) return true; 
-//	}
-	
-	//if ( targResource.length == 0 ) {
-		unknownRigs = getUnknownResources();
-		unknownRigs = sortByDistance(unknownRigs,base,null)
-		units = 2; //По 2 танка на точку
-		for ( var i = 0, len = myArmy.length; i < len; ++i ) {
-			if ( i >= unknownRigs.length ) break;
-			if (myArmy[i].order != DORDER_MOVE) {
-//				debugMsg("getTarget: 296");
-				orderDroidLoc( myArmy[i], DORDER_MOVE, unknownRigs[Math.floor(i/units)].x+1,unknownRigs[Math.floor(i/units)].y+1 );
-				debugMsg("getTarget: Разведка на ("+unknownRigs[Math.floor(i/units)].x+","+unknownRigs[Math.floor(i/units)].y+") неразведанно "+unknownRigs.length,4);
-			}
-		}
-		return true;
-		debugMsg("getTarget: "+myArmy.length+" юнитов бездельничают", 4);
-		return false;
-//	}
-
-	
-	
-	
-	
-	debugMsg("getTarget: "+myArmy.length+" войск бездельничают", 4);
+	return false;
 }
 
 //Функция равномерного распределения войск на несколько целей
