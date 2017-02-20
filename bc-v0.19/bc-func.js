@@ -1,3 +1,84 @@
+
+
+
+//Функция проверяет объекты и возвращает значение
+//Задача стоит в обработке тяжёлых данных, и работа данной функции
+//в цикле, функция должна будет отработать один раз, и прокешировать
+//результат, что бы быстро отдавать циклам нужную информация, не
+//забивая процессор всякой повторяющейся хернёй
+//Параметры:
+//x,y - координаты
+//command - что-то конкретное ищем, задание для функции
+//range - передаём, если что-то нужно искать в радиусе (примичание, радиус так же кешируется, следующий запрос по таким же координатам и коммандой дадут результат с прошлого радиуса, пока не пройдёт время updateIn)
+//obj - передаём, если нужно сравнить что-то с объектом(например propulsion is reach для droid)
+//cheat - true(читерим, видя через туман войны), null/false/undefined(не читерим, возвращем только то, что можем видеть)
+
+var _globalInfoNear = [];
+function getInfoNear(x,y,command,range,obj,cheat){
+
+	if ( typeof _globalInfoNear[x] !== 'undefined'
+		&& typeof _globalInfoNear[x][y] !== 'undefined' // <--
+		&& typeof _globalInfoNear[x][y][command] !== 'undefined'
+		&& gameTime < (_globalInfoNear[x][y][command].setTime + _globalInfoNear[x][y][command].updateIn) ) {
+		debugMsg("getInfoNear("+x+","+y+","+command+"): fast return value="+_globalInfoNear[x][y][command].value+"; timeout="+(_globalInfoNear[x][y][command].setTime+_globalInfoNear[x][y][command].updateIn-gameTime));
+//		debugMsg("getInfoNear(): fast return gameTime="+gameTime+", setTime="+_globalInfoNear[x][y][command].setTime+", updateIn="+_globalInfoNear[x][y][command].updateIn);
+		return _globalInfoNear[x][y][command];
+	}else{
+		
+		if(typeof range === 'undefined') range = 7;
+		if(typeof cheat === 'undefined') var view = me;
+		else if(cheat == true) var view = -1;
+		_globalInfoNear[x] = [];
+		_globalInfoNear[x][y] = [];
+		_globalInfoNear[x][y][command] = { setTime: gameTime, updateIn: 30000 };
+//		debugMsg("getInfoNear(): gameTime="+gameTime+", setTime="+_globalInfoNear[x][y][command].setTime+", updateIn="+_globalInfoNear[x][y][command].updateIn);
+//		_globalInfoNear[x][y][command].setTime = gameTime;
+//		_globalInfoNear[x][y][command].updateIn = 10000; // <-- запомнить эти значения на 10 секунд игрового времени
+
+		if(command == 'safe'){
+			var danger = new Array();
+			for ( var e = 0; e < maxPlayers; ++e ) {
+				if ( allianceExistsBetween(me,e) ) continue;
+				danger = danger.concat(enumDroid(e, DROID_WEAPON, view));
+				danger = danger.concat(enumDroid(e, DROID_CYBORG, view));
+				danger = danger.concat(enumStruct(e, DEFENSE, view));
+			}
+			if ( scavengerPlayer != -1 ) {
+				danger = danger.concat(enumDroid(scavengerPlayer, DROID_WEAPON, view));
+				danger = danger.concat(enumDroid(scavengerPlayer, DROID_CYBORG, view));
+				danger = danger.concat(enumStruct(scavengerPlayer, DEFENSE, view));
+			}
+			
+			for ( var d in danger ) {
+				if ( distBetweenTwoPoints(x,y,danger[d].x,danger[d].y) < range ) { 
+					_globalInfoNear[x][y][command].value = false;
+					debugMsg("getInfoNear("+x+","+y+","+command+"): setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value);
+					return _globalInfoNear[x][y][command]; 
+				}
+			}
+			_globalInfoNear[x][y][command].value = true;
+			debugMsg("getInfoNear("+x+","+y+","+command+"): setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value);
+			return _globalInfoNear[x][y][command];
+		}else if(command == 'defended'){
+			var defenses = new Array();
+			defenses = enumStruct(me, DEFENSE).filter(function(e){if(e.status == BUILT) return true; return false;});
+			for ( var d in defenses ) {
+				if ( distBetweenTwoPoints(x,y,defenses[d].x,defenses[d].y) < range ) { 
+					_globalInfoNear[x][y][command].value = true;
+					debugMsg("getInfoNear("+x+","+y+","+command+"): setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value);
+					return _globalInfoNear[x][y][command];
+				}
+			}
+			_globalInfoNear[x][y][command].value = false;
+			debugMsg("getInfoNear("+x+","+y+","+command+"): setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value);
+			return _globalInfoNear[x][y][command];
+			
+		}
+	}
+}
+
+
+
 //Функция определяет подвергается ли ремонту наша цель
 //Если да, возвращяем объект, кто ремонтирует нашу цель
 function isBeingRepaired(who){
@@ -255,25 +336,21 @@ function getTarget(target, num){
 	
 	if ( targets.length > 0 ){
 		if ( armyLen >= 2 ){
-			attackObjects(targets, myArmy, 1);
-			return true;
+			if(attackObjects(targets, myArmy, 1)) return true;
 		}
 		if ( armyLen >= 20 ){
-			attackObjects(targets, myArmy, 2);
-			return true;
+			if(attackObjects(targets, myArmy, 2)) return true;
 		}
 	}
 	
 
-	if ( targDroid.length > 0 && armyLen >= targDroid.length) {
+	if ( targDroid.length > 1 && armyLen >= targDroid.length) {
 		targDroid = sortByHealth(targDroid);
 		if(armyLen > 20) {
-			attackObjects(targDroid, myArmy, 2);
-			return true;
+			if(attackObjects(targDroid, myArmy, 2)) return true;
 		}
 		else {
-			attackObjects(targDroid, myArmy, 1);
-			return true;
+			if(attackObjects(targDroid, myArmy, 1)) return true;
 		}
 	}
 
@@ -281,14 +358,12 @@ function getTarget(target, num){
 	var buildLen = targBuilding.length;
 	if ( buildLen != 0 && armyLen > 15 ){
 		targBuilding = sortByDistance(targBuilding,base,null);
-		attackObjects(targBuilding,myArmy,2);
-		return true;
+		if(attackObjects(targBuilding,myArmy,2)) return true;
 	}
 	if( armyLen > 30 && factLen != 0) {
 		targFactory = sortByDistance(targFactory,base,null);
 		targFactory = targets.concat(targResource); //После уничтожения всех заводов ищем строителей
-		attackObjects(targFactory,myArmy,4);
-		return true;
+		if(attackObjects(targFactory,myArmy,4)) return true;
 	}
 
 
@@ -303,6 +378,8 @@ function getTarget(target, num){
 		}
 	}
 
+	debugMsg("enumTargets: Армия бездельничает");
+	
 	return false;
 }
 

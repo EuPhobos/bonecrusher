@@ -1,18 +1,12 @@
-const vernum    = "0.18";
-const verdate   = "05.02.2017";
+const vernum    = "0.19";
+const verdate   = "xx.xx.2017";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
 include("multiplay/skirmish/bc-v"+vernum+"/bc-func.js");
 include("multiplay/skirmish/bc-v"+vernum+"/bc-builders.js");
 
-// Предустановленная тактика игры
-// 1 - AI vs AI (1x1)
-// 2 - AI vs AI (2x2)
-// 3 - AI vs Human
-const cb_tactics     	= 1; 
 
-const d_truck_min	 	= 1;
 const d_truck_normal 	= 5;
 const d_truck_max		= 8;
 const base_range 		= 40; // В каких пределах работают основные строители (не охотники)
@@ -79,103 +73,7 @@ const mr_power 			= "R-Struc-PowerModuleMk1";
 const mr_factory 		= "R-Struc-Factory-Module";
 const mr_lab			= "R-Struc-Research-Module";
 
-const research_primary = [
-	"R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
-	"R-Wpn-MG-Damage02",
-	"R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
-	"R-Vehicle-Prop-Halftracks",	//Полугусенецы
-	"R-Vehicle-Body05",				//Средняя начальная броня
-	"R-Defense-Pillbox01"			//Пулемётный бункер
-];
 
-const research_rockets = [
-	"R-Wpn-Rocket-Damage02",		//HE Rockets Mk2
-	"R-Wpn-Rocket02-MRL",			//Mini-Rocket Array
-	"R-Wpn-Rocket-Accuracy01",
-	"R-Wpn-Rocket-ROF03",
-	"R-Wpn-Rocket-Damage09",
-	"R-Wpn-Rocket-Accuracy02",
-	"R-Cyborg-Hvywpn-TK",
-	"R-Cyborg-Hvywpn-A-T",
-	"R-Wpn-HvArtMissile",
-	"R-Wpn-Missile-ROF03",
-	"R-Wpn-Missile-Damage03",
-];
-
-const research_way_1 = [
-	"R-Wpn-MG2Mk1",
-//	"R-Wpn-MG-Damage03",
-	"R-Struc-Factory-Cyborg",		//Завод киборгов
-	"R-Wpn-MG-Damage04",			//APDSB MG Bullets Mk3
-//	"R-Sys-Engineering01",			//Инженерия (старт)
-//	"R-Sys-Sensor-Turret01",		//Сенсорная башня (для лидера)
-	"R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
-	"R-Wpn-MG3Mk1",					//Тяжолопулемётная башня
-	"R-Vehicle-Prop-Halftracks",	//Полугусенецы
-	"R-Vehicle-Body05",				//Средняя начальная броня
-	"R-Vehicle-Prop-Hover",			//Ховер для строителей
-	"R-Struc-Research-Module",		//Модуль для лаборотории
-	"R-Wpn-Rocket05-MiniPod",		//Скорострельная ракетница
-	"R-Wpn-Cannon1Mk1",				//Пушечная башня
-	"R-Wpn-Flamer01Mk1",			//Огнемётная башня
-	"R-Wpn-Mortar01Lt",				//Гранатное орудие
-	"R-Wpn-Rocket02-MRL",			//Ракетная батарея
-	"R-Wpn-MG4",					//Штурмовой пулемёт
-	"R-Vehicle-Body11",				//Тяжёлая начальная броня
-	"R-Vehicle-Prop-Tracks",		//Гусенецы
-	"R-Wpn-Flame2",					//Горячий напалм
-	"R-Vehicle-Body09",				//Броня "Tiger"
-	"R-Wpn-Mortar3",				//Скорострельная мортира "Pepperpot"
-	"R-Wpn-Flamer-Damage09",		//Самый последний огнемёт (финал)
-//	"Emplacement-RotHow",			//Самая последняя артиллерия (финал)
-	"R-Sys-Sensor-UpLink",			//Открыть всю карту
-];
-
-const research_way_power = [
-	"R-Struc-Power-Upgrade03a",
-];
-
-const research_way_defence = [
-	"R-Defense-Pillbox01",
-	"R-Defense-Tower06",
-	"R-Defense-WallTower-HPVcannon",
-	"R-Defense-MRL",
-	"R-Defense-HvyHowitzer",
-];
-
-const research_way_2 = [
-	"R-Struc-Research-Upgrade09",
-	"R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
-	"R-Vehicle-Engine09",
-];
-const research_way_3 = [
-	"R-Sys-Autorepair-General",		//Автопочинка
-//	"R-Defense-Wall-RotMg",
-];
-
-const research_way_4 = [
-	"R-Wpn-MG-Damage08",
-	"R-Wpn-MG5",
-];
-
-const research_way_5 = [
-	"R-Cyborg-Armor-Heat09",		//Термостойкая броня киборгов (финал)
-	"R-Defense-MassDriver",
-	"R-Vehicle-Body14",
-];
-
-//Переменная приоритетов путей исследований
-var research_way = [
-research_primary,
-research_way_power,
-research_way_1,
-research_rockets,
-research_way_defence,
-research_way_2,
-research_way_3,
-research_way_4,
-research_way_5,
-];
 
 //for ( var r in research_way ){
 //	debugMsg(research_way[r],2);
@@ -542,6 +440,9 @@ function lets_go() {
 		groupBuilders(u_builders[b]);
 //		groupAddDroid(baseBuilders, u_builders[b]);
 	}
+	
+//	include("multiplay/skirmish/bc-v"+vernum+"/strat-rich.js");
+	include("multiplay/skirmish/bc-v"+vernum+"/strat-normal.js");
 	
 //	buildSome();
 //	doResearch();
@@ -1255,7 +1156,7 @@ function buildSomeMachine(){
 //			debugMsg("Части машин: "+bd_machine_propulsions.length+"/"+d_machine_propulsions.length+"-колёс, "+bd_machine_bodys.length+"/"+d_machine_bodys.length+"-брони, "+bd_machine_turrets.length+"/"+d_machine_turrets.length+"-башен: Собираю ["+d_wheel+"|"+d_body+"|"+d_turret+"]",3);
 //			var u_builders_c = countDroid(DROID_CONSTRUCT, me);
 //            debugMsg("bc_cc.length="+bc_cc.length+"; bc_cc_c="+bc_cc_c+"; bc_cc_r.length="+bc_cc_r.length,2);
-			if ( d_truck_min > u_builders_c || need_builder == true || forced_builders != 0 || (armyLen > 20 && my_money > 1000 && u_builders_c < d_truck_max)){
+			if ( u_builders_c == 0 || need_builder == true || forced_builders != 0 || (armyLen > 20 && my_money > 1000 && u_builders_c < d_truck_max)){
 				if(forced_builders > 0)forced_builders--;
 				var _wheel = bd_machine_propulsions[d_wheel];
 				if ( getResearch("R-Vehicle-Prop-Hover").done ) _wheel = "hover01";
