@@ -1,0 +1,4 @@
+[AI]
+name = "BoneCrusher! v0.20"
+js = bc-v0.20/main.js
+tip = "for AI vs AI competition"

@@ -91,7 +91,6 @@ const research_way_cannon = [
 "R-Wpn-Cannon-ROF06",			//Cannon Rapid Loader Mk3
 "R-Wpn-Cannon-Accuracy02",		//Cannon Laser Designator
 "R-Wpn-Cannon-Damage09"		//HVAPFSDS Cannon Rounds Mk3
-
 ];
 
 const research_way_5 = [
@@ -125,7 +124,7 @@ function mainBuilders(rotation){
 		//Если строители свободны, ищем чего-бы достроить или починить
 		var myBase = enumStruct(me);
 		for ( var b in myBase ){
-			if(getDistance(myBase[b]) > base_range)continue;
+			if(distBetweenTwoPoints(base.x,base.y,myBase[b].x,myBase[b].y) > base_range)continue;
 			if(myBase[b].status == BEING_BUILT) {orderDroidObj(obj, DORDER_HELPBUILD, myBase[b]); return;}
 			if(myBase[b].health < 100) {orderDroidObj(obj, DORDER_REPAIR, myBase[b]); return;}
 		}
@@ -137,14 +136,14 @@ function mainBuilders(rotation){
 		else if(hq_ready.length == 0) { builderBuild(obj, "A0CommandCentre", rotation); return; }
 		//Генератор энергии
 		else if(power_gen_ready.length == 0) { builderBuild(obj, "A0PowerGenerator", rotation); return; }
-		else if(research_lab_ready.length < 3 && my_money > 200) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
-		else if(factory_ready.length < 4 && my_money > 300) { builderBuild(obj, "A0LightFactory", rotation); return; }
-		else if(research_lab_ready.length < 4 && my_money > 300) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
-		else if(factory_ready.length < 5 && my_money > 800) { builderBuild(obj, "A0LightFactory", rotation); return; }
-		else if(research_lab_ready.length < 5 && my_money > 500) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
-		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length == 2 && my_money > 300) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
-		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 5 && my_money > 800) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
-		else if( (power_gen_ready.length * 4) <= resource_extractor.length && (power_gen.length < max_power) ) { builderBuild(obj, "A0PowerGenerator", rotation); return; }
+		else if(research_lab_ready.length < 3 && playerPower(me) > 200) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
+		else if(factory_ready.length < 4 && playerPower(me) > 300) { builderBuild(obj, "A0LightFactory", rotation); return; }
+		else if(research_lab_ready.length < 4 && playerPower(me) > 300) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
+		else if(factory_ready.length < 5 && playerPower(me) > 800) { builderBuild(obj, "A0LightFactory", rotation); return; }
+		else if(research_lab_ready.length < 5 && playerPower(me) > 500) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
+		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length == 2 && playerPower(me) > 300) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
+		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 5 && playerPower(me) > 800) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
+		else if( (power_gen_ready.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { builderBuild(obj, "A0PowerGenerator", rotation); return; }
 		//		else { debugMsg("buildersOrder: Строителям нефиг делать"); }
 		
 		
@@ -154,8 +153,8 @@ function mainBuilders(rotation){
 		if(rigDefence(obj)) return;
 
 		//Если свободны, и далеко от базы - отправляем домой
-		if(getDistance(obj) > 10 && !builderBusy(obj)) { orderDroidLoc(obj,DORDER_MOVE,p_start.x,p_start.y); return; }
-		debugMsg("buildersOrder(): Строители бездельничают "+iter);
+		if(distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) > 10 && !builderBusy(obj)) { orderDroidLoc(obj,DORDER_MOVE,base.x,base.y); return; }
+		debugMsg("buildersOrder(): Строители бездельничают "+iter, 'builders');
 		
 		
 	});
