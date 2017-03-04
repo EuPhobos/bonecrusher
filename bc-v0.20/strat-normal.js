@@ -117,8 +117,7 @@ const research_way_5 = [
 
 //Переменная приоритетов путей исследований
 var research_way = [
-research_test
-/*
+
 research_primary,
 research_way_1,
 research_way_2,
@@ -130,7 +129,8 @@ research_way_cannon,
 research_rockets,
 research_way_3,
 research_way_4,
-research_way_5,*/
+research_way_5,
+
 ];
 
 
