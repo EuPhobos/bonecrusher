@@ -1,3 +1,4 @@
+const research_test = ["R-Wpn-MG1Mk1"];
 
 const research_primary = [
 "R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
@@ -11,9 +12,9 @@ const research_primary = [
 
 
 const research_way_1 = [
+"R-Sys-MobileRepairTurret01",	//Паяльник
 "R-Struc-Research-Module",		//Модуль для лаборотории
 "R-Wpn-Cannon1Mk1",				//Лёгкая пушка
-//"R-Sys-MobileRepairTurret01",	//Паяльник
 "R-Vehicle-Body05",				//Средняя начальная броня
 "R-Vehicle-Body04",				//Лёгкая броня Bug
 //	"R-Wpn-MG-Damage03",
@@ -116,6 +117,8 @@ const research_way_5 = [
 
 //Переменная приоритетов путей исследований
 var research_way = [
+research_test
+/*
 research_primary,
 research_way_1,
 research_way_2,
@@ -127,7 +130,7 @@ research_way_cannon,
 research_rockets,
 research_way_3,
 research_way_4,
-research_way_5,
+research_way_5,*/
 ];
 
 

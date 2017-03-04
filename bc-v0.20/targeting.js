@@ -1,6 +1,11 @@
 function targetVTOL(){
-	var target = sortByDistance(getEnemyDefences(), base);
-	if(target.length == 0) target = sortByDistance(getEnemyResources(), base);
+	var target = [];
+	target = sortByDistance(getEnemyDefences(), base);
+	if(target.length == 0){
+		target = target.concat(getEnemyResources());
+		target = target.concat(getEnemyBuilders());
+		target = sortByDistance(target, base, 1);
+	}
 	if(target.length == 0) target = sortByDistance(getEnemyFactories(), base);
 	var group = enumGroup(VTOLAttacker).filter(function(e){if(e.action == 32 || e.action == 33 || e.action == 34 || e.action == 35 || e.action == 36 || e.action == 37)return false;return true});
 	debugMsg("VTOLs: "+groupSize(VTOLAttacker)+"; ready: "+group.length+"; targets: "+target.length, "vtol");
@@ -12,55 +17,65 @@ function targetVTOL(){
 	}
 }
 
+function targetFixers(){
+	var fixers = enumGroup(armyFixers);
+	var partisans = enumGroup(armyPartisans);
+	
+	
+	if(fixers.length == 0 || partisans.length == 0) return;
+	partisans.reverse();
+	
+	var target = partisans[0];
+	debugMsg("Move all repairs to "+target.x+"x"+target.y, 'targeting');
+	fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, target.x, target.y);})
+	
+}
+
 function targetPartisan(){
-	/*
-	nastyFeatures=[];
-	var _trash = enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.damageable)return true;return false;});
-	allResources.forEach(function(r){
-		nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
-			if(distBetweenTwoPoints(r.x,r.y,e.x,e.y) < 7)return true;
-			return false;
-		}));
-	});
-	nastyFeatures = removeDuplicates(nastyFeatures, 'id');
-	nastyFeatures = sortByDistance(nastyFeatures, base);
-	*/
+
 	var partisans = enumGroup(armyPartisans);
 	if(partisans.length == 0) return false;
-	var target;
+	var target=[];
+	target = target.concat(getEnemyNearBase());
+
+
 	//Если слишком мало партизан, то кучкуем армию у ближайших ресурсов за пределами базы
-	if(partisans.length < 5){
-		/*
-		if(nastyFeatures.length != 0){
-			partisans.forEach(function(e){
-				debugMsg("purge trash "+nastyFeatures[0].name+" at "+nastyFeatures[0].x+"x"+nastyFeatures[0].y, 'targeting');
-				orderDroidObj(e, DORDER_ATTACK, nastyFeatures[0]);
-				if(nastyFeatures.length > 1)nastyFeatures.shift();
-			});
-			return;
-		}
-		*/
-		target = sortByDistance(getSeeResources(), base).filter(function(e){
-			if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) > base_range && droidCanReach(partisans[0], e.x,e.y) )return true;return false;
+	if(partisans.length < 5 && target.length==0){
+		target = target.concat(getUnknownResources());
+		target = target.concat(getSeeResources());
+		target = sortByDistance(target, base).filter(function(e){
+			if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range && droidCanReach(partisans[0], e.x,e.y) )return true;return false;
 		});
+		
 		if(target.length != 0){
-			debugMsg("Мало партизан "+partisans.length+", собираю всех у "+target[0].name+" недалеко от базы "+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
-			partisans.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, target[0].x, target[0].y);});
+			if(target.length > 4) target = target.slice(4);
+			target = target[Math.floor(Math.random()*target.length)];
+//			debugMsg("Мало партизан "+partisans.length+", собираю всех у "+target[0].name+" недалеко от базы "+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
+			partisans.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, target.x, target.y);});
 		}
 		return false;
 	}
 
+
 	//Атакую партизанами ближайшую нефтевышку
-	target = getEnemyResources();
-//	target = target.concat(nastyFeatures);
-	target = sortByDistance(target, partisans[0], 1, true);
+	if(target.length == 0){
+		target = getEnemyResources();
+		target = target.concat(getEnemyWalls());
+		target = sortByDistance(target, partisans[0], 1, true);
+	}
 	if(target.length == 0) target = sortByDistance(getUnknownResources(), partisans[0], 1, true);
+	if(target.length == 0) target = sortByDistance(getEnemyFactories(), partisans[0], 1, true);
 	if(target.length != 0){
-		debugMsg("Партизан="+partisans.length+", атакую "+target[0].name+" расстояние от партизан="+distBetweenTwoPoints(partisans[0].x,partisans[0].y,target[0].x,target[0].y)+", от базы="+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
+//		debugMsg("Партизан="+partisans.length+", атакую "+target[0].name+" расстояние от партизан="+distBetweenTwoPoints(partisans[0].x,partisans[0].y,target[0].x,target[0].y)+", от базы="+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
 		partisans.forEach(function(e){
-//			if(target[0].type == FEATURE)orderDroidObj(e, DORDER_ATTACK, target[0]);
-//			else
-			orderDroidLoc(e, DORDER_SCOUT, target[0].x, target[0].y);
+			if( (target[0].type == STRUCTURE && target[0].stattype == WALL) || (target[0].type == DROID && target[0].droidType == DROID_CONSTRUCT) ){
+				orderDroidObj(e, DORDER_ATTACK, target[0]);
+				debugMsg("ATTACK "+target[0].name, 'targeting');
+			}
+			else{
+				orderDroidLoc(e, DORDER_SCOUT, target[0].x, target[0].y);
+				debugMsg("SCOUT to "+target[0].x+"x"+target[0].y, 'targeting');
+			}
 		});
 		return true;
 	}
@@ -87,7 +102,11 @@ function targetCyborgs(){
 				target = sortByDistance(target, e, 1); //Пересортировываем ещё раз быстро с одним выводом в отношении данного киборга
 			}
 			
-			if(target[0].type == FEATURE){ //Если всё таки мусор ближе, атакуем
+			var feature = false;
+			try {if(target[0].type == FEATURE)feature = true;}
+			catch(e) {debugMsg("!! "+e.message+' !!', 'error');}
+			
+			if(feature){ //Если всё таки мусор ближе, атакуем
 //				debugMsg("Cyborgs purge trash #"+target[0].id+" "+target[0].name+" at "+target[0].x+"x"+target[0].y, 'targeting');
 				try {orderDroidObj(e, DORDER_ATTACK, target[0]);}
 				catch(e) {debugMsg("!!! "+e.message+' !!!', 'error');}
@@ -95,7 +114,7 @@ function targetCyborgs(){
 //				debugMsg(nastyFeatures.length+"/"+nastyFeaturesLen+' Delete trash '+_deleted.name+' at '+_deleted.x+'x'+_deleted.y, 'targeting');
 				target = _target; // и возвращаем переменную целей
 			}else{
-				debugMsg("Cyporgs attack "+target[0].name+" at "+target[0].x+"x"+target[0].y, 'targeting');
+//				debugMsg("Cyborgs attack "+target[0].name+" at "+target[0].x+"x"+target[0].y, 'targeting');
 				orderDroidLoc(e, DORDER_SCOUT, target[0].x, target[0].y);
 				if(nastyFeatures.length != 0 && enemy.length == 0) target = _target;
 			}

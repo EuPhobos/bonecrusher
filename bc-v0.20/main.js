@@ -20,6 +20,11 @@ var base;
 
 var base_range = 40; // В каких пределах работают основные строители (не охотники)
 
+var buildersTimer = 25000;		//Триггер для заказа строителей (что бы не выходили пачкой сразу)
+var fixersTimer = 50000;		//Триггер для заказа инженеров
+var buildersTrigger = 0;
+var fixersTrigger = 0;
+
 //Цвета
 var colors = new Array("Green","Orange","Grey","Black","Red","Blue","Pink","Cyan","Yellow","Purple","White","Bright blue","Neon green","Infrared","Ultraviolet","Brown");
 
@@ -33,6 +38,7 @@ var armyRegular = newGroup();
 var targRegular={x:0,y:0};
 var armySupport = newGroup();
 var armyCyborgs = newGroup();
+var armyFixers = newGroup();
 
 var VTOLAttacker = newGroup();
 
@@ -133,7 +139,7 @@ var guns=[
 ["R-Wpn-Missile2A-T", "Missile-A-T"],				//Тяжолая противотанковая пара ракет прямого наведения
 //	===== Ракеты артиллерии
 ["R-Wpn-Rocket02-MRL", "Rocket-MRL"],				//Лёгкая артиллерийская ракетная баттарея
-["R-Wpn-Rocket06-IDF", "Rocket-IDF"],				//Дальнобойная артиллерийская ракетная баттарея
+//["R-Wpn-Rocket06-IDF", "Rocket-IDF"],				//Дальнобойная артиллерийская ракетная баттарея
 ["R-Wpn-MdArtMissile", "Missile-MdArt"],			//Улучшенная артиллерийская ракетная баттарея
 ["R-Wpn-HvArtMissile", "Missile-HvyArt"],			//Улучшенная дальнобойная артиллерийская ракетная баттарея
 //	===== Мортиры
@@ -211,15 +217,18 @@ function letsRockThisFxxxingWorld(){
 	queue("prepeareProduce", 3000);
 	queue("produceDroids", 3000);
 	setTimer("buildersOrder", 2000);
+	setTimer("targetCyborgs", 3000);
+	setTimer("targetPartisan", 5000);
+	setTimer("targetFixers", 8000);
 	setTimer("doResearch", 9000);
+	setTimer("defenceQueue", 11000);
+//	setTimer("targetCyborgs", 28000);
 	setTimer("produceDroids", 29000);
 	setTimer("produceVTOL", 30000);
 	setTimer("produceCyborgs", 31000);
-	setTimer("defenceQueue", 11000);
-	setTimer("targetPartisan", 10000);
 	setTimer("targetRegular", 32000);
-	//setTimer("targetCyborgs", 28000);
-	setTimer("targetCyborgs", 3000);
+	
+	
 	setTimer("nastyFeaturesClean", 35000);
 	setTimer("stats", 10000); // Отключить в релизе
 }

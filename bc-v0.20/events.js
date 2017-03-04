@@ -59,7 +59,7 @@ function eventObjectTransfer(gameObject, from) {
 	
 	if (gameObject.player == me) { // Что то получили
 		if (allianceExistsBetween(me,from)) { // От союзника
-			switch (droid.droidType) {
+			switch (gameObject.droidType) {
 				case DROID_WEAPON:
 					if(isVTOL(gameObject))groupAddDroid(VTOLAttacker,gameObject);
 					groupArmy(gameObject);
@@ -124,6 +124,7 @@ function eventDroidBuilt(droid, structure) {
 	switch (structure.stattype) {
 		case FACTORY:
 			if(droid.droidType == DROID_WEAPON) groupArmy(droid);
+			if(droid.droidType == DROID_REPAIR) groupArmy(droid);
 			produceDroids();
 			targetRegular();
 			break;
@@ -143,4 +144,5 @@ function eventDroidBuilt(droid, structure) {
 
 function eventAttacked(victim, attacker) {
 	if((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE) ) targetRegular(attacker);
+	if(victim.type == DROID && victim.droidType == DROID_WEAPON) orderDroidLoc(victim, DORDER_MOVE, base.x, base.y);
 }

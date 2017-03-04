@@ -243,6 +243,7 @@ function oilHunt(obj, nearbase){
 	if (builderBusy(obj)) return false;
 	var myDefence = enumStruct(me,DEFENSE);
 	builder_targets = builder_targets.concat(myDefence.filter(function(e){if(e.status == 0 || e.health < 90) return true; return false;})); //Добавляем к целям недостроенные защитные сооружения
+	
 
 	//Если строитель рядом с вражеским ресурсом
 	/*
@@ -257,6 +258,7 @@ function oilHunt(obj, nearbase){
 		}
 	}}}
 	*/
+	
 	
 	//Если строитель рядом с целью
 	for(var i in builder_targets){

@@ -172,6 +172,13 @@ function groupArmy(droid){
 		return;
 	}
 	
+	if(droid.droidType == DROID_REPAIR){
+		debugMsg("armyFixers +1", 'group');
+		groupAddDroid(armyFixers, droid);
+		return;
+	}
+	
+	
 	//Если армия партизан меньше 7 или нет среднего Body
 	if(groupSize(armyPartisans) < 7 || !getResearch("R-Vehicle-Body05").done){
 //	if(groupSize(armyPartisans) < 5){
@@ -194,12 +201,22 @@ function produceDroids(){
 	if(droid_factories.length != 0){
 		
 		//Строители
-		//Если строители не в лимите
-		//Если база не подвергается нападению
+		//Если строители не в лимите -И- база не подвергается нападению
 		//Если целей для охотников более 7 -И- денег более 700 -ИЛИ- строитель всего один а денег более 300 -ИЛИ- вообще нет строителей
 		//ТО заказуаэм!
-		if( builders.length < (builders_limit-3) && ( (playerPower(me) > 700 && builder_targets.length > 7) || builders.length == 0 || (groupSize(buildersMain) == 1 && playerPower(me) > 300) ) && getInfoNear(base.x,base.y,'safe',base_range,60000) ){
+		debugMsg("buildersTrigger="+buildersTrigger+"; fixersTrigger="+fixersTrigger+"; gameTime="+gameTime, 'production');
+		if( (builders.length < (builders_limit-3) && getInfoNear(base.x,base.y,'safe',base_range,10000))
+			&& ( (playerPower(me) > 700 && builder_targets.length > 7 && buildersTrigger < gameTime) || (groupSize(buildersMain) == 1 && playerPower(me) > 300) || builders.length == 0 ) ){
 			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
+			buildersTrigger = gameTime + buildersTimer;
+			return;
+		}
+		
+		if (getInfoNear(base.x,base.y,'safe',base_range,10000) && groupSize(armyFixers) < 5 && fixersTrigger < gameTime && getResearch("R-Sys-MobileRepairTurret01").done){
+			fixersTrigger = gameTime + fixersTimer;
+			var _repair = "LightRepair1";
+			if(getResearch("R-Sys-MobileRepairTurretHvy").done) _repair = "HeavyRepair";
+			buildDroid(droid_factories[0], "Fixer", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_REPAIR, _repair);
 			return;
 		}
 		
@@ -216,7 +233,7 @@ function produceDroids(){
 	}
 }
 function produceCyborgs(){
-	if(playerPower(me) < 200 && groupSize(VTOLAttacker) > 2) return;
+	if(playerPower(me) < 200 && groupSize(armyCyborgs) > 2) return;
 	var cyborg_factories = enumStruct(me,CYBORG_FACTORY).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
 	debugMsg("Cyborg: fact="+cyborg_factories.length+"; cyb="+avail_cyborgs.length, 'production');
 	if(cyborg_factories.length != 0 && avail_cyborgs.length != 0 && groupSize(armyCyborgs) < 20){
@@ -291,6 +308,7 @@ function stats(){
 	debugMsg("Army: "+enumDroid(me, DROID_WEAPON).length+"; Partisans="+groupSize(armyPartisans)+"; Regular="+groupSize(armyRegular)+"; Borgs="+groupSize(armyCyborgs)+"; VTOL="+groupSize(VTOLAttacker), 'stats');
 	debugMsg("Builders: "+enumDroid(me, DROID_CONSTRUCT).length+"; Main="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters), 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
+	debugMsg("Base: defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length, 'stats');
 	debugMsg("Bodies: light="+light_bodies.length+"; medium="+medium_bodies.length+"; heavy="+heavy_bodies.length, 'stats');
 	debugMsg("Misc: nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen,'stats');
 }
@@ -371,6 +389,8 @@ function isBeingRepaired(who){
 //2. При постройке лабаротории
 //3. При завершении исследования
 function doResearch(){
+	
+	//var research = research_way;
 	
 	if ( research_way.length == 0 ) {
 		debugMsg("doResearch: Исследовательские пути завершены! Останов.",3);
@@ -493,7 +513,7 @@ function getUnknownResources(){
 }
 
 
-//Функция возвращает все видимые ресурсы, свободные, свои и союзников
+//Функция возвращает все видимые ресурсы, свободные, свои и занятые кем либо
 function getSeeResources(){
 	iSee = new Array();
 	iSee = iSee.concat(enumFeature(me, "OilResource"));
@@ -536,6 +556,17 @@ function getEnemyNearBase(){
 	return targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range)return true; return false;});
 }
 
+function getEnemyBuilders(){
+	var targ = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		targ = targ.concat(enumDroid(e, DROID_CONSTRUCT, me));
+		targ = targ.concat(enumDroid(e, 10, me)); // Киборг-строитель
+	}
+	return targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range)return true; return false;});
+}
+
+
 function getEnemyDefences(){
 	var targ = [];
 	for ( var e = 0; e < maxPlayers; ++e ) {
@@ -544,6 +575,18 @@ function getEnemyDefences(){
 	}
 	if(scavengers == true) {
 		targ = targ.concat(enumStruct(scavengerPlayer, DEFENSE, me));
+		targ = targ.concat(enumStruct(scavengerPlayer, WALL, me));
+	}
+	return targ;
+}
+
+function getEnemyWalls(){
+	var targ = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		targ = targ.concat(enumStruct(e, WALL, me));
+	}
+	if(scavengers == true) {
 		targ = targ.concat(enumStruct(scavengerPlayer, WALL, me));
 	}
 	return targ;
