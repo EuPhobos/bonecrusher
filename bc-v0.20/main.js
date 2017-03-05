@@ -7,10 +7,11 @@ include("multiplay/skirmish/bc-v"+vernum+"/functions.js");
 include("multiplay/skirmish/bc-v"+vernum+"/builders.js");
 include("multiplay/skirmish/bc-v"+vernum+"/targeting.js");
 include("multiplay/skirmish/bc-v"+vernum+"/events.js");
+include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 
 //DEBUG: количество вывода, закоментить перед релизом
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
-var debugLevels = new Array('init', 'targeting', 'production', 'builders', 'vtol', 'stats', 'group', 'events', 'error');
+var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders');
 
 //Координаты всех ресурсов, свободных и занятых
 var allResources;
@@ -25,13 +26,17 @@ var fixersTimer = 50000;		//Триггер для заказа инженеро�
 var buildersTrigger = 0;
 var fixersTrigger = 0;
 
-//Цвета
-var colors = new Array("Green","Orange","Grey","Black","Red","Blue","Pink","Cyan","Yellow","Purple","White","Bright blue","Neon green","Infrared","Ultraviolet","Brown");
+var avail_research = [];	//Массив возможных исследований, заполняется в функции doResearch();
+
+var running = false;	//Работаем?
+
 
 var scavengerPlayer = -1;
 
 var buildersMain = newGroup();
 var buildersHunters = newGroup();
+
+var maxConstructors = 15;
 
 var armyPartisans = newGroup();
 var armyRegular = newGroup();
@@ -39,8 +44,20 @@ var targRegular={x:0,y:0};
 var armySupport = newGroup();
 var armyCyborgs = newGroup();
 var armyFixers = newGroup();
-
 var VTOLAttacker = newGroup();
+
+var maxPartisans = 30;
+var maxRegular = 50;
+var maxVTOL = 20;
+var maxCyborgs = 20;
+var maxFixers = 5;
+
+
+
+var maxFactories, maxFactoriesCyb, maxFactoriesVTOL, maxLabs, maxPads;
+var maxExtractors = 40;
+var maxGenerators = 10;
+
 
 var eventsRun=[];
 eventsRun['targetCyborgs'] = 0;
@@ -169,13 +186,14 @@ function letsRockThisFxxxingWorld(){
 	
 	//Получаем свои координаты
 	base = startPositions[me];
-	debugMsg("Похоже это моя стартовая позиция: ("+base.x+","+base.y+")",2);
+	debugMsg("Похоже это моя стартовая позиция: ("+base.x+","+base.y+")", 'init');
 	
 	//Получаем координаты всех ресурсов и занятых и свободных
 	allResources = enumFeature(ALL_PLAYERS, "OilResource");
 	var nearResources = allResources.filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < base_range) return true; return false;});
 	nearResources = nearResources.concat(enumStruct(me, "A0ResourceExtractor").filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < base_range) return true; return false;}));
 	debugMsg("На карте "+allResources.length+" свободных ресурсов", 'init');
+	
 	for ( var e = 0; e < maxPlayers; ++e ) allResources = allResources.concat(enumStruct(e,RESOURCE_EXTRACTOR));
 	if(scavengers == true){
 		allResources = allResources.concat(enumStruct(scavengerPlayer, "A0ResourceExtractor"));
@@ -183,18 +201,62 @@ function letsRockThisFxxxingWorld(){
 	debugMsg("На карте "+allResources.length+" всего ресурсов, рядом "+nearResources.length, 'init');
 	
 	if(nearResources.length > 30){
+		//TODO
 		debugMsg("Играем по тактике богатых карт.", 'init');
-		include("multiplay/skirmish/bc-v"+vernum+"/strat-rich.js");
+		//		include("multiplay/skirmish/bc-v"+vernum+"/strat-rich.js");
+		include("multiplay/skirmish/bc-v"+vernum+"/strat-normal.js");
 	}else{
 		include("multiplay/skirmish/bc-v"+vernum+"/strat-normal.js");
 	}
+	
+	//Лимиты:
+	maxFactories = getStructureLimit("A0LightFactory", me);
+	maxLabs = getStructureLimit("A0ResearchFacility", me);
+	maxGenerators = getStructureLimit("A0PowerGenerator", me);
+	maxFactoriesCyb = getStructureLimit("A0CyborgFactory", me);
+	maxFactoriesVTOL = getStructureLimit("A0VTolFactory1", me);
+	maxPads = getStructureLimit("A0VtolPad", me);
+	
+	//Лёгкий режим
+	if(difficulty == EASY){
+		debugMsg("Похоже я играю с нубами, будем поддаваться:", 'init');
+		
+		//Забываем все предустановленные исследования
+		//Исследуем в полном рандоме.
+		research_way=[["R-Wpn-MG1Mk1"]];
+		
+		//Уменьшаем размеры армий
+		(maxPartisans > 7)?maxPartisans = 7:{};
+		(maxRegular > 0)?maxRegular = 0:{};
+		(maxVTOL > 5)?maxVTOL = 5:{};
+		(maxCyborgs > 5)?maxCyborgs = 5:{};
+		(maxFixers > 2)?maxFixers = 2:{};
+		
+		//Уменьшаем кол-во строителей
+		(maxConstructors > 7)?maxConstructors = 7:{};
+		
+		//Уменьшаем размер базы
+		(maxFactories > 2)?maxFactories = 2:{};
+		(maxFactoriesCyb > 1)?maxFactoriesCyb = 1:{};
+		(maxFactoriesVTOL > 1)?maxFactoriesVTOL = 1:{};
+		(maxPads > 2)?maxPads = 2:{};
+	}
+	
+	debugMsg("Лимиты базы: maxFactories="+maxFactories+"; maxFactoriesCyb="+maxFactoriesCyb+"; maxFactoriesVTOL="+maxFactoriesVTOL+"; maxPads="+maxPads+"; maxLabs="+maxLabs+"; maxGenerators="+maxGenerators+"; maxExtractors="+maxExtractors, 'init');
+	debugMsg("Лимиты юнитов: maxPartisans="+maxPartisans+"; maxRegular="+maxRegular+"; maxCyborgs="+maxCyborgs+"; maxVTOL="+maxVTOL+"; maxFixers="+maxFixers+"; maxConstructors="+maxConstructors, 'init');
+	
+
 	
 	debugMsg("Игроков на карте: "+maxPlayers,2);
 	playerData.forEach( function(data, player) {
 		var msg = "Игрок №"+player+" "+colors[data.colour];
 		if (player == me) {msg+=" я сам ИИ";}
+		else if(playerLoose(player)){msg+=" отсутствует";}
 		else if(allianceExistsBetween(me,player)){msg+=" мой союзник";}
 		else{msg+=" мой враг";}
+		
+		msg+=" ["+startPositions[player].x+"x"+startPositions[player].y+"]";
+		
 		debugMsg(msg,"init");
 	});
 	
@@ -214,22 +276,25 @@ function letsRockThisFxxxingWorld(){
 	//Первых строителей в группу
 	enumDroid(me,DROID_CONSTRUCT).forEach(function(e){groupBuilders(e);});
 
+	
+
 	queue("prepeareProduce", 3000);
 	queue("produceDroids", 3000);
+	
+	running = true;
 	setTimer("buildersOrder", 2000);
 	setTimer("targetCyborgs", 3000);
 	setTimer("targetPartisan", 5000);
 	setTimer("targetFixers", 8000);
-	setTimer("doResearch", 9000);
 	setTimer("defenceQueue", 11000);
+	setTimer("doResearch", 15000);
 //	setTimer("targetCyborgs", 28000);
 	setTimer("produceDroids", 29000);
 	setTimer("produceVTOL", 30000);
 	setTimer("produceCyborgs", 31000);
 	setTimer("targetRegular", 32000);
-	
-	
 	setTimer("nastyFeaturesClean", 35000);
+	setTimer("checkProcess", 40000);
 	setTimer("stats", 10000); // Отключить в релизе
 }
 

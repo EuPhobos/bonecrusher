@@ -179,9 +179,8 @@ function groupArmy(droid){
 	}
 	
 	
-	//Если армия партизан меньше 7 или нет среднего Body
-	if(groupSize(armyPartisans) < 7 || !getResearch("R-Vehicle-Body05").done){
-//	if(groupSize(armyPartisans) < 5){
+	//Если армия партизан меньше 7 -ИЛИ- нет среднего Body -ИЛИ- основная армия достигла лимитов
+	if(groupSize(armyPartisans) < 7 || !getResearch("R-Vehicle-Body05").done || groupSize(armyRegular) >= maxRegular ){
 		debugMsg("armyPartisans +1", 'group');
 		groupAddDroid(armyPartisans, droid);
 	}else{
@@ -194,7 +193,7 @@ function groupArmy(droid){
 function produceDroids(){
 	var droid_factories = enumStruct(me,FACTORY).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
 	
-	var builders_limit = getDroidLimit(me, DROID_CONSTRUCT);
+//	var builders_limit = getDroidLimit(me, DROID_CONSTRUCT);
 	var builders = enumDroid(me, DROID_CONSTRUCT);
 //	debugMsg("Have builders: "+builders.length+"; limits: "+builders_limit, 'production');
 //	debugMsg("Have warriors="+groupSize(armyRegular)+" partisan="+groupSize(armyPartisans), 'production');
@@ -205,14 +204,14 @@ function produceDroids(){
 		//Если целей для охотников более 7 -И- денег более 700 -ИЛИ- строитель всего один а денег более 300 -ИЛИ- вообще нет строителей
 		//ТО заказуаэм!
 		debugMsg("buildersTrigger="+buildersTrigger+"; fixersTrigger="+fixersTrigger+"; gameTime="+gameTime, 'production');
-		if( (builders.length < (builders_limit-3) && getInfoNear(base.x,base.y,'safe',base_range,10000))
+		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range,10000))
 			&& ( (playerPower(me) > 700 && builder_targets.length > 7 && buildersTrigger < gameTime) || (groupSize(buildersMain) == 1 && playerPower(me) > 300) || builders.length == 0 ) ){
 			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
 			buildersTrigger = gameTime + buildersTimer;
 			return;
 		}
 		
-		if (getInfoNear(base.x,base.y,'safe',base_range,10000) && groupSize(armyFixers) < 5 && fixersTrigger < gameTime && getResearch("R-Sys-MobileRepairTurret01").done){
+		if (getInfoNear(base.x,base.y,'safe',base_range,10000) && groupSize(armyFixers) < maxFixers && groupSize(armyPartisans) > 5 && fixersTrigger < gameTime && getResearch("R-Sys-MobileRepairTurret01").done && (playerPower(me) > 300 || groupSize(armyFixers) == 0)){
 			fixersTrigger = gameTime + fixersTimer;
 			var _repair = "LightRepair1";
 			if(getResearch("R-Sys-MobileRepairTurretHvy").done) _repair = "HeavyRepair";
@@ -222,7 +221,7 @@ function produceDroids(){
 		
 		//Армия
 		if(light_bodies.length != 0 && avail_guns.length != 0){
-			if( (groupSize(armyPartisans) < 7 || playerPower(me) > 250)){
+			if( (groupSize(armyPartisans) < 7 || playerPower(me) > 250) && groupSize(armyPartisans) < maxPartisans){
 				var _body=light_bodies;
 				if(playerPower(me)>300 && playerPower(me)<500 && medium_bodies.length != 0) _body = medium_bodies;
 				if(playerPower(me)>800 && heavy_bodies.length != 0) _body = heavy_bodies;
@@ -233,6 +232,7 @@ function produceDroids(){
 	}
 }
 function produceCyborgs(){
+	if(groupSize(armyCyborgs) >= maxCyborgs) return;
 	if(playerPower(me) < 200 && groupSize(armyCyborgs) > 2) return;
 	var cyborg_factories = enumStruct(me,CYBORG_FACTORY).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
 	debugMsg("Cyborg: fact="+cyborg_factories.length+"; cyb="+avail_cyborgs.length, 'production');
@@ -244,6 +244,7 @@ function produceCyborgs(){
 }
 
 function produceVTOL(){
+	if(groupSize(VTOLAttacker) >= maxVTOL) return;
 	if(playerPower(me) < 300 && groupSize(VTOLAttacker) > 3) return;
 	/*
 	 * Missile-VTOL-AT			_("VTOL Scourge Missile")
@@ -306,7 +307,8 @@ function produceVTOL(){
 function stats(){
 	debugMsg("Power: "+playerPower(me)+"; rigs="+enumStruct(me,RESOURCE_EXTRACTOR).length+"; free="+enumFeature(me, "OilResource").length+"; enemy="+getEnemyResources().length+"; unknown="+getUnknownResources().length, 'stats');
 	debugMsg("Army: "+enumDroid(me, DROID_WEAPON).length+"; Partisans="+groupSize(armyPartisans)+"; Regular="+groupSize(armyRegular)+"; Borgs="+groupSize(armyCyborgs)+"; VTOL="+groupSize(VTOLAttacker), 'stats');
-	debugMsg("Builders: "+enumDroid(me, DROID_CONSTRUCT).length+"; Main="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters), 'stats');
+	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers), 'stats');
+	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length, 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
 	debugMsg("Base: defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length, 'stats');
 	debugMsg("Bodies: light="+light_bodies.length+"; medium="+medium_bodies.length+"; heavy="+heavy_bodies.length, 'stats');
@@ -382,6 +384,47 @@ function isBeingRepaired(who){
 	return false;
 }
 
+//Какой-то бардак в функциях движка
+//enumResearch() - возвращает список ТОЛЬКО тех, которые можем стартануть
+//getResearch() - возвращет объект любой запрошенной технологии
+//объект содержит .done и .started которые отвечают за завершённую или запущенную технологию
+//почему бы не сделать что бы enumResearch() возвращал объект ВСЕХ технологий
+//в котором бы содержалась значения .done .started и конежно же .available
+//вместо того что сделано сейчас, можно было бы легко использовать filter()
+//В голову не идёт как это исправить своими силами, забил пока..
+function _doResearch(){
+	avail_research = enumResearch().filter(function(e){if(e.started)return false;return true;});
+	var labs = enumStruct(me,RESEARCH_LAB).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});;
+	var way = false;
+	
+	if(labs.length == 0 ){
+		debugMsg("Нет свободных лабораторий", 'research');
+		return;
+	}
+	
+	if ( avail_research.length == 0 ){
+		debugMsg("Nothing research, "+labs.length+" labs idle..", 'research');
+		return;
+	}
+	
+	if ( research_way.length != 0 ) {
+		way = research_way[0].filter(function(e){if(e.done||e.started)return false;return true;});
+		if (way.length == 0){
+			research_way.shift();
+			debugMsg("Another way is complete, restart", 'research');
+			queue("doResearch", 1000);
+			return;
+		}
+	}
+	
+	if ( research_way.length == 0 ) {
+		debugMsg("Empty research ways, going random..", 'research');
+		//TODO random research here..
+	}
+	
+	
+}
+
 //Функция предерживается приоритетов исследований
 //и ровномерно распределяет по свободным лабораториям
 //и должна вызыватся в 3-х случаях (не в цикле)
@@ -389,11 +432,17 @@ function isBeingRepaired(who){
 //2. При постройке лабаротории
 //3. При завершении исследования
 function doResearch(){
+	avail_research = enumResearch().filter(function(e){if(e.started)return false;return true;});
 	
-	//var research = research_way;
+	if ( research_way.length < 5 ){
+		var _research = avail_research[Math.floor(Math.random()*avail_research.length)].name;
+		debugMsg(_research, 'temp');
+		research_way.push([_research]);
+		debugMsg("doResearch: Исследовательские пути ("+research_way.length+") подходят к концу! Добавляем рандом. \""+research_name[_research]+"\" ["+_research+"]", 'research');
+	}
 	
 	if ( research_way.length == 0 ) {
-		debugMsg("doResearch: Исследовательские пути завершены! Останов.",3);
+		debugMsg("doResearch: Исследовательские пути завершены!!! Останов.", 'research');
 		return;
 	}
 
@@ -405,38 +454,40 @@ function doResearch(){
 	var _way = getResearch(_last_r);
 
 	if ( _way.done == true ) {
-		debugMsg("doResearch: Путей "+research_way.length+", путь "+_r+" завершён",4);
+//		debugMsg("doResearch: Путей "+research_way.length+", путь "+_r+" завершён", 'research');
 		research_way.splice(_r,1);
-		debugMsg("doResearch: Осталось путей "+research_way.length,4);
+//		debugMsg("doResearch: Осталось путей "+research_way.length, 'research');
 		_r=0;
 		if ( research_way.length == 0 ) {
-			debugMsg("doResearch: Исследовательские пути завершены! Останов.",3);
+			debugMsg("doResearch: Исследовательские пути завершены! Останов.", 'research');
 			return;
 		}
 	}
 
 	for ( var l in labs ){
-		if( factoryReady(labs[l]) ){
-			debugMsg("Лаборатория("+labs[l].id+")["+l+"] исследует путь "+_r,4);
+		if( (labs[l].status == BUILT) && structureIdle(labs[l]) ){
+//			debugMsg("Лаборатория("+labs[l].id+")["+l+"] исследует путь "+_r, 'research');
 			pursueResearch(labs[l], research_way[_r]);
 		}else{
-			debugMsg("Лаборатория("+labs[l].id+")["+l+"] занята", 3);
+//			debugMsg("Лаборатория("+labs[l].id+")["+l+"] занята", 'research');
 			_busy++;
 		}
 	}
 
 	if ( _r == research_way.length-1 ) {
 		_r = 0;
-		debugMsg("doResearch: Все исследования запущены, останов.",4);
+//		debugMsg("doResearch: Все исследования запущены, останов.", 'research');
 	} else if (_busy == labs.length ) {
-		debugMsg("doResearch: Все все лаборатории заняты, останов.",4);
+//		debugMsg("doResearch: Все все лаборатории заняты, останов.", 'research');
 		_r = 0;
 	} else {
 		_r++;
-		debugMsg("doResearch: Планировка проверки занятости лабораторий...",4);
-		queue("doResearch", 2000);
+//		debugMsg("doResearch: Планировка проверки занятости лабораторий...", 'research');
+		queue("doResearch", 1000);
 	}
 }
+
+
 
 //Функция сортирует массив по дистанции от заданного массива
 //передаются параметры:
@@ -497,6 +548,67 @@ function sortByHealth(arr){
 	return arr;
 }
 
+function checkProcess(){
+	if(playerLoose(me)){
+		debugMsg("I guess, i'm loose.. Give up", 'end');
+		running = false;
+		removeTimer("buildersOrder");
+		removeTimer("targetCyborgs");
+		removeTimer("targetPartisan");
+		removeTimer("targetFixers");
+		removeTimer("defenceQueue");
+		removeTimer("doResearch");
+		removeTimer("produceDroids");
+		removeTimer("produceVTOL");
+		removeTimer("produceCyborgs");
+		removeTimer("targetRegular");
+		removeTimer("nastyFeaturesClean");
+		removeTimer("checkProcess");
+		removeTimer("stats");
+	}
+}
+
+function playerLoose(player){
+	var loose = false;
+	if(enumStruct(player,"A0LightFactory").length == 0
+		&& enumDroid(player, DROID_CONSTRUCT).length == 0
+		&& enumStruct(player,"A0CyborgFactory").length == 0
+		&& enumDroid(player, 10).length == 0) loose = true;
+	return loose;
+}
+
+//функция отфильтровывает объекты, которые находяться близко
+//к "живым" союзникам, полезно для отказа от захвата ресурсов союзника
+function filterNearAlly(obj){
+	for ( var p = 0; p < maxPlayers; ++p ){
+		if ( p == me ) continue; //Выкидываем себя
+		if ( !allianceExistsBetween(me,p) ) continue; //Выкидываем вражеские
+		if ( playerLoose(p) ) continue; //Пропускаем проигравших
+		obj = obj.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) )return false; return true;})
+	}
+	return obj;
+}
+
+function getEnemyNearAlly(){
+	var targ = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		targ = targ.concat(enumDroid(e, DROID_ANY, me));
+	}
+	if(scavengers == true) {
+		targ = targ.concat(enumStruct(scavengerPlayer, DROID_ANY, me));
+	}
+	
+	for ( var p = 0; p < maxPlayers; ++p ) {
+		if ( p == me ) continue;
+		if ( !allianceExistsBetween(me,p) ) continue;
+		if ( playerLoose(p) ) continue; //Пропускаем проигравших
+		targ = targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) )return true; return false;});
+	}
+	
+	return targ;
+}
+
 //Функция возвращяет вышки, о которых в данный момент не известно ничего
 //Просто сравниваем два массива объектов и фильтруем в третий
 function getUnknownResources(){
@@ -526,9 +638,6 @@ function getSeeResources(){
 	
 }
 
-function factoryReady(what){
-	return ( (what.status == BUILT) && structureIdle(what) );
-}
 
 function getEnemyFactories(){
 	var targ = [];

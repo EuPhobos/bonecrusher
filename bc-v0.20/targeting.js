@@ -23,11 +23,23 @@ function targetFixers(){
 	
 	
 	if(fixers.length == 0 || partisans.length == 0) return;
-	partisans.reverse();
 	
-	var target = partisans[0];
-	debugMsg("Move all repairs to "+target.x+"x"+target.y, 'targeting');
-	fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, target.x, target.y);})
+	if(partisans.length <= 3){
+		fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, base.x, base.y);})
+		return;
+	}
+	
+	partisans.reverse();
+	fixers.reverse();
+	
+	var target = [];
+	target = target.concat(partisans.filter(function(e){if(e.health < 100 && distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) < 7)return true; return false;}));
+	
+	if(target.length == 0) target = partisans;
+	else return;
+//	else target = sortByDistance(target, fixers[0], 1);
+	debugMsg("Move all repairs to "+target[0].x+"x"+target[0].y, 'targeting');
+	fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, target[0].x, target[0].y);})
 	
 }
 
@@ -35,8 +47,16 @@ function targetPartisan(){
 
 	var partisans = enumGroup(armyPartisans);
 	if(partisans.length == 0) return false;
+	var fixers = enumGroup(armyFixers);
+	fixers.reverse();
+	
 	var target=[];
-	target = target.concat(getEnemyNearBase());
+	target = target.concat(sortByDistance(getEnemyWalls(), base, 1));
+	
+	
+	
+	if(target.length == 0)target = target.concat(getEnemyNearBase());
+	if(target.length == 0)target = target.concat(getEnemyNearAlly());
 
 
 	//Если слишком мало партизан, то кучкуем армию у ближайших ресурсов за пределами базы
@@ -60,7 +80,6 @@ function targetPartisan(){
 	//Атакую партизанами ближайшую нефтевышку
 	if(target.length == 0){
 		target = getEnemyResources();
-		target = target.concat(getEnemyWalls());
 		target = sortByDistance(target, partisans[0], 1, true);
 	}
 	if(target.length == 0) target = sortByDistance(getUnknownResources(), partisans[0], 1, true);
@@ -68,6 +87,11 @@ function targetPartisan(){
 	if(target.length != 0){
 //		debugMsg("Партизан="+partisans.length+", атакую "+target[0].name+" расстояние от партизан="+distBetweenTwoPoints(partisans[0].x,partisans[0].y,target[0].x,target[0].y)+", от базы="+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
 		partisans.forEach(function(e){
+			if(e.health < 50 && fixers.length != 0 && distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) > 2){
+				orderDroidLoc(e, DORDER_MOVE, fixers[0].x, fixers[0].y);
+				return;
+			}
+			
 			if( (target[0].type == STRUCTURE && target[0].stattype == WALL) || (target[0].type == DROID && target[0].droidType == DROID_CONSTRUCT) ){
 				orderDroidObj(e, DORDER_ATTACK, target[0]);
 				debugMsg("ATTACK "+target[0].name, 'targeting');
@@ -89,6 +113,7 @@ function targetCyborgs(){
 	target = target.concat(getEnemyDefences());
 	target = target.concat(getEnemyResources());
 	var enemy = getEnemyNearBase();
+	if(enemy.length == 0)getEnemyNearAlly();
 	
 	if(enemy.length != 0) target = enemy; //Заменяем
 	
@@ -127,6 +152,16 @@ function targetCyborgs(){
 function targetRegular(target){
 	var regular = enumGroup(armyRegular);
 	if(regular.length == 0) return false;
+	
+	var help = [];
+	help = getEnemyNearAlly();
+	if(help.length == 0)help = getEnemyNearBase();
+	if(help.length != 0){
+		debugMsg('Helping with our mighty army', 'targeting');
+		regular.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, target.x, target.y);});
+		return;
+	}
+	
 	if(typeof target === 'undefined') target = false;
 	if(target) debugMsg("regular: event от армии "+distBetweenTwoPoints(target.x,target.y,regular[0].x,regular[0].y), 'targeting');
 	if(target && !droidCanReach(regular[0],target.x,target.y )){

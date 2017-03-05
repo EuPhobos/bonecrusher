@@ -59,13 +59,13 @@ function checkBase(){
 function builderBuild(droid, structure, rotation){
 	var struct;
 	switch(structure){
-		case "A0LightFactory":struct = factory; break;
-		case "A0ResearchFacility":struct = research_lab; break;
-		case "A0PowerGenerator":struct = power_gen; break;
+		case "A0LightFactory":if(enumStruct(me,FACTORY).length >= maxFactories)return false;struct = factory; break;
+		case "A0ResearchFacility":if(enumStruct(me,RESEARCH_LAB).length >= maxLabs)return false;struct = research_lab; break;
+		case "A0PowerGenerator":if(enumStruct(me,POWER_GEN).length >= maxGenerators)return false;struct = power_gen; break;
 		case "A0CommandCentre":struct = hq; break;
-		case "A0CyborgFactory":struct = cyborg_factory; break;
-		case "A0VTolFactory1":struct = vtol_factory; break;
-		case "A0VtolPad":struct = rearm_pad; break;
+		case "A0CyborgFactory":if(enumStruct(me,CYBORG_FACTORY).length >= maxFactoriesCyb)return false;struct = cyborg_factory; break;
+		case "A0VTolFactory1":if(enumStruct(me,VTOL_FACTORY).length >= maxFactoriesVTOL)return false;struct = vtol_factory; break;
+		case "A0VtolPad":if(enumStruct(me,REARM_PAD).length >= maxPads)return false;struct = rearm_pad; break;
 //		case "A0ResourceExtractor":struct = resource_extractor; break;
 //		default: return false;
 	}
@@ -124,16 +124,23 @@ var defence = [];
 var builder_targets;
 function buildersOrder(order) {
 	if ( typeof order === "undefined" ) order = false;
-	var rnd = Math.round(Math.random());
-	var rotation = 90;
-	if (rnd == 1)rotation = 180; // ...аа для прикола.
+	var rnd = Math.floor(Math.random()*4);
+	var rotation = 0;
+	switch(rnd){
+		case 0:rotation = 0;break;
+		case 1:rotation = 90;break;
+		case 2:rotation = 180;break;
+		case 3:rotation = 270;break;
+	}
 	checkBase(); // <-- подсчитываем количество строений на базе
 	var buildersMainLen = groupSize(buildersMain);
 	var buildersHuntersLen = groupSize(buildersHunters);
 //	debugMsg("buildersOrder(): buildersMainLen="+buildersMainLen+"; buildersHuntersLen="+buildersHuntersLen+"; rnd="+rnd+"; rotation="+rotation+"; order="+order, 'builders');
 	if ( buildersHuntersLen < 2 ) need_builder = true;
 	
-	builder_targets = enumFeature(me, "OilResource");
+	builder_targets = [];
+	if(resource_extractor.length < maxExtractors) builder_targets = filterNearAlly(builder_targets.concat(enumFeature(me, "OilResource")));
+//	debugMsg("to capture: "+builder_targets.length, 'builders');
 	var oil_free = builder_targets; //для дебага
 	var oil_unknown = getUnknownResources();
 	builder_targets = builder_targets.concat(oil_unknown);
@@ -203,7 +210,8 @@ var defQueue = [];
 function defenceQueue(){
 	var myDefence = enumStruct(me,DEFENSE);
 	var onBase = myDefence.filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < base_range) return true; return false;});
-	var myRigs = enumStruct(me,RESOURCE_EXTRACTOR).filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < base_range && onBase.length > 20) return false; return true;});
+	var myRigs = enumStruct(me,RESOURCE_EXTRACTOR).filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < (base_range/2) && onBase.length > 20) return false; return true;});
+	myRigs = myRigs.concat(enumFeature(me, "OilResource"));
 //	var myRigs = enumStruct(me,RESOURCE_EXTRACTOR);
 //	var enemyRigs = getEnemyResources();
 //	var enQueue = [];
@@ -232,7 +240,7 @@ function defenceQueue(){
 		//Тут можно ещё накидать
 		//if(enQueue.length != 0) Object.assign(defQueue,enQueue); //Похоже Object.assign не работает тут.
 	}
-	debugMsg("defenceQueue(): Защитных башен="+myDefence.length+", отдалённых качалок="+myRigs.length+", типы башен="+defence.length+", к постройке="+defQueue.length);
+	debugMsg("defenceQueue(): Защитных башен="+myDefence.length+", отдалённых качалок="+myRigs.length+", типы башен="+defence.length+", к постройке="+defQueue.length, 'builders');
 //	defQueue=defQueue.concat(enQueue);
 //	debugMsg("defenceQueue(): вражеских="+enQueue.length+", итого="+defQueue.length);
 }

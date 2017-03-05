@@ -1,6 +1,6 @@
 function eventResearched(research, structure) {
 	
-	debugMsg("Новая технология ["+research.name+"]", 'research');
+	debugMsg("Новая технология \""+research_name[research.name]+"\" ["+research.name+"]", 'research');
 	prepeareProduce();
 	queue("doResearch", 1000);
 }
@@ -67,6 +67,7 @@ function eventObjectTransfer(gameObject, from) {
 				case DROID_CONSTRUCT:
 					groupBuilders(gameObject);
 					buildersOrder();
+					if(running == false) queue("letsRockThisFxxxingWorld", 1000);
 					break;
 				case DROID_CYBORG:
 					groupArmy(gameObject);

@@ -12,9 +12,10 @@ const research_primary = [
 
 
 const research_way_1 = [
-"R-Sys-MobileRepairTurret01",	//Паяльник
-"R-Struc-Research-Module",		//Модуль для лаборотории
+"R-Vehicle-Prop-Halftracks",	//Полугусенецы
 "R-Wpn-Cannon1Mk1",				//Лёгкая пушка
+"R-Struc-Research-Module",		//Модуль для лаборотории
+"R-Sys-MobileRepairTurret01",	//Паяльник
 "R-Vehicle-Body05",				//Средняя начальная броня
 "R-Vehicle-Body04",				//Лёгкая броня Bug
 //	"R-Wpn-MG-Damage03",
@@ -24,6 +25,7 @@ const research_way_1 = [
 //	"R-Sys-Sensor-Turret01",		//Сенсорная башня (для лидера)
 "R-Wpn-MG3Mk1",					//Тяжолопулемётная башня
 "R-Vehicle-Prop-Hover",			//Ховер для строителей
+"R-Sys-MobileRepairTurretHvy",	//Тяжёлый паяльник
 "R-Struc-VTOLFactory",			//Авиазавод
 "R-Struc-VTOLPad",				//Заправка авиации A0VtolPad
 "R-Wpn-Rocket01-LtAT",			//Лансер
@@ -47,7 +49,7 @@ const research_way_1 = [
 const research_way_2 = [
 //"R-Struc-Factory-Cyborg",		//Казармы
 "R-Struc-PowerModuleMk1",		//Модуль на генератор
-"R-Vehicle-Prop-Halftracks",	//Полугусенецы
+"R-Sys-MobileRepairTurret01",	//Паяльник
 "R-Struc-Research-Upgrade09",
 "R-Vehicle-Engine09",
 "R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
@@ -117,7 +119,6 @@ const research_way_5 = [
 
 //Переменная приоритетов путей исследований
 var research_way = [
-
 research_primary,
 research_way_1,
 research_way_2,
@@ -129,8 +130,7 @@ research_way_cannon,
 research_rockets,
 research_way_3,
 research_way_4,
-research_way_5,
-
+research_way_5
 ];
 
 
@@ -158,24 +158,23 @@ function mainBuilders(rotation){
 		}
 		
 		//Завод, лаборатория,генератор,ком-центр! - вот залог хорошего пионера!
-		if(factory_ready.length == 0) { builderBuild(obj, "A0LightFactory", rotation); return; }
-		else if(research_lab_ready.length < 1) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
+		if(factory_ready.length == 0) { if(builderBuild(obj, "A0LightFactory", rotation)) return; }
+		if(research_lab_ready.length < 1) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
 		//Ком центр
-		else if(hq_ready.length == 0) { builderBuild(obj, "A0CommandCentre", rotation); return; }
+		if(hq_ready.length == 0) { if(builderBuild(obj, "A0CommandCentre", rotation)) return; }
 		//Генератор энергии
-		else if(power_gen_ready.length == 0) { builderBuild(obj, "A0PowerGenerator", rotation); return; }
-		else if(research_lab_ready.length < 3) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
-		else if(factory_ready.length < 2 && playerPower(me) > 300) { builderBuild(obj, "A0LightFactory", rotation); return; }
-		else if(research_lab_ready.length < 4 && playerPower(me) > 300) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
-		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length == 0 && playerPower(me) > 300) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
-		else if( (power_gen_ready.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { builderBuild(obj, "A0PowerGenerator", rotation);return;}
-		else if(research_lab_ready.length < 5 && playerPower(me) > 500) { builderBuild(obj, "A0ResearchFacility", rotation); return; }
-		else if(factory_ready.length < 5 && playerPower(me) > 1000){ builderBuild(obj, "A0LightFactory", rotation); return; }
-		else if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 5 && playerPower(me) > 1000) { builderBuild(obj, "A0CyborgFactory", rotation); return; }
-		else if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 1){ builderBuild(obj, "A0VTolFactory1", rotation); return; }
-		else if(isStructureAvailable("A0VtolPad") && rearm_pad_ready.length < 9){ builderBuild(obj, "A0VtolPad", rotation); return; }
-		else if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 2 && playerPower(me) > 500){ builderBuild(obj, "A0VTolFactory1", rotation); return; }
-		//		else { debugMsg("buildersOrder: Строителям нефиг делать"); }
+		if(power_gen_ready.length == 0) { if(builderBuild(obj, "A0PowerGenerator", rotation)) return; }
+		if(research_lab_ready.length < 3) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
+		if(factory_ready.length < 2 && playerPower(me) > 300) { if(builderBuild(obj, "A0LightFactory", rotation)) return; }
+		if(research_lab_ready.length < 4 && playerPower(me) > 300) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
+		if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length == 0 && playerPower(me) > 300) { if(builderBuild(obj, "A0CyborgFactory", rotation)) return; }
+		if( (power_gen_ready.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation))return;}
+		if(research_lab_ready.length < 5 && playerPower(me) > 500) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
+		if(factory_ready.length < 5 && playerPower(me) > 1000){ if(builderBuild(obj, "A0LightFactory", rotation)) return; }
+		if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 5 && playerPower(me) > 1000) { if(builderBuild(obj, "A0CyborgFactory", rotation)) return; }
+		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 1){ if(builderBuild(obj, "A0VTolFactory1", rotation)) return; }
+		if(isStructureAvailable("A0VtolPad") && rearm_pad_ready.length < 9){ if(builderBuild(obj, "A0VtolPad", rotation)) return; }
+		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 2 && playerPower(me) > 500){ if(builderBuild(obj, "A0VTolFactory1", rotation)) return; }
 		
 		debugMsg("Строителям нечего строить "+iter, 'builders');
 		
