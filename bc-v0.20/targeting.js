@@ -51,9 +51,7 @@ function targetPartisan(){
 	fixers.reverse();
 	
 	var target=[];
-	target = target.concat(sortByDistance(getEnemyWalls(), base, 1));
-	
-	
+	target = target.concat(sortByDistance(getEnemyWalls().filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range)return true;return false;}), base, 1));
 	
 	if(target.length == 0)target = target.concat(getEnemyNearBase());
 	if(target.length == 0)target = target.concat(getEnemyNearAlly());
@@ -70,18 +68,19 @@ function targetPartisan(){
 		if(target.length != 0){
 			if(target.length > 4) target = target.slice(4);
 			target = target[Math.floor(Math.random()*target.length)];
-//			debugMsg("Мало партизан "+partisans.length+", собираю всех у "+target[0].name+" недалеко от базы "+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
+			debugMsg("Мало партизан "+partisans.length+", собираю всех у "+target.name+" недалеко от базы "+distBetweenTwoPoints(base.x,base.y,target.x,target.y), 'targeting');
 			partisans.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, target.x, target.y);});
 		}
 		return false;
 	}
 
-
+	
 	//Атакую партизанами ближайшую нефтевышку
 	if(target.length == 0){
 		target = getEnemyResources();
 		target = sortByDistance(target, partisans[0], 1, true);
 	}
+
 	if(target.length == 0) target = sortByDistance(getUnknownResources(), partisans[0], 1, true);
 	if(target.length == 0) target = sortByDistance(getEnemyFactories(), partisans[0], 1, true);
 	if(target.length != 0){
@@ -110,8 +109,10 @@ function targetCyborgs(){
 	if(_cyborgs.length == 0) return;
 
 	var target = [];
-	target = target.concat(getEnemyDefences());
 	target = target.concat(getEnemyResources());
+	if(groupSize(armyCyborgs) >= 10){
+		target = target.concat(getEnemyDefences());
+	}
 	var enemy = getEnemyNearBase();
 	if(enemy.length == 0)getEnemyNearAlly();
 	
@@ -125,20 +126,30 @@ function targetCyborgs(){
 				nastyFeatures = sortByDistance(nastyFeatures, e); //Сортируем глобальный мусор в отношении данного киборга
 				target = target.concat(nastyFeatures); //Примешиваем к общим целям
 				target = sortByDistance(target, e, 1); //Пересортировываем ещё раз быстро с одним выводом в отношении данного киборга
+				var _deleted = nastyFeatures.shift(); // удаляем из глобальной переменной мусора (даже если атака будет неуспешной - не страшно, у нас есть nastyFeaturesClean();)
 			}
 			
 			var feature = false;
-			try {if(target[0].type == FEATURE)feature = true;}
-			catch(e) {debugMsg("!! "+e.message+' !!', 'error');}
+			var err = true;
+			try {if(target[0].type == FEATURE){feature = true;}err = false;}
+			catch(e) {debugMsg("!! "+e.message+' !!', 'error'); feature = false;}
 			
-			if(feature){ //Если всё таки мусор ближе, атакуем
+			if(err){
+				if(nastyFeatures.length != 0 && enemy.length == 0){
+					target = _target; //Вернуть обратно
+				}
+				return;
+			}
+			
+			if(feature == true){ //Если всё таки мусор ближе, атакуем
 //				debugMsg("Cyborgs purge trash #"+target[0].id+" "+target[0].name+" at "+target[0].x+"x"+target[0].y, 'targeting');
 				try {orderDroidObj(e, DORDER_ATTACK, target[0]);}
 				catch(e) {debugMsg("!!! "+e.message+' !!!', 'error');}
-				var _deleted = nastyFeatures.shift(); // удаляем из глобальной переменной мусора (даже если атака будет неуспешной - не страшно, у нас есть nastyFeaturesClean();)
 //				debugMsg(nastyFeatures.length+"/"+nastyFeaturesLen+' Delete trash '+_deleted.name+' at '+_deleted.x+'x'+_deleted.y, 'targeting');
 				target = _target; // и возвращаем переменную целей
-			}else{
+				return;
+			}
+			if(feature == false){
 //				debugMsg("Cyborgs attack "+target[0].name+" at "+target[0].x+"x"+target[0].y, 'targeting');
 				orderDroidLoc(e, DORDER_SCOUT, target[0].x, target[0].y);
 				if(nastyFeatures.length != 0 && enemy.length == 0) target = _target;
@@ -155,10 +166,12 @@ function targetRegular(target){
 	
 	var help = [];
 	help = getEnemyNearAlly();
+	debugMsg("Enemy near ally "+help.length, 'targeting');
 	if(help.length == 0)help = getEnemyNearBase();
+	debugMsg("Enemy near base "+help.length, 'targeting');
 	if(help.length != 0){
-		debugMsg('Helping with our mighty army', 'targeting');
-		regular.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, target.x, target.y);});
+		debugMsg("Helping with our mighty army, targets="+help.length, 'targeting');
+		regular.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, help[0].x, help[0].y);});
 		return;
 	}
 	

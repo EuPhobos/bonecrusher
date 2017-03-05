@@ -167,11 +167,19 @@ function buildersOrder(order) {
 		}
 		*/
 		var hunters = enumGroup(buildersHunters);
+		var problemBuildings = sortByDistance(getProblemBuildings(), base);
 		for ( var h in hunters) {
 			var huntOnDuty = oilHunt(hunters[h]);
 //			debugMsg("buildersOrder: Строитель-охотник №"+hunters[h].id+" на службе? "+huntOnDuty, 'builders');
 			if(huntOnDuty === false && !builderBusy(hunters[h])) huntOnDuty = rigDefence(hunters[h]);
 			if(huntOnDuty === false) if(distBetweenTwoPoints(hunters[h].x,hunters[h].y,base.x,base.y) > 10 && !builderBusy(hunters[h])){
+				if(problemBuildings.length != 0){
+					debugMsg("Help with "+problemBuildings[0].name, 'builders');
+					if(problemBuildings[0].status == BEING_BUILT) {orderDroidObj(hunters[h], DORDER_HELPBUILD, problemBuildings[0]);continue;}
+					if(problemBuildings[0].health < 99) {orderDroidObj(hunters[h], DORDER_REPAIR, problemBuildings[0]);continue;}
+					problemBuildings.shift();
+					continue;
+				}
 				orderDroidLoc(hunters[h],DORDER_MOVE,base.x,base.y);
 				continue;
 			}
@@ -250,7 +258,7 @@ function oilHunt(obj, nearbase){
 	if(builder_targets.length == 0) return false;
 	if (builderBusy(obj)) return false;
 	var myDefence = enumStruct(me,DEFENSE);
-	builder_targets = builder_targets.concat(myDefence.filter(function(e){if(e.status == 0 || e.health < 90) return true; return false;})); //Добавляем к целям недостроенные защитные сооружения
+	builder_targets = builder_targets.concat(myDefence.filter(function(e){if(e.status == 0 || e.health < 100) return true; return false;})); //Добавляем к целям недостроенные защитные сооружения
 	
 
 	//Если строитель рядом с вражеским ресурсом

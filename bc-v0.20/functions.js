@@ -577,13 +577,22 @@ function playerLoose(player){
 	return loose;
 }
 
+function playerSpectator(player){
+	var loose = false;
+	if(enumStruct(player,"A0LightFactory").length == 0
+		&& enumStruct(player,"A0CyborgFactory").length == 0
+		&& enumDroid(player, 10).length == 0) loose = true;
+	return loose;
+}
+
 //функция отфильтровывает объекты, которые находяться близко
 //к "живым" союзникам, полезно для отказа от захвата ресурсов союзника
 function filterNearAlly(obj){
 	for ( var p = 0; p < maxPlayers; ++p ){
 		if ( p == me ) continue; //Выкидываем себя
 		if ( !allianceExistsBetween(me,p) ) continue; //Выкидываем вражеские
-		if ( playerLoose(p) ) continue; //Пропускаем проигравших
+//		if ( playerLoose(p) ) continue; //Пропускаем проигравших
+		if ( playerSpectator(p) ) continue;
 		obj = obj.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) )return false; return true;})
 	}
 	return obj;
@@ -602,7 +611,8 @@ function getEnemyNearAlly(){
 	for ( var p = 0; p < maxPlayers; ++p ) {
 		if ( p == me ) continue;
 		if ( !allianceExistsBetween(me,p) ) continue;
-		if ( playerLoose(p) ) continue; //Пропускаем проигравших
+//		if ( playerLoose(p) ) continue; //Пропускаем проигравших
+		if ( playerSpectator(p) ) continue;
 		targ = targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) )return true; return false;});
 	}
 	
@@ -638,6 +648,15 @@ function getSeeResources(){
 	
 }
 
+function getProblemBuildings(){
+	var targ=[];
+	for ( var p = 0; p < maxPlayers; ++p ){
+		if ( !allianceExistsBetween(me,p) ) continue; //Выкидываем вражеские
+		if ( playerSpectator(p) ) continue; //Пропускаем неиграющих
+		targ = targ.concat(enumStruct(p).filter(function(e){if(e.status == BEING_BUILT || e.health < 99)return true;return false;}));
+	}
+	return targ;
+}
 
 function getEnemyFactories(){
 	var targ = [];

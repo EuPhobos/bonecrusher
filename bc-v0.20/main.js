@@ -11,7 +11,7 @@ include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 
 //DEBUG: количество вывода, закоментить перед релизом
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
-var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders');
+var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 
 //Координаты всех ресурсов, свободных и занятых
 var allResources;
@@ -259,6 +259,10 @@ function letsRockThisFxxxingWorld(){
 		
 		debugMsg(msg,"init");
 	});
+	
+	for ( var p = 0; p < maxPlayers; ++p ) {
+		debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'temp');
+	}
 	
 	var _trash = enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.damageable)return true;return false;});
 	allResources.forEach(function(r){
