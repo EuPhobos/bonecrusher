@@ -7,12 +7,12 @@ function targetVTOL(){
 		target = sortByDistance(target, base, 1);
 	}
 	if(target.length == 0) target = sortByDistance(getEnemyFactories(), base);
-	var group = enumGroup(VTOLAttacker).filter(function(e){if(e.action == 32 || e.action == 33 || e.action == 34 || e.action == 35 || e.action == 36 || e.action == 37)return false;return true});
+	var group = enumGroup(VTOLAttacker).filter(function(e){if(e.action == 32 || e.action == 33 || e.action == 34 || e.action == 35 || e.action == 36 || e.action == 37 || e.action == 41)return false;return true});
 	debugMsg("VTOLs: "+groupSize(VTOLAttacker)+"; ready: "+group.length+"; targets: "+target.length, "vtol");
 	if(group.length >= 2 && target.length > 0) {
 		debugMsg("Attack!", "vtol");
-//		group.forEach(function(e){var attack = orderDroidObj(e, DORDER_ATTACK, target[0]); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');});
-		group.forEach(function(e){var attack = orderDroidLoc(e, DORDER_SCOUT, target[0].x, target[0].y); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');});
+		group.forEach(function(e){var attack = orderDroidObj(e, DORDER_ATTACK, target[0]); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');});
+//		group.forEach(function(e){var attack = orderDroidLoc(e, 40, target[0].x, target[0].y); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');}); // 40 - DORDER_CIRCLE
 		
 	}
 }
@@ -29,17 +29,27 @@ function targetFixers(){
 		return;
 	}
 	
-	partisans.reverse();
+	partisans = sortByDistance(partisans, base);
 	fixers.reverse();
 	
-	var target = [];
-	target = target.concat(partisans.filter(function(e){if(e.health < 100 && distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) < 7)return true; return false;}));
-	
-	if(target.length == 0) target = partisans;
-	else return;
+//	var target = [];
+//	target = target.concat(partisans.filter(function(e){if(e.health < 100 && distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) < 7)return true; return false;}));
+//	if(target.length == 0) target = partisans;
+//	else return;
 //	else target = sortByDistance(target, fixers[0], 1);
-	debugMsg("Move all repairs to "+target[0].x+"x"+target[0].y, 'targeting');
-	fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, target[0].x, target[0].y);})
+//	debugMsg("Move all repairs to "+target[0].x+"x"+target[0].y, 'targeting');
+	
+	fixers.forEach(function(f){
+		var target = partisans.filter(function(p){if(p.health < 100 && distBetweenTwoPoints(p.x,p.y,f.x,f.y) < 7)return true; return false;});
+		if(target.length != 0){
+			target = sortByDistance(target, f, 1);
+//			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2) orderDroidLoc(f, 41, f.x, f.y); // 41 - DORDER_HOLD
+			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2) orderDroidObj(f, 26, f); // 26 - DORDER_DROIDREPAIR
+			
+			else orderDroidLoc(f, DORDER_MOVE, target[0].x, target[0].y);
+		}
+		orderDroidLoc(f, DORDER_MOVE, partisans[Math.round(partisans.length/2)].x, partisans[Math.round(partisans.length/2)].y);
+	})
 	
 }
 
@@ -86,8 +96,8 @@ function targetPartisan(){
 	if(target.length != 0){
 //		debugMsg("Партизан="+partisans.length+", атакую "+target[0].name+" расстояние от партизан="+distBetweenTwoPoints(partisans[0].x,partisans[0].y,target[0].x,target[0].y)+", от базы="+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
 		partisans.forEach(function(e){
-			if(e.health < 50 && fixers.length != 0 && distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) > 2){
-				orderDroidLoc(e, DORDER_MOVE, fixers[0].x, fixers[0].y);
+			if(e.health < 50 && fixers.length != 0){
+				if(distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) > 2) orderDroidLoc(e, DORDER_MOVE, fixers[0].x, fixers[0].y);
 				return;
 			}
 			
@@ -167,8 +177,10 @@ function targetRegular(target){
 	var help = [];
 	help = getEnemyNearAlly();
 	debugMsg("Enemy near ally "+help.length, 'targeting');
-	if(help.length == 0)help = getEnemyNearBase();
-	debugMsg("Enemy near base "+help.length, 'targeting');
+	if(help.length == 0){
+		help = getEnemyNearBase();
+		debugMsg("Enemy near base "+help.length, 'targeting');
+	}
 	if(help.length != 0){
 		debugMsg("Helping with our mighty army, targets="+help.length, 'targeting');
 		regular.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, help[0].x, help[0].y);});

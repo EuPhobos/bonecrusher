@@ -135,6 +135,7 @@ function eventDroidBuilt(droid, structure) {
 			targetCyborgs();
 			break;
 		case VTOL_FACTORY:
+			orderDroidLoc(droid, 40, base.x, base.y)
 			groupAddDroid(VTOLAttacker, droid);
 			produceVTOL();
 			targetVTOL();

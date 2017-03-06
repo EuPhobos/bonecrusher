@@ -598,14 +598,17 @@ function filterNearAlly(obj){
 	return obj;
 }
 
+//Turning off
+//TODO need to fix logic
 function getEnemyNearAlly(){
+	return;
 	var targ = [];
 	for ( var e = 0; e < maxPlayers; ++e ) {
 		if ( allianceExistsBetween(me,e) ) continue;
-		targ = targ.concat(enumDroid(e, DROID_ANY, me));
+		targ = targ.concat(enumDroid(e, DROID_WEAPON, me));
 	}
 	if(scavengers == true) {
-		targ = targ.concat(enumStruct(scavengerPlayer, DROID_ANY, me));
+		targ = targ.concat(enumStruct(scavengerPlayer, DROID_WEAPON, me));
 	}
 	
 	for ( var p = 0; p < maxPlayers; ++p ) {
@@ -613,7 +616,7 @@ function getEnemyNearAlly(){
 		if ( !allianceExistsBetween(me,p) ) continue;
 //		if ( playerLoose(p) ) continue; //Пропускаем проигравших
 		if ( playerSpectator(p) ) continue;
-		targ = targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) )return true; return false;});
+		targ = targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) ){debugMsg("name="+e.name+"; id="+e.id+"; dist="+distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y)+"<"+(base_range/2)+"; player="+p,'temp');return true;}debugMsg("name="+e.name+"; id="+e.id, 'temp'); return false;});
 	}
 	
 	return targ;
