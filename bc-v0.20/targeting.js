@@ -63,11 +63,19 @@ function targetPartisan(){
 	var target=[];
 	target = target.concat(sortByDistance(getEnemyWalls().filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range)return true;return false;}), base, 1));
 	
-	if(target.length == 0)target = target.concat(getEnemyNearBase());
-	if(target.length == 0)target = target.concat(getEnemyNearAlly());
+	if(target.length != 0) debugMsg("partisans TARGET walls", 'targeting');
+	
+	if(target.length == 0){
+		target = target.concat(getEnemyNearBase());
+		debugMsg("partisans TARGET near base", 'targeting');
+	}
+	
+	if(target.length == 0){
+		target = target.concat(getEnemyNearAlly());
+		debugMsg("partisans TARGET near ally", 'targeting');
+	}
 
-
-	//Если слишком мало партизан, то кучкуем армию у ближайших ресурсов за пределами базы
+	//Если слишком мало партизан -И- нет срочной нужны в подмоге, то кучкуем армию у ближайших ресурсов за пределами базы
 	if(partisans.length < 5 && target.length==0){
 		target = target.concat(getUnknownResources());
 		target = target.concat(getSeeResources());
@@ -89,12 +97,21 @@ function targetPartisan(){
 	if(target.length == 0){
 		target = getEnemyResources();
 		target = sortByDistance(target, partisans[0], 1, true);
+		debugMsg("partisans TARGET extractor", 'targeting');
 	}
 
-	if(target.length == 0) target = sortByDistance(getUnknownResources(), partisans[0], 1, true);
-	if(target.length == 0) target = sortByDistance(getEnemyFactories(), partisans[0], 1, true);
+	if(target.length == 0){
+		target = sortByDistance(getUnknownResources(), partisans[0], 1, true);
+		debugMsg("partisans GO unknown resources", 'targeting');
+	}
+	
+	if(target.length == 0){
+		target = sortByDistance(getEnemyFactories(), partisans[0], 1, true);
+		debugMsg("partisans TARGET factories", 'targeting');
+	}
+	
 	if(target.length != 0){
-//		debugMsg("Партизан="+partisans.length+", атакую "+target[0].name+" расстояние от партизан="+distBetweenTwoPoints(partisans[0].x,partisans[0].y,target[0].x,target[0].y)+", от базы="+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
+		debugMsg("Партизан="+partisans.length+", атакую "+target[0].name+" расстояние от партизан="+distBetweenTwoPoints(partisans[0].x,partisans[0].y,target[0].x,target[0].y)+", от базы="+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
 		partisans.forEach(function(e){
 			if(e.health < 50 && fixers.length != 0){
 				if(distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) > 2) orderDroidLoc(e, DORDER_MOVE, fixers[0].x, fixers[0].y);

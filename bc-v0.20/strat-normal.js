@@ -4,6 +4,7 @@ const research_primary = [
 "R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
 "R-Sys-Engineering01",			//Инженерия
 "R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
+"R-Sys-Sensor-Turret01",		//Сенсор
 "R-Wpn-MG-Damage02",			//APDSB MG Bullets
 "R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
 "R-Wpn-MG-Damage03",			//APDSB MG Bullets Mk2

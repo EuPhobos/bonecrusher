@@ -601,8 +601,9 @@ function filterNearAlly(obj){
 //Turning off
 //TODO need to fix logic
 function getEnemyNearAlly(){
-	return;
+	return [];
 	var targ = [];
+	var enemy = [];
 	for ( var e = 0; e < maxPlayers; ++e ) {
 		if ( allianceExistsBetween(me,e) ) continue;
 		targ = targ.concat(enumDroid(e, DROID_WEAPON, me));
@@ -616,10 +617,15 @@ function getEnemyNearAlly(){
 		if ( !allianceExistsBetween(me,p) ) continue;
 //		if ( playerLoose(p) ) continue; //Пропускаем проигравших
 		if ( playerSpectator(p) ) continue;
-		targ = targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) ){debugMsg("name="+e.name+"; id="+e.id+"; dist="+distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y)+"<"+(base_range/2)+"; player="+p,'temp');return true;}debugMsg("name="+e.name+"; id="+e.id, 'temp'); return false;});
+		enemy = enemy.concat(targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) ){
+			debugMsg("TRUE name="+e.name+"; id="+e.id+"; dist="+distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y)+"<"+(base_range/2)+"; player="+p,'temp');
+			return true;
+		}
+		debugMsg("FALSE name="+e.name+"; id="+e.id+"; dist="+distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y)+"<"+(base_range/2)+"; player="+p, 'temp');
+		return false;}));
 	}
 	
-	return targ;
+	return enemy;
 }
 
 //Функция возвращяет вышки, о которых в данный момент не известно ничего
