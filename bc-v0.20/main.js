@@ -9,6 +9,17 @@ include("multiplay/skirmish/bc-v"+vernum+"/targeting.js");
 include("multiplay/skirmish/bc-v"+vernum+"/events.js");
 include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 
+//FIXME/TODO//
+// !!! Строители, застраивают пушками до бесконечности округу тяжело-доступных ресурсов
+// !!! В.В.иП. должны сначала разведать игрока, после атаковать по приоритету VTOL заводы, площадки, фабрики юнитов и всё остальное
+// !!  Сделать надёжную застройку базы ПВО
+// !!  Использовать поздние технологии, лазеры, рельсаганы и т.д.
+// !!  Создать несоклько путей развития
+// !   Определять ближайшего врага и ближайшего союзника, для атаки/подмоги по приоритету
+// !   Отдельный путь развития для игры в комманде
+// !   Отдельная логика для игры на богатых картах "NTW"
+// !   Больше использовать getInfoNear() для прироста производительности
+
 //DEBUG: количество вывода, закоментить перед релизом
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
@@ -305,8 +316,11 @@ function letsRockThisFxxxingWorld(){
 	
 	//Первых строителей в группу
 	enumDroid(me,DROID_CONSTRUCT).forEach(function(e){groupBuilders(e);});
-
 	
+	//Первых военных в группу
+	enumDroid(me,DROID_CYBORG).forEach(function(e){groupAddDroid(armyCyborgs, e);});
+	enumDroid(me,DROID_WEAPON).forEach(function(e){groupAddDroid(armyCyborgs, e);}); // <-- Это не ошибка, первых бесплатных определяем как киборгов (работа у них будет киборгская)
+
 
 	queue("prepeareProduce", 3000);
 	queue("produceDroids", 3000);

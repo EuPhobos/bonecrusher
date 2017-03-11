@@ -1,7 +1,7 @@
 const research_test = ["R-Wpn-MG1Mk1"];
 
 const research_primary = [
-//"R-Struc-VTOLFactory",			//Авиазавод
+"R-Struc-VTOLFactory",			//Авиазавод
 "R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
 "R-Sys-Engineering01",			//Инженерия
 "R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
