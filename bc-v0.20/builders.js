@@ -79,17 +79,21 @@ function builderBuild(droid, structure, rotation){
 	
 	//Строим новое здание
 	if (isStructureAvailable(structure, me)){
-		var pos = pickStructLocation(droid,structure,base.x,base.y);
-		if (!!pos) {
+		var pos = pickStructLocation(droid,structure,base.x+1,base.y+1);
+		if (!!pos || distBetweenTwoPoints(pos.x,pos.y,base.x,base.y) < (base_range/2)) {
 			debugMsg("Строю: ("+pos.x+","+pos.y+") ["+structure+"]",3);
 			orderDroidBuild(droid, DORDER_BUILD, structure, pos.x, pos.y, rotation);
 			return true;
 		}else{
 			var _base = sortByDistance(getSeeResources(), base).filter(function(e){
-				if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) > base_range && droidCanReach(partisans[0], e.x,e.y) )return true;return false;
+				if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) > base_range && droidCanReach(droid, e.x,e.y) )return true;return false;
 			});
-			debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", меняем позицию базы с "+base.x+"x"+base.y+" на "+_base[0].x+"x"+_base[0].y, 'builders');
-			base = _base[0];
+			if(_base.length != 0){
+				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", меняем позицию базы с "+base.x+"x"+base.y+" на "+_base[0].x+"x"+_base[0].y, 'builders');
+				base = _base[0];
+			}else{
+				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", останов.", 'builders');
+			}
 			return false;
 		}
 	}else{
@@ -120,10 +124,29 @@ const mr_lab			= "R-Struc-Research-Module";
 */
 
 //Главная функция строителей
-var defence = [];
 var builder_targets;
-function buildersOrder(order) {
+function buildersOrder(order,target) {
 	if ( typeof order === "undefined" ) order = false;
+	if ( typeof target === "undefined" ) target = false;
+	
+	if(order == "AA" && AA_defence.length != 0 && target !== false){
+		var _def = AA_defence[Math.floor(Math.random()*Math.min(AA_defence.length, 3))]; //Случайная из 3 последних
+		debugMsg("Срочно строим ПВО "+_def+" "+target.x+"x"+target.y, 'builders');
+		var _build = 0;
+		enumGroup(buildersMain).forEach( function(obj, iter){
+			if(builderBusy(obj) == true) return;
+			var pos = pickStructLocation(obj,_def,target.x,target.y);
+			if(!!pos){
+				orderDroidBuild(obj, DORDER_BUILD, _def, pos.x, pos.y, 0);
+				_build++;
+			}
+		});
+		if(_build != 0){
+			debugMsg(_build+" строителя едут строить ПВО", 'builders');
+			return;
+		}
+	}
+	
 	var rnd = Math.floor(Math.random()*4);
 	var rotation = 0;
 	switch(rnd){

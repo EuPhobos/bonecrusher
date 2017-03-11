@@ -4,10 +4,11 @@ function targetVTOL(){
 	if(target.length == 0){
 		target = target.concat(getEnemyResources());
 		target = target.concat(getEnemyBuilders());
+		target = target.concat(getEnemyFactories());
 		target = sortByDistance(target, base, 1);
 	}
 	if(target.length == 0) target = sortByDistance(getEnemyFactories(), base);
-	var group = enumGroup(VTOLAttacker).filter(function(e){if(e.action == 32 || e.action == 33 || e.action == 34 || e.action == 35 || e.action == 36 || e.action == 37 || e.action == 41)return false;return true});
+	var group = enumGroup(VTOLAttacker).filter(function(e){if(e.action == 32 || e.action == 33 || e.action == 34 || e.action == 35 || e.action == 36 || e.action == 37)return false;return true});
 	debugMsg("VTOLs: "+groupSize(VTOLAttacker)+"; ready: "+group.length+"; targets: "+target.length, "vtol");
 	if(group.length >= 2 && target.length > 0) {
 		debugMsg("Attack!", "vtol");

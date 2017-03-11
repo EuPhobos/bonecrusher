@@ -1,21 +1,23 @@
 const research_test = ["R-Wpn-MG1Mk1"];
 
 const research_primary = [
+//"R-Struc-VTOLFactory",			//Авиазавод
 "R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
 "R-Sys-Engineering01",			//Инженерия
 "R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
 "R-Sys-Sensor-Turret01",		//Сенсор
 "R-Wpn-MG-Damage02",			//APDSB MG Bullets
 "R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
+"R-Struc-Research-Module",		//Модуль для лаборотории
 "R-Wpn-MG-Damage03",			//APDSB MG Bullets Mk2
 "R-Wpn-MG3Mk1",					//Heavy Machinegun
+"R-Struc-VTOLPad-Upgrade06",	//Заправка авиации A0VtolPad
 ];
 
 
 const research_way_1 = [
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
 "R-Wpn-Cannon1Mk1",				//Лёгкая пушка
-"R-Struc-Research-Module",		//Модуль для лаборотории
 "R-Sys-MobileRepairTurret01",	//Паяльник
 "R-Vehicle-Body05",				//Средняя начальная броня
 "R-Vehicle-Body04",				//Лёгкая броня Bug
@@ -29,6 +31,7 @@ const research_way_1 = [
 "R-Sys-MobileRepairTurretHvy",	//Тяжёлый паяльник
 "R-Struc-VTOLFactory",			//Авиазавод
 "R-Struc-VTOLPad",				//Заправка авиации A0VtolPad
+"R-Defense-AASite-QuadMg1",		//Hurricane AA Site
 "R-Wpn-Rocket01-LtAT",			//Лансер
 "R-Wpn-Bomb03",					//Фосфорные бомбы
 "R-Wpn-Rocket05-MiniPod",		//Скорострельная ракетница
@@ -82,17 +85,26 @@ const research_way_power = [
 const research_way_defence = [
 //"R-Defense-Pillbox01",
 "R-Defense-Tower06",
+"R-Defense-WallTower01",
 "R-Defense-WallTower-HPVcannon",
+"R-Defense-Emplacement-HPVcannon",
 "R-Defense-MRL",
-"R-Defense-Pillbox06",
+"R-Defense-MortarPit",
+"R-Defense-RotMor",
 "R-Defense-IDFRocket",
+"R-Defense-MortarPit-Incenediary",
+"R-Defense-Pillbox06",
+"R-Defense-WallTower-TwinAGun",
 "R-Defense-HvyHowitzer",
 ];
 
 const research_way_mg = [
 "R-Wpn-MG-ROF03",				//Hyper Fire Chaingun Upgrade
 "R-Wpn-MG-Damage08",			//Depleted Uranium MG Bullets
-"R-Wpn-MG5"						//Twin Assault Gun
+"R-Wpn-MG5",					//Twin Assault Gun
+"R-Defense-WallTower-QuadRotAA",//Whirlwind Hardpoint
+"R-Wpn-AAGun-Damage06",
+"R-Wpn-AAGun-ROF06",
 ];
 
 const research_way_cannon = [
@@ -167,8 +179,8 @@ function mainBuilders(rotation){
 		if(power_gen_ready.length == 0) { if(builderBuild(obj, "A0PowerGenerator", rotation)) return; }
 		if(research_lab_ready.length < 3) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
 		if(factory_ready.length < 2 && playerPower(me) > 300) { if(builderBuild(obj, "A0LightFactory", rotation)) return; }
-		if(research_lab_ready.length < 4 && playerPower(me) > 300) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
-		if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length == 0 && playerPower(me) > 300) { if(builderBuild(obj, "A0CyborgFactory", rotation)) return; }
+		if(research_lab_ready.length < 4 && playerPower(me) > 400) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
+		if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 2 && playerPower(me) > 300) { if(builderBuild(obj, "A0CyborgFactory", rotation)) return; }
 		if( (power_gen_ready.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation))return;}
 		if(research_lab_ready.length < 5 && playerPower(me) > 500) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
 		if(factory_ready.length < 5 && playerPower(me) > 1000){ if(builderBuild(obj, "A0LightFactory", rotation)) return; }

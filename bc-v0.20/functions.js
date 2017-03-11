@@ -1,6 +1,4 @@
 
-
-
 //Функция проверяет объекты и возвращает значение
 //Задача стоит в обработке тяжёлых данных, и работа данной функции
 //в цикле, функция должна будет отработать один раз, и прокешировать
@@ -162,6 +160,12 @@ function prepeareProduce(){
 	
 	defence=[];
 	towers.forEach(function(e){if(getResearch(e[0]).done)defence.unshift(e[1]);});
+	
+	AA_defence=[];
+	AA_towers.forEach(function(e){if(getResearch(e[0]).done)AA_defence.unshift(e[1]);});
+	
+//	if(AA_defence.length != 0) defence.unshift(AA_defence[0]); //add best AA to normal defence
+	
 }
 
 function groupArmy(droid){
@@ -218,7 +222,7 @@ function produceDroids(){
 			buildDroid(droid_factories[0], "Fixer", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_REPAIR, _repair);
 			return;
 		}
-		
+//		return;
 		//Армия
 		if(light_bodies.length != 0 && avail_guns.length != 0){
 			if( (groupSize(armyPartisans) < 7 || playerPower(me) > 250) && groupSize(armyPartisans) < maxPartisans){
@@ -312,7 +316,7 @@ function stats(){
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
 	debugMsg("Base: defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length, 'stats');
 	debugMsg("Bodies: light="+light_bodies.length+"; medium="+medium_bodies.length+"; heavy="+heavy_bodies.length, 'stats');
-	debugMsg("Misc: nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen,'stats');
+	debugMsg("Misc: nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen+"; known defence="+defence.length+"; known AA="+AA_defence.length, 'stats');
 }
 
 
@@ -562,6 +566,7 @@ function checkProcess(){
 		removeTimer("produceVTOL");
 		removeTimer("produceCyborgs");
 		removeTimer("targetRegular");
+		removeTimer("targetVTOL");
 		removeTimer("nastyFeaturesClean");
 		removeTimer("checkProcess");
 		removeTimer("stats");
@@ -690,7 +695,7 @@ function getEnemyNearBase(){
 	if(scavengers == true) {
 		targ = targ.concat(enumStruct(scavengerPlayer, DROID_ANY, me));
 	}
-	return targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range)return true; return false;});
+	return targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range && !isFixVTOL(e))return true; return false;});
 }
 
 function getEnemyBuilders(){
@@ -764,4 +769,14 @@ function removeDuplicates(originalArray, objKey) {
 	
 	return trimmedArray;
 	
+}
+
+//from: https://warzone.atlassian.net/wiki/pages/viewpage.action?pageId=360669
+// More reliable way to identify VTOLs
+var isFixVTOL = function(obj) {
+	try {
+		return ( (obj.type == DROID) && (("isVTOL" in obj && obj.isVTOL) || isVTOL(obj)) );
+	} catch(e) {
+		debugMsg("isFixVTOL(): "+e.message, 'error');
+	}
 }

@@ -12,10 +12,12 @@ include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 //DEBUG: количество вывода, закоментить перед релизом
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
-var debugLevels = new Array('init', 'end', 'stats', 'temp', 'targeting');
+var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders');
+var debugName;
 
 //Координаты всех ресурсов, свободных и занятых
 var allResources;
+
 
 //Координаты нашей базы
 var base;
@@ -75,6 +77,7 @@ var medium_bodies=["Body7ABT","Body6SUPP","Body8MBT","Body5REC"];
 var heavy_bodies=["Body13SUP","Body10MBT","Body9REC","Body12SUP","Body11ABT"];
 
 var avail_cyborgs=[];
+
 var cyborgs=[
 //	["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"],			// легкий пулемёт
 ["R-Wpn-Flamer01Mk1", "CyborgFlamerGrd", "CyborgFlamer01"],			// лёгкий огнемёт
@@ -83,6 +86,7 @@ var cyborgs=[
 ["R-Wpn-Cannon1Mk1", "CyborgCannonGrd", "CyborgCannon"],			// лёгкая пушка
 ["R-Wpn-Mortar01Lt", "Cyb-Bod-Grenade", "Cyb-Wpn-Grenade"],			// гранатамёт
 ];
+
 
 var bodies=[
 //	===== Средняя броня (металическая)
@@ -166,19 +170,40 @@ var guns=[
 ["R-Wpn-Mortar02Hvy", "Mortar2Mk1"],
 ["R-Wpn-Mortar3", "Mortar3ROTARYMk1"],
 ];
+
+var defence = [];
 var towers=[
-['R-Defense-Tower01', 'GuardTower1'],						//Пулемётная вышка
-['R-Defense-Pillbox01', 'PillBox1'],						//Пулемётный бункер
-['R-Defense-Tower06', 'GuardTower6'],						//Вышка минирокет
-['R-Defense-Pillbox06', 'GuardTower5'],						//Лансер
-['R-Defense-WallTower-HPVcannon','WallTower-HPVcannon'],	//Гиперскоростная защита
-['R-Defense-MRL', 'Emplacement-MRL-pit'],					//Окоп рокетных батарей
-['R-Defense-IDFRocket','Emplacement-Rocket06-IDF'],			//Окоп дальнобойных рокетных батарей
+['R-Defense-Tower01', 'GuardTower1'],									//Пулемётная вышка
+['R-Defense-Pillbox01', 'PillBox1'],									//Пулемётный бункер
+['R-Defense-WallTower01', 'WallTower01'],								//Укреплённый пулемёт
+['R-Defense-Tower06', 'GuardTower6'],									//Вышка минирокет
+['R-Defense-Pillbox06', 'GuardTower5'],									//Лансер
+['R-Defense-WallTower-HPVcannon','WallTower-HPVcannon'],				//Гиперскоростная защита
+['R-Defense-Emplacement-HPVcannon', 'Emplacement-HPVcannon'],			//Гиперскоростная защита окоп
+['R-Defense-MRL', 'Emplacement-MRL-pit'],								//Окоп рокетных батарей
+['R-Defense-IDFRocket','Emplacement-Rocket06-IDF'],							//Окоп дальнобойных рокетных батарей
+['R-Defense-MortarPit', 'Emplacement-MortarPit01'], 						//Мортира
+['R-Defense-RotMor', 'Emplacement-RotMor'],									//Пепперпот
+['R-Defense-WallTower-TwinAGun', 'WallTower-TwinAssaultGun'],				//Спаренный пулемёт
+['R-Defense-MortarPit-Incenediary' , 'Emplacement-MortarPit-Incenediary'],	//Адская мортира
 ];
+
+var AA_defence = [];
+var AA_towers=[
+['R-Defense-AASite-QuadMg1', 'AASite-QuadMg1'],					//Hurricane AA Site
+['R-Defense-AASite-QuadBof', 'AASite-QuadBof'],					//AA Flak Cannon Emplacement
+['R-Defense-Sunburst', 'P0-AASite-Sunburst'],					//Sunburst AA Site
+['R-Defense-SamSite1', 'P0-AASite-SAM1'],						//Avenger SAM Site
+['R-Defense-SamSite2', 'P0-AASite-SAM2'],						//Vindicator SAM Site
+['R-Defense-WallTower-QuadRotAA', 'WallTower-QuadRotAAGun'],	//Whirlwind Hardpoint
+['R-Defense-AA-Laser', 'P0-AASite-Laser'],						//Stormbringer Emplacement
+];
+
 //Старт
 function letsRockThisFxxxingWorld(){
 	//инфа
-	debugMsg("ИИ "+vername+" v"+vernum+"("+verdate+")", "init");
+	debugMsg("ИИ "+vername+" v"+vernum+"("+verdate+") difficulty="+difficulty, "init");
+	debugMsg("WarZone2100 "+version, 'init');
 
 	//Определяем мусорщиков
 	scavengerPlayer = (scavengers) ? Math.max(7,maxPlayers) : -1;
@@ -203,7 +228,7 @@ function letsRockThisFxxxingWorld(){
 	
 	if(nearResources.length > 30){
 		//TODO
-		debugMsg("Играем по тактике богатых карт.", 'init');
+//		debugMsg("Играем по тактике богатых карт.", 'init');
 		//		include("multiplay/skirmish/bc-v"+vernum+"/strat-rich.js");
 		include("multiplay/skirmish/bc-v"+vernum+"/strat-normal.js");
 	}else{
@@ -251,7 +276,7 @@ function letsRockThisFxxxingWorld(){
 	debugMsg("Игроков на карте: "+maxPlayers,2);
 	playerData.forEach( function(data, player) {
 		var msg = "Игрок №"+player+" "+colors[data.colour];
-		if (player == me) {msg+=" я сам ИИ";}
+		if (player == me) {msg+=" я сам ИИ"; debugName = colors[data.colour];}
 		else if(playerLoose(player)){msg+=" отсутствует";}
 		else if(allianceExistsBetween(me,player)){msg+=" мой союзник";}
 		else{msg+=" мой враг";}
@@ -298,6 +323,7 @@ function letsRockThisFxxxingWorld(){
 	setTimer("produceVTOL", 30000);
 	setTimer("produceCyborgs", 31000);
 	setTimer("targetRegular", 32000);
+	setTimer("targetVTOL", 33000);
 	setTimer("nastyFeaturesClean", 35000);
 	setTimer("checkProcess", 40000);
 	setTimer("stats", 10000); // Отключить в релизе
@@ -307,7 +333,7 @@ function debugMsg(msg,level){
 	if (typeof level == 'undefined') return;
 	if(debugLevels.indexOf(level) == -1) return;
 	var timeMsg = Math.floor(gameTime / 1000);
-	debug("bc["+me+"]{"+timeMsg+"}("+level+"): "+msg);
+	debug("bc["+timeMsg+"]{"+debugName+"}("+level+"): "+msg);
 }
 
 function eventStartLevel() {

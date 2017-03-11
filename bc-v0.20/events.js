@@ -145,6 +145,7 @@ function eventDroidBuilt(droid, structure) {
 }
 
 function eventAttacked(victim, attacker) {
+	if(isFixVTOL(attacker) && distBetweenTwoPoints(victim.x,victim.y,base.x,base.y) < base_range) buildersOrder("AA", victim);
 	if((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE) ) targetRegular(attacker);
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON) orderDroidLoc(victim, DORDER_MOVE, base.x, base.y);
 }
