@@ -19,8 +19,7 @@ function getInfoNear(x,y,command,range,time,obj,cheat){
 		&& typeof _globalInfoNear[x][y] !== 'undefined' // <--
 		&& typeof _globalInfoNear[x][y][command] !== 'undefined'
 		&& gameTime < (_globalInfoNear[x][y][command].setTime + _globalInfoNear[x][y][command].updateIn) ) {
-		debugMsg("getInfoNear("+x+","+y+","+command+"): fast return value="+_globalInfoNear[x][y][command].value+"; timeout="+(_globalInfoNear[x][y][command].setTime+_globalInfoNear[x][y][command].updateIn-gameTime));
-//		debugMsg("getInfoNear(): fast return gameTime="+gameTime+", setTime="+_globalInfoNear[x][y][command].setTime+", updateIn="+_globalInfoNear[x][y][command].updateIn);
+//		debugMsg("x="+x+"; y="+y+"; command="+command+"; fast return value="+_globalInfoNear[x][y][command].value+"; timeout="+(_globalInfoNear[x][y][command].setTime+_globalInfoNear[x][y][command].updateIn-gameTime), "getInfoNear");
 		return _globalInfoNear[x][y][command];
 	}else{
 		if(typeof time === 'undefined') time = 30000;
@@ -48,12 +47,12 @@ function getInfoNear(x,y,command,range,time,obj,cheat){
 			for ( var d in danger ) {
 				if ( distBetweenTwoPoints(x,y,danger[d].x,danger[d].y) < range ) { 
 					_globalInfoNear[x][y][command].value = false;
-					debugMsg("getInfoNear("+x+","+y+","+command+"): setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value);
+//					debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
 					return _globalInfoNear[x][y][command]; 
 				}
 			}
 			_globalInfoNear[x][y][command].value = true;
-			debugMsg("getInfoNear("+x+","+y+","+command+"): setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value);
+//			debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
 			return _globalInfoNear[x][y][command];
 		}else if(command == 'defended'){
 			var defenses = new Array();
@@ -61,14 +60,33 @@ function getInfoNear(x,y,command,range,time,obj,cheat){
 			for ( var d in defenses ) {
 				if ( distBetweenTwoPoints(x,y,defenses[d].x,defenses[d].y) < range ) { 
 					_globalInfoNear[x][y][command].value = true;
-					debugMsg("getInfoNear("+x+","+y+","+command+"): setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value);
+					debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
 					return _globalInfoNear[x][y][command];
 				}
 			}
 			_globalInfoNear[x][y][command].value = false;
-			debugMsg("getInfoNear("+x+","+y+","+command+"): setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value);
+			debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
 			return _globalInfoNear[x][y][command];
 			
+		}else if(command == 'buildDef'){
+			var _builders;
+			_builder = enumGroup(buildersHunters);
+			if(_builder.length == 0) _builder = enumDroid(me,DROID_CONSTRUCT);
+			if(_builder.length == 0){ //Невозможно в данный момент проверить, запоминаем на 10 секунд
+				_globalInfoNear[x][y][command].updateIn = 10000;
+				_globalInfoNear[x][y][command].value = false;
+				debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
+				return _globalInfoNear[x][y][command];
+			}
+			var toBuild = defence[Math.floor(Math.random()*defence.length)];
+			var pos = pickStructLocation(_builder[0],toBuild,x,y);
+			if(!!pos && distBetweenTwoPoints(x,y,pos.x,pos.y) < range){
+				_globalInfoNear[x][y][command].value = true;
+			}else{
+				_globalInfoNear[x][y][command].value = false;
+			}
+			debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
+			return _globalInfoNear[x][y][command];
 		}
 	}
 }
@@ -327,6 +345,10 @@ function nastyFeaturesClean(){
 	
 	nastyFeatures=[];
 	var _trash = enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.damageable)return true;return false;});
+	nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
+		if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < (base_range/2))return true;
+		return false;
+	}));
 	allResources.forEach(function(r){
 		nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
 			if(distBetweenTwoPoints(r.x,r.y,e.x,e.y) < 7)return true;
@@ -338,7 +360,7 @@ function nastyFeaturesClean(){
 		nastyFeaturesLen = nastyFeatures.length;
 	}else{
 		removeTimer("nastyFeaturesClean"); // теперь чисто, выход от сюда навсегда
-		debugMsg("nastyFeaturesClean complete", "stats");
+		debugMsg("nastyFeaturesClean complete", "end");
 	}
 }
 
@@ -685,6 +707,25 @@ function getEnemyFactories(){
 	}
 	return targ;
 }
+
+function getEnemyFactoriesVTOL(){
+	var targ = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		targ = targ.concat(enumStruct(e, VTOL_FACTORY, me));
+	}
+	return targ;
+}
+
+function getEnemyPads(){
+	var targ = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		targ = targ.concat(enumStruct(e, REARM_PAD, me));
+	}
+	return targ;
+}
+
 
 function getEnemyNearBase(){
 	var targ = [];

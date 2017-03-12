@@ -1,7 +1,6 @@
 const research_test = ["R-Wpn-MG1Mk1"];
 
 const research_primary = [
-"R-Struc-VTOLFactory",			//Авиазавод
 "R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
 "R-Sys-Engineering01",			//Инженерия
 "R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
@@ -11,6 +10,7 @@ const research_primary = [
 "R-Struc-Research-Module",		//Модуль для лаборотории
 "R-Wpn-MG-Damage03",			//APDSB MG Bullets Mk2
 "R-Wpn-MG3Mk1",					//Heavy Machinegun
+"R-Struc-VTOLFactory",			//Авиазавод
 "R-Struc-VTOLPad-Upgrade06",	//Заправка авиации A0VtolPad
 ];
 
@@ -41,6 +41,8 @@ const research_way_1 = [
 "R-Wpn-Rocket02-MRL",			//Ракетная батарея
 "R-Wpn-MG4",					//Штурмовой пулемёт
 "R-Vehicle-Body11",				//Тяжёлая начальная броня
+"R-Defense-WallTower-QuadRotAA",//Whirlwind Hardpoint
+"R-Struc-VTOLPad-Upgrade06",	//Заправка авиации A0VtolPad
 "R-Vehicle-Prop-Tracks",		//Гусенецы
 "R-Wpn-Flame2",					//Горячий напалм
 "R-Vehicle-Body09",				//Броня "Tiger"
@@ -186,8 +188,9 @@ function mainBuilders(rotation){
 		if(factory_ready.length < 5 && playerPower(me) > 1000){ if(builderBuild(obj, "A0LightFactory", rotation)) return; }
 		if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 5 && playerPower(me) > 1000) { if(builderBuild(obj, "A0CyborgFactory", rotation)) return; }
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 1){ if(builderBuild(obj, "A0VTolFactory1", rotation)) return; }
-		if(isStructureAvailable("A0VtolPad") && rearm_pad_ready.length < 9){ if(builderBuild(obj, "A0VtolPad", rotation)) return; }
+		if(isStructureAvailable("A0VtolPad") && rearm_pad_ready.length < (enumGroup(VTOLAttacker).length/2) && rearm_pad.length <= (maxPads-1)){ if(builderBuild(obj, "A0VtolPad", rotation)) return; }
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 2 && playerPower(me) > 500){ if(builderBuild(obj, "A0VTolFactory1", rotation)) return; }
+		if(isStructureAvailable("A0VtolPad") && playerPower(me) > 2000 && rearm_pad.length < enumGroup(VTOLAttacker).length && rearm_pad.length <= maxPads){ if(builderBuild(obj, "A0VtolPad", rotation)) return; }
 		
 		debugMsg("Строителям нечего строить "+iter, 'builders');
 		

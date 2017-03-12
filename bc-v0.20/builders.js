@@ -80,7 +80,7 @@ function builderBuild(droid, structure, rotation){
 	//Строим новое здание
 	if (isStructureAvailable(structure, me)){
 		var pos = pickStructLocation(droid,structure,base.x+1,base.y+1);
-		if (!!pos || distBetweenTwoPoints(pos.x,pos.y,base.x,base.y) < (base_range/2)) {
+		if (!!pos && distBetweenTwoPoints(pos.x,pos.y,base.x,base.y) < (base_range/2)) {
 			debugMsg("Строю: ("+pos.x+","+pos.y+") ["+structure+"]",3);
 			orderDroidBuild(droid, DORDER_BUILD, structure, pos.x, pos.y, rotation);
 			return true;
@@ -239,10 +239,13 @@ function rigDefence(obj){
 //Составляем очередь на постройку защитный сооружений
 var defQueue = [];
 function defenceQueue(){
+	if(defence.length == 0) return;
 	var myDefence = enumStruct(me,DEFENSE);
 	var onBase = myDefence.filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < base_range) return true; return false;});
-	var myRigs = enumStruct(me,RESOURCE_EXTRACTOR).filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < (base_range/2) && onBase.length > 20) return false; return true;});
-	myRigs = myRigs.concat(enumFeature(me, "OilResource"));
+	var myRigs = allResources.filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < (base_range/2) && onBase.length > 20) return false; return true;});
+//	var myRigs = enumStruct(me,RESOURCE_EXTRACTOR).filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < (base_range/2) && onBase.length > 20) return false; return true;});
+//	myRigs = myRigs.concat(enumFeature(me, "OilResource")); //Добавляем незанятые
+	
 //	var myRigs = enumStruct(me,RESOURCE_EXTRACTOR);
 //	var enemyRigs = getEnemyResources();
 //	var enQueue = [];
@@ -251,6 +254,7 @@ function defenceQueue(){
 		defQueue = myRigs.filter(
 			function(e){
 				if(myDefence.length==0) return true; //Если защитных сооружений вообще нет, добавляем все координаты всех наших качалок
+				if(!getInfoNear(e.x,e.y,'buildDef',7,300000,false).value) return false; //Если не получается построить рядом защиту - запоминаем это на 5 минут и пропускаем
 				for (var i in myDefence){
 					if (distBetweenTwoPoints(e.x,e.y,myDefence[i].x,myDefence[i].y) < 7) return false; //Если к качалке есть близко на 7 тайлов защита, пропускаем
 				}

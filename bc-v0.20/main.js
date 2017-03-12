@@ -10,20 +10,18 @@ include("multiplay/skirmish/bc-v"+vernum+"/events.js");
 include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 
 //FIXME/TODO//
-// !!! Строители, застраивают пушками до бесконечности округу тяжело-доступных ресурсов
-// !!! В.В.иП. должны сначала разведать игрока, после атаковать по приоритету VTOL заводы, площадки, фабрики юнитов и всё остальное
 // !!  Сделать надёжную застройку базы ПВО
 // !!  Использовать поздние технологии, лазеры, рельсаганы и т.д.
 // !!  Создать несоклько путей развития
 // !   Определять ближайшего врага и ближайшего союзника, для атаки/подмоги по приоритету
-// !   Отдельный путь развития для игры в комманде
+// !   Отдельный путь развития для игры в команде
 // !   Отдельная логика для игры на богатых картах "NTW"
 // !   Больше использовать getInfoNear() для прироста производительности
 
 //DEBUG: количество вывода, закоментить перед релизом
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
-var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders');
+var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
 var debugName;
 
 //Координаты всех ресурсов, свободных и занятых
@@ -62,7 +60,7 @@ var VTOLAttacker = newGroup();
 
 var maxPartisans = 30;
 var maxRegular = 50;
-var maxVTOL = 20;
+var maxVTOL = 40;
 var maxCyborgs = 20;
 var maxFixers = 5;
 
@@ -213,6 +211,8 @@ var AA_towers=[
 //Старт
 function letsRockThisFxxxingWorld(){
 	//инфа
+	debugName = colors[playerData[me].colour];
+	
 	debugMsg("ИИ "+vername+" v"+vernum+"("+verdate+") difficulty="+difficulty, "init");
 	debugMsg("WarZone2100 "+version, 'init');
 
@@ -254,6 +254,7 @@ function letsRockThisFxxxingWorld(){
 	maxFactoriesVTOL = getStructureLimit("A0VTolFactory1", me);
 	maxPads = getStructureLimit("A0VtolPad", me);
 	
+	
 	//Лёгкий режим
 	if(difficulty == EASY){
 		debugMsg("Похоже я играю с нубами, будем поддаваться:", 'init');
@@ -287,7 +288,10 @@ function letsRockThisFxxxingWorld(){
 	debugMsg("Игроков на карте: "+maxPlayers,2);
 	playerData.forEach( function(data, player) {
 		var msg = "Игрок №"+player+" "+colors[data.colour];
-		if (player == me) {msg+=" я сам ИИ"; debugName = colors[data.colour];}
+		if (player == me) {
+			msg+=" я сам ИИ";
+//			debugName = colors[data.colour];
+		}
 		else if(playerLoose(player)){msg+=" отсутствует";}
 		else if(allianceExistsBetween(me,player)){msg+=" мой союзник";}
 		else{msg+=" мой враг";}
@@ -302,6 +306,10 @@ function letsRockThisFxxxingWorld(){
 	}
 	
 	var _trash = enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.damageable)return true;return false;});
+	nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
+		if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < (base_range/2))return true;
+		return false;
+	}));
 	allResources.forEach(function(r){
 		nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
 			if(distBetweenTwoPoints(r.x,r.y,e.x,e.y) < 7)return true;
@@ -311,6 +319,7 @@ function letsRockThisFxxxingWorld(){
 	nastyFeatures = removeDuplicates(nastyFeatures, 'id');
 	if (nastyFeatures.length != 0 )debugMsg("Желательно уничтожить мусор на карте: "+nastyFeatures.length,'init');
 	nastyFeaturesLen = nastyFeatures.length;
+	nastyFeatures = []; // Сброс, потому что без проверки по propulsionCanReach, переинициализируется в nastyFeaturesClean();
 	//nastyFeatures.forEach(function(e){debugMsg(e.id+" "+e.x+"x"+e.y+" "+e.name+" "+e.damageable+" "+e.player, 'init');});
 
 	
@@ -327,17 +336,16 @@ function letsRockThisFxxxingWorld(){
 	
 	running = true;
 	setTimer("buildersOrder", 2000);
-	setTimer("targetCyborgs", 3000);
 	setTimer("targetPartisan", 5000);
+	setTimer("targetCyborgs", 7000);
 	setTimer("targetFixers", 8000);
-	setTimer("defenceQueue", 11000);
 	setTimer("doResearch", 15000);
-//	setTimer("targetCyborgs", 28000);
+	setTimer("defenceQueue", 28000);
 	setTimer("produceDroids", 29000);
 	setTimer("produceVTOL", 30000);
 	setTimer("produceCyborgs", 31000);
 	setTimer("targetRegular", 32000);
-	setTimer("targetVTOL", 33000);
+	setTimer("targetVTOL", 61000); //Не раньше 30 сек.
 	setTimer("nastyFeaturesClean", 35000);
 	setTimer("checkProcess", 40000);
 	setTimer("stats", 10000); // Отключить в релизе
@@ -345,6 +353,7 @@ function letsRockThisFxxxingWorld(){
 
 function debugMsg(msg,level){
 	if (typeof level == 'undefined') return;
+	if (debugName == "Grey" ) return; //Временно
 	if(debugLevels.indexOf(level) == -1) return;
 	var timeMsg = Math.floor(gameTime / 1000);
 	debug("bc["+timeMsg+"]{"+debugName+"}("+level+"): "+msg);
