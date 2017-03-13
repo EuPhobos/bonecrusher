@@ -11,8 +11,8 @@ include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 
 //FIXME/TODO//
 // !!  Сделать надёжную застройку базы ПВО
-// !!  Использовать поздние технологии, лазеры, рельсаганы и т.д.
-// !!  Создать несоклько путей развития
+// !!!  Использовать поздние технологии, лазеры, рельсаганы и т.д.
+// !!!  Создать несоклько путей развития
 // !   Определять ближайшего врага и ближайшего союзника, для атаки/подмоги по приоритету
 // !   Отдельный путь развития для игры в команде
 // !   Отдельная логика для игры на богатых картах "NTW"
@@ -21,7 +21,8 @@ include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 //DEBUG: количество вывода, закоментить перед релизом
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
-var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
+//var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
+var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'vtol', 'builders');
 var debugName;
 
 //Координаты всех ресурсов, свободных и занятых
@@ -198,6 +199,7 @@ var towers=[
 ];
 
 var AA_defence = [];
+var AA_queue = [];
 var AA_towers=[
 ['R-Defense-AASite-QuadMg1', 'AASite-QuadMg1'],					//Hurricane AA Site
 ['R-Defense-AASite-QuadBof', 'AASite-QuadBof'],					//AA Flak Cannon Emplacement

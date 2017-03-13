@@ -188,12 +188,16 @@ function mainBuilders(rotation){
 		if(factory_ready.length < 5 && playerPower(me) > 1000){ if(builderBuild(obj, "A0LightFactory", rotation)) return; }
 		if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 5 && playerPower(me) > 1000) { if(builderBuild(obj, "A0CyborgFactory", rotation)) return; }
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 1){ if(builderBuild(obj, "A0VTolFactory1", rotation)) return; }
-		if(isStructureAvailable("A0VtolPad") && rearm_pad_ready.length < (enumGroup(VTOLAttacker).length/2) && rearm_pad.length <= (maxPads-1)){ if(builderBuild(obj, "A0VtolPad", rotation)) return; }
+		if(isStructureAvailable("A0VtolPad") && rearm_pad_ready.length < Math.ceil(enumGroup(VTOLAttacker).length/2) && rearm_pad.length <= (maxPads-1)){ if(builderBuild(obj, "A0VtolPad", rotation)) return; }
+		
+		if(AA_build(obj, true)) return;
+									
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 2 && playerPower(me) > 500){ if(builderBuild(obj, "A0VTolFactory1", rotation)) return; }
 		if(isStructureAvailable("A0VtolPad") && playerPower(me) > 2000 && rearm_pad.length < enumGroup(VTOLAttacker).length && rearm_pad.length <= maxPads){ if(builderBuild(obj, "A0VtolPad", rotation)) return; }
 		
 		debugMsg("Строителям нечего строить "+iter, 'builders');
 		
+
 		
 		if(oilHunt(obj, true)) return;
 		if(rigDefence(obj)) return;

@@ -44,7 +44,10 @@ function eventObjectSeen(sensor, gameObject) {
 		if (!allianceExistsBetween(me,gameObject.player)) {
 //			debugMsg("eventObjectSeen: "+ sensor.name+" обнаружил вражескую еденицу: "+gameObject.name, 'events');
 //			getTarget();
-			if(gameObject.droidType == DROID_WEAPON && isFixVTOL(gameObject) && distBetweenTwoPoints(gameObject.x,gameObject.y,base.x,base.y) < base_range) buildersOrder("AA", gameObject);
+			if(gameObject.droidType == DROID_WEAPON
+				&& isFixVTOL(gameObject)
+				&& distBetweenTwoPoints(gameObject.x,gameObject.y,base.x,base.y) < base_range)
+				AA_queue.push({x:gameObject.x,y:gameObject.y});
 		}
 		break;
 		case FEATURE:
@@ -146,7 +149,7 @@ function eventDroidBuilt(droid, structure) {
 }
 
 function eventAttacked(victim, attacker) {
-	if(isFixVTOL(attacker) && distBetweenTwoPoints(victim.x,victim.y,base.x,base.y) < base_range) buildersOrder("AA", victim);
+	if(isFixVTOL(attacker) && distBetweenTwoPoints(victim.x,victim.y,base.x,base.y) < base_range) AA_queue.push({x:victim.x,y:victim.y});
 	if((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE) ) targetRegular(attacker);
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)) orderDroidLoc(victim, DORDER_MOVE, base.x, base.y);
 }

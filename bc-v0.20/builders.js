@@ -129,23 +129,27 @@ function buildersOrder(order,target) {
 	if ( typeof order === "undefined" ) order = false;
 	if ( typeof target === "undefined" ) target = false;
 	
+	/*
 	if(order == "AA" && AA_defence.length != 0 && target !== false){
 		var _def = AA_defence[Math.floor(Math.random()*Math.min(AA_defence.length, 3))]; //Случайная из 3 последних
 		debugMsg("Срочно строим ПВО "+_def+" "+target.x+"x"+target.y, 'builders');
 		var _build = 0;
-		enumGroup(buildersMain).forEach( function(obj, iter){
-			if(builderBusy(obj) == true) return;
-			var pos = pickStructLocation(obj,_def,target.x,target.y);
-			if(!!pos){
+		var pos = pickStructLocation(obj,_def,target.x,target.y);
+		if(!!pos){
+			enumGroup(buildersMain).forEach( function(obj, iter){
+				if(builderBusy(obj) == true) return;
 				orderDroidBuild(obj, DORDER_BUILD, _def, pos.x, pos.y, 0);
 				_build++;
+			});
+			if(_build != 0){
+				debugMsg(_build+" строителя едут строить ПВО", 'builders');
+				return;
+			}else{
+				AA_queue.push({x:pos.x,y:pos.y});
 			}
-		});
-		if(_build != 0){
-			debugMsg(_build+" строителя едут строить ПВО", 'builders');
-			return;
 		}
 	}
+	*/
 	
 	var rnd = Math.floor(Math.random()*4);
 	var rotation = 0;
@@ -211,6 +215,7 @@ function buildersOrder(order,target) {
 		}
 	}
 }
+
 
 //Функция постройка защиты у ресурса
 function rigDefence(obj){
@@ -279,6 +284,26 @@ function defenceQueue(){
 //	defQueue=defQueue.concat(enQueue);
 //	debugMsg("defenceQueue(): вражеских="+enQueue.length+", итого="+defQueue.length);
 }
+
+
+//Функция строит защиту ПВО
+function AA_build(obj, nearbase){
+	if ( typeof nearbase === "undefined" ) nearbase = false;
+	if(AA_defence.length != 0 && AA_queue.length != 0){
+		var _def = AA_defence[Math.floor(Math.random()*Math.min(AA_defence.length, 3))]; //Случайная из 3 последних
+		var target = AA_queue.shift();
+		debugMsg("Строим ПВО "+_def+" "+target.x+"x"+target.y, 'builders');
+		var pos = pickStructLocation(obj,_def,target.x,target.y);
+		
+		if(!!pos){
+			if(builderBusy(obj) == true) return;
+			orderDroidBuild(obj, DORDER_BUILD, _def, pos.x, pos.y, 0);
+			return true;
+		}
+	}
+	return false;
+}
+
 
 function oilHunt(obj, nearbase){
 	if ( typeof nearbase === "undefined" ) nearbase = false;
