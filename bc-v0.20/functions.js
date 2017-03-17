@@ -188,18 +188,17 @@ function prepeareProduce(){
 
 function groupArmy(droid){
 	
-	if(droid.droidType == DROID_CYBORG){
-		debugMsg("armyCyborgs +1", 'group');
-		groupAddDroid(armyCyborgs, droid);
-		return;
-	}
-	
 	if(droid.droidType == DROID_REPAIR){
 		debugMsg("armyFixers +1", 'group');
 		groupAddDroid(armyFixers, droid);
 		return;
 	}
 	
+	if(droid.droidType == DROID_CYBORG || groupSize(armyCyborgs) == 0){
+		debugMsg("armyCyborgs +1", 'group');
+		groupAddDroid(armyCyborgs, droid);
+		return;
+	}
 	
 	//Если армия партизан меньше 7 -ИЛИ- нет среднего Body -ИЛИ- основная армия достигла лимитов
 	if(groupSize(armyPartisans) < 7 || !getResearch("R-Vehicle-Body05").done || groupSize(armyRegular) >= maxRegular ){
@@ -226,14 +225,14 @@ function produceDroids(){
 		//Если целей для охотников более 7 -И- денег более 700 -ИЛИ- строитель всего один а денег более 300 -ИЛИ- вообще нет строителей
 		//ТО заказуаэм!
 		debugMsg("buildersTrigger="+buildersTrigger+"; fixersTrigger="+fixersTrigger+"; gameTime="+gameTime, 'production');
-		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range,10000))
+		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range,10000).value)
 			&& ( (playerPower(me) > 700 && builder_targets.length > 7 && buildersTrigger < gameTime) || (groupSize(buildersMain) == 1 && playerPower(me) > 300) || builders.length == 0 ) ){
 			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
 			buildersTrigger = gameTime + buildersTimer;
 			return;
 		}
 		
-		if (getInfoNear(base.x,base.y,'safe',base_range,10000) && groupSize(armyFixers) < maxFixers && groupSize(armyPartisans) > 5 && fixersTrigger < gameTime && getResearch("R-Sys-MobileRepairTurret01").done && (playerPower(me) > 300 || groupSize(armyFixers) == 0)){
+		if (getInfoNear(base.x,base.y,'safe',base_range,10000).value && groupSize(armyFixers) < maxFixers && groupSize(armyPartisans) > 5 && fixersTrigger < gameTime && getResearch("R-Sys-MobileRepairTurret01").done && (playerPower(me) > 300 || groupSize(armyFixers) == 0)){
 			fixersTrigger = gameTime + fixersTimer;
 			var _repair = "LightRepair1";
 			if(getResearch("R-Sys-MobileRepairTurretHvy").done) _repair = "HeavyRepair";
@@ -737,6 +736,17 @@ function getEnemyNearBase(){
 		targ = targ.concat(enumStruct(scavengerPlayer, DROID_ANY, me));
 	}
 	return targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range && !isFixVTOL(e))return true; return false;});
+}
+function getEnemyCloseBase(){
+	var targ = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		targ = targ.concat(enumDroid(e, DROID_ANY, me));
+	}
+	if(scavengers == true) {
+		targ = targ.concat(enumStruct(scavengerPlayer, DROID_ANY, me));
+	}
+	return targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < (base_range/2) && !isFixVTOL(e))return true; return false;});
 }
 
 function getEnemyBuilders(){

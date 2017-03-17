@@ -1,14 +1,15 @@
 function targetVTOL(){
 	var target = [];
+	var scout = [];
 	
 	target = target.concat(getEnemyFactoriesVTOL());
 	if(target.length == 0) target = sortByDistance(getEnemyFactories(), base);
-	if(target.length == 0) target = sortByDistance(getEnemyPads(), base);
-	if(target.length == 0) 
+//	if(target.length == 0) target = sortByDistance(getEnemyPads(), base);
 	if(target.length == 0){
-		target = target.concat(getEnemyResources());
-		target = target.concat(getEnemyDefences());
-		target = sortByDistance(target, base, 1);
+		scout = scout.concat(getEnemyResources());
+		scout = scout.concat(getEnemyDefences());
+		scout = scout.concat(getEnemyPads());
+		scout = sortByDistance(scout, base, 1);
 	}
 	
 	var ready = enumGroup(VTOLAttacker).filter(function(e){
@@ -18,10 +19,14 @@ function targetVTOL(){
 	});
 	var group = enumGroup(VTOLAttacker).filter(function(e){if(e.action == 41 || e.action == 1 || distBetweenTwoPoints(e.x,e.y,base.x,base.y) > base_range)return true;return false});
 	debugMsg("VTOLs: "+groupSize(VTOLAttacker)+"; patrol: "+ready.length+"; ready: "+group.length+"; targets: "+target.length, "vtol");
-	if(group.length >= 3 && target.length > 0) {
+	if(group.length >= 3 && (target.length != 0 || scout.length != 0) ) {
 		debugMsg("Attack!", "vtol");
-		group.forEach(function(e){var attack = orderDroidLoc(e, DORDER_SCOUT, target[0].x, target[0].y); debugMsg("Scouting: "+target[0].name+"-"+attack, 'vtol');});
-//		group.forEach(function(e){var attack = orderDroidObj(e, DORDER_ATTACKDORDER_SCOUT, target[0]); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');});
+		if(target.length != 0){
+			group.forEach(function(e){var attack = orderDroidObj(e, DORDER_ATTACK, target[0]); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');});
+		}else if(scout.length != 0){
+			group.forEach(function(e){var attack = orderDroidLoc(e, DORDER_SCOUT, scout[0].x, scout[0].y); debugMsg("Scouting: "+scout[0].name+"-"+attack, 'vtol');});
+		}
+
 //		group.forEach(function(e){var attack = orderDroidLoc(e, 40, target[0].x, target[0].y); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');}); // 40 - DORDER_CIRCLE
 		
 	}
@@ -35,6 +40,7 @@ function targetFixers(){
 	
 	if(fixers.length == 0 || partisans.length == 0) return;
 	
+	//Армия дохнет? Спасаем задницу бегством!
 	if(partisans.length <= 3){
 		fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, base.x, base.y);})
 		return;
@@ -55,9 +61,14 @@ function targetFixers(){
 		if(target.length != 0){
 			target = sortByDistance(target, f, 1);
 //			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2) orderDroidLoc(f, 41, f.x, f.y); // 41 - DORDER_HOLD
-			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2) orderDroidObj(f, 26, f); // 26 - DORDER_DROIDREPAIR
-			
-			else orderDroidLoc(f, DORDER_MOVE, target[0].x, target[0].y);
+			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2){
+				orderDroidObj(f, 26, f); // 26 - DORDER_DROIDREPAIR
+				return;
+			}
+			else{
+				orderDroidLoc(f, DORDER_MOVE, target[0].x, target[0].y);
+				return;
+			}
 		}
 		orderDroidLoc(f, DORDER_MOVE, partisans[Math.round(partisans.length/2)].x, partisans[Math.round(partisans.length/2)].y);
 	})
@@ -125,9 +136,15 @@ function targetPartisan(){
 		debugMsg("Партизан="+partisans.length+", атакую "+target[0].name+" расстояние от партизан="+distBetweenTwoPoints(partisans[0].x,partisans[0].y,target[0].x,target[0].y)+", от базы="+distBetweenTwoPoints(base.x,base.y,target[0].x,target[0].y), 'targeting');
 		partisans.forEach(function(e){
 			if(e.health < 50 && fixers.length != 0){
-				if(distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) > 2) orderDroidLoc(e, DORDER_MOVE, fixers[0].x, fixers[0].y);
-				return;
+				if(distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) > 2){
+					orderDroidLoc(e, DORDER_MOVE, fixers[0].x, fixers[0].y);
+					return;
+				}else{
+					orderDroidLoc(e, DORDER_MOVE, e.x, e.y); //STOP
+				}
 			}
+			
+			if(e.health < 99 && fixers.length != 0 && distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) < 3) return; //TODO как-то.. переделать чтоль.
 			
 			if( (target[0].type == STRUCTURE && target[0].stattype == WALL) || (target[0].type == DROID && target[0].droidType == DROID_CONSTRUCT) ){
 				orderDroidObj(e, DORDER_ATTACK, target[0]);
@@ -206,7 +223,7 @@ function targetRegular(target){
 	help = getEnemyNearAlly();
 	debugMsg("Enemy near ally "+help.length, 'targeting');
 	if(help.length == 0){
-		help = getEnemyNearBase();
+		help = getEnemyCloseBase();
 		debugMsg("Enemy near base "+help.length, 'targeting');
 	}
 	if(help.length != 0){

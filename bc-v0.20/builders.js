@@ -90,7 +90,7 @@ function builderBuild(droid, structure, rotation){
 			});
 			if(_base.length != 0){
 				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", меняем позицию базы с "+base.x+"x"+base.y+" на "+_base[0].x+"x"+_base[0].y, 'builders');
-				base = _base[0];
+				base = {x:_base[0].x,y:_base[0].y};
 			}else{
 				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", останов.", 'builders');
 			}
@@ -179,7 +179,20 @@ function buildersOrder(order,target) {
 	//назначаем задания основным строителям/строим базу
 	if(buildersMainLen != 0){mainBuilders(rotation);}else{
 		debugMsg("Нет строителей в группе buildersMain", 'builders');
-		enumDroid(me, DROID_CONSTRUCT).forEach(function(e){groupBuilders(e);});
+		
+		//Если нет основных строителей -И- база под атакой -И- заводы уничтожены или не достроены
+		if(!getInfoNear(base.x,base.y,'safe',base_range,10000).value && factory_ready.length == 0){
+			enumDroid(me, DROID_CONSTRUCT).forEach(function(e){groupBuilders(e);}); //Изыскиваем резервы
+			if(groupSize(buildersHunters) == 0){
+				debugMsg("Нет строителей вообще! Каюк!", 'builders');
+				//TODO доработать, найти завод киборгов, построить киборга-строителя или попросить помощи у союзника
+			}else{
+				var _builders = enumGroup(buildersHunters);
+				base = {x:_builders[0].x,y:_builders[0].y}; //Меняем место базы на первого строителя (Возможно повезёт)
+				debugMsg("Дислокация базы! "+base.x+"x"+base.y, 'builders');
+				queue("buildersOrder", 1000);
+			}
+		}
 	}
 	
 	//Назначаем работу строителям-охотникам
