@@ -181,7 +181,7 @@ function buildersOrder(order,target) {
 		debugMsg("Нет строителей в группе buildersMain", 'builders');
 		
 		//Если нет основных строителей -И- база под атакой -И- заводы уничтожены или не достроены
-		if(!getInfoNear(base.x,base.y,'safe',base_range,10000).value && factory_ready.length == 0){
+		if(!getInfoNear(base.x,base.y,'safe',base_range).value && factory_ready.length == 0){
 			enumDroid(me, DROID_CONSTRUCT).forEach(function(e){groupBuilders(e);}); //Изыскиваем резервы
 			if(groupSize(buildersHunters) == 0){
 				debugMsg("Нет строителей вообще! Каюк!", 'builders');
@@ -191,6 +191,13 @@ function buildersOrder(order,target) {
 				base = {x:_builders[0].x,y:_builders[0].y}; //Меняем место базы на первого строителя (Возможно повезёт)
 				debugMsg("Дислокация базы! "+base.x+"x"+base.y, 'builders');
 				queue("buildersOrder", 1000);
+			}
+		}else{
+			_hunters = enumGroup(buildersHunters);
+			if(_hunters.length != 0){
+				_hunters = sortByDistance(_hunters, base, 1);
+				groupAddDroid(buildersMain, _hunters[0]);
+				debugMsg('Hunter --> Builder +1', 'group');
 			}
 		}
 	}

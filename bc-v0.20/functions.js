@@ -145,8 +145,8 @@ function prepeareProduce(){
 			avail_guns.push(_guns[i][1]);
 //			debugMsg(getResearch(_guns[i][0]).points+" "+_guns[i][0]+"->"+_guns[i][1], 'production');
 		}
-		if(avail_guns.length > 1) avail_guns.shift(); //Выкидываем первый пулемётик
-		if(avail_guns.length > 1) avail_guns.shift(); //Выкидываем спаренный пулемётик
+		if(avail_guns.length > 2) avail_guns.shift(); //Выкидываем первый пулемётик
+		if(avail_guns.length > 2) avail_guns.shift(); //Выкидываем спаренный пулемётик
 		avail_guns.reverse();
 		
 		//Сайборги заполонили!
@@ -222,17 +222,17 @@ function produceDroids(){
 		
 		//Строители
 		//Если строители не в лимите -И- база не подвергается нападению
-		//Если целей для охотников более 7 -И- денег более 700 -ИЛИ- строитель всего один а денег более 300 -ИЛИ- вообще нет строителей
+		//Если целей для охотников более 7 -И- денег более 700 -ИЛИ- строитель всего один а денег более 100 -ИЛИ- вообще нет строителей
 		//ТО заказуаэм!
 		debugMsg("buildersTrigger="+buildersTrigger+"; fixersTrigger="+fixersTrigger+"; gameTime="+gameTime, 'production');
-		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range,10000).value)
-			&& ( (playerPower(me) > 700 && builder_targets.length > 7 && buildersTrigger < gameTime) || (groupSize(buildersMain) == 1 && playerPower(me) > 300) || builders.length == 0 ) ){
+		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range).value)
+			&& ( (playerPower(me) > 700 && builder_targets.length > 7 && buildersTrigger < gameTime) || (groupSize(buildersMain) == 1 && playerPower(me) > 100) || builders.length == 0 ) ){
 			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
 			buildersTrigger = gameTime + buildersTimer;
 			return;
 		}
 		
-		if (getInfoNear(base.x,base.y,'safe',base_range,10000).value && groupSize(armyFixers) < maxFixers && groupSize(armyPartisans) > 5 && fixersTrigger < gameTime && getResearch("R-Sys-MobileRepairTurret01").done && (playerPower(me) > 300 || groupSize(armyFixers) == 0)){
+		if (getInfoNear(base.x,base.y,'safe',base_range).value && groupSize(armyFixers) < maxFixers && groupSize(armyPartisans) > 5 && fixersTrigger < gameTime && getResearch("R-Sys-MobileRepairTurret01").done && (playerPower(me) > 300 || groupSize(armyFixers) == 0)){
 			fixersTrigger = gameTime + fixersTimer;
 			var _repair = "LightRepair1";
 			if(getResearch("R-Sys-MobileRepairTurretHvy").done) _repair = "HeavyRepair";

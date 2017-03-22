@@ -62,7 +62,7 @@ function targetFixers(){
 			target = sortByDistance(target, f, 1);
 //			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2) orderDroidLoc(f, 41, f.x, f.y); // 41 - DORDER_HOLD
 			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2){
-				orderDroidObj(f, 26, f); // 26 - DORDER_DROIDREPAIR
+//				orderDroidObj(f, 26, f); // 26 - DORDER_DROIDREPAIR
 				return;
 			}
 			else{
@@ -82,6 +82,8 @@ function targetPartisan(){
 	var fixers = enumGroup(armyFixers);
 	fixers.reverse();
 	
+	if(fixers.length >= 2) partisans.filter(function(e){if(e.health > 90)return true;return false;});
+	
 	var target=[];
 	target = target.concat(sortByDistance(getEnemyWalls().filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range)return true;return false;}), base, 1));
 	
@@ -99,15 +101,20 @@ function targetPartisan(){
 
 	//Если слишком мало партизан -И- нет срочной нужны в подмоге, то кучкуем армию у ближайших ресурсов за пределами базы
 	if(partisans.length < 5 && target.length==0){
-		target = target.concat(getUnknownResources());
-		target = target.concat(getSeeResources());
-		target = sortByDistance(target, base).filter(function(e){
-			if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range && droidCanReach(partisans[0], e.x,e.y) )return true;return false;
-		});
+		if(fixers.length == 0){
+			target = target.concat(getUnknownResources());
+			target = target.concat(getSeeResources());
+			target = sortByDistance(target, base).filter(function(e){
+				if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range && droidCanReach(partisans[0], e.x,e.y) )return true;return false;
+			});
+		}else{
+			target = fixers;
+		}
 		
 		if(target.length != 0){
-			if(target.length > 4) target = target.slice(4);
-			target = target[Math.floor(Math.random()*target.length)];
+//			if(target.length > 4) target = target.slice(4);
+//			target = target[Math.floor(Math.random()*target.length)];
+			target = target[0];
 			debugMsg("Мало партизан "+partisans.length+", собираю всех у "+target.name+" недалеко от базы "+distBetweenTwoPoints(base.x,base.y,target.x,target.y), 'targeting');
 			partisans.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, target.x, target.y);});
 		}

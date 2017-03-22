@@ -6,12 +6,15 @@ const research_primary = [
 "R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
 "R-Sys-Sensor-Turret01",		//Сенсор
 "R-Wpn-MG-Damage02",			//APDSB MG Bullets
+"R-Struc-CommandRelay",
 "R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
+"R-Struc-PowerModuleMk1",		//Модуль на генератор
 "R-Struc-Research-Module",		//Модуль для лаборотории
 "R-Wpn-MG-Damage03",			//APDSB MG Bullets Mk2
 "R-Wpn-MG3Mk1",					//Heavy Machinegun
-"R-Struc-VTOLFactory",			//Авиазавод
-"R-Struc-VTOLPad-Upgrade06",	//Заправка авиации A0VtolPad
+"R-Struc-Power-Upgrade03a",
+//"R-Struc-VTOLFactory",			//Авиазавод
+//"R-Struc-VTOLPad-Upgrade06",	//Заправка авиации A0VtolPad
 ];
 
 
@@ -29,11 +32,13 @@ const research_way_1 = [
 "R-Wpn-MG3Mk1",					//Тяжолопулемётная башня
 "R-Vehicle-Prop-Hover",			//Ховер для строителей
 "R-Sys-MobileRepairTurretHvy",	//Тяжёлый паяльник
+"R-Vehicle-Body08",				//Medium Body - Scorpion
 "R-Struc-VTOLFactory",			//Авиазавод
 "R-Struc-VTOLPad",				//Заправка авиации A0VtolPad
 "R-Defense-AASite-QuadMg1",		//Hurricane AA Site
 "R-Wpn-Rocket01-LtAT",			//Лансер
 "R-Wpn-Bomb03",					//Фосфорные бомбы
+"R-Vehicle-Body12",				//Heavy Body - Mantis
 "R-Wpn-Rocket05-MiniPod",		//Скорострельная ракетница
 "R-Wpn-Cannon1Mk1",				//Пушечная башня
 "R-Wpn-Flamer01Mk1",			//Огнемётная башня
@@ -102,14 +107,17 @@ const research_way_defence = [
 
 const research_way_mg = [
 "R-Wpn-MG-ROF03",				//Hyper Fire Chaingun Upgrade
-"R-Wpn-MG-Damage08",			//Depleted Uranium MG Bullets
 "R-Wpn-MG5",					//Twin Assault Gun
+"R-Wpn-MG-Damage08",			//Depleted Uranium MG Bullets
 "R-Defense-WallTower-QuadRotAA",//Whirlwind Hardpoint
 "R-Wpn-AAGun-Damage06",
 "R-Wpn-AAGun-ROF06",
 ];
 
 const research_way_cannon = [
+"R-Wpn-Cannon4AMk1",			//Hyper Velocity Cannon
+"R-Wpn-Cannon-ROF01",			//Cannon auto loader
+"R-Wpn-Cannon6TwinAslt",		//Twin Assault Cannon
 "R-Wpn-Cannon-ROF06",			//Cannon Rapid Loader Mk3
 "R-Wpn-Cannon-Accuracy02",		//Cannon Laser Designator
 "R-Wpn-Cannon-Damage09"		//HVAPFSDS Cannon Rounds Mk3
@@ -119,11 +127,6 @@ const research_way_3 = [
 "R-Sys-Autorepair-General",		//Автопочинка
 "R-Struc-VTOLPad-Upgrade06",
 //	"R-Defense-Wall-RotMg",
-];
-
-const research_way_4 = [
-"R-Wpn-MG-Damage08",
-"R-Wpn-MG5",
 ];
 
 const research_way_5 = [
@@ -136,15 +139,14 @@ const research_way_5 = [
 var research_way = [
 research_primary,
 research_way_1,
-research_way_2,
+research_way_mg,
 research_way_power,
+research_way_2,
 research_way_defence,
 research_way_armor,
-research_way_mg,
 research_way_cannon,
 research_rockets,
 research_way_3,
-research_way_4,
 research_way_5
 ];
 
@@ -159,11 +161,13 @@ function mainBuilders(rotation){
 		//Модули на здания
 		var safe = getInfoNear(base.x,base.y,'safe',base_range).value;
 		if(safe){
-			if(getResearch("R-Struc-Factory-Module").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
-			if(getResearch("R-Struc-Factory-Module").done && iter <=3) { vtol_factory.forEach( function(e){ if(e.modules < 2) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
-			if(getResearch("R-Struc-Factory-Module").done && getResearch("R-Vehicle-Metals02").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 2) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
+			if(playerPower(me) > 100){
+				if(getResearch("R-Struc-Factory-Module").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
+				if(getResearch("R-Struc-Factory-Module").done && iter <=3) { vtol_factory.forEach( function(e){ if(e.modules < 2) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
+				if(getResearch("R-Struc-Factory-Module").done && getResearch("R-Vehicle-Metals02").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 2) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
+				if(getResearch("R-Struc-Research-Module").done && iter <= 1) { research_lab.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0ResearchModule1", e.x, e.y);});}
+			}
 			if(getResearch("R-Struc-PowerModuleMk1").done && iter <= 2) { power_gen.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0PowMod1", e.x, e.y);});}
-			if(getResearch("R-Struc-Research-Module").done && iter <= 1) { research_lab.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0ResearchModule1", e.x, e.y);});}
 		}
 		//Если строители свободны, ищем чего-бы достроить или починить
 		if(helped < 1){
@@ -206,11 +210,14 @@ function mainBuilders(rotation){
 		if(rigDefence(obj)) return;
 
 		//Если свободны, и далеко от базы - отправляем домой
-		if(distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) > 10 && !builderBusy(obj)) { orderDroidLoc(obj,DORDER_MOVE,base.x,base.y); return; }
+//		if(distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) > 10 && !builderBusy(obj)) { orderDroidLoc(obj,DORDER_MOVE,base.x,base.y); return; }
 		debugMsg("Строители бездельничают "+iter, 'builders');
-		if(iter != 0){
+		if(iter != 0 && distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) <= 2 && groupSize(buildersHunters) < 5 && getInfoNear(base.x,base.y,'safe',base_range).value){
 			groupAddDroid(buildersHunters, obj);
 			debugMsg('Builder --> Hunter +1', 'group');
+		}else if(distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) > 2 && !builderBusy(obj)){
+			orderDroidLoc(obj,DORDER_MOVE,base.x,base.y);
+			return;
 		}
 		
 		

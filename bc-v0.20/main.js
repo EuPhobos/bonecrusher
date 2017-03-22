@@ -25,7 +25,7 @@ include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 //var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
-var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'vtol', 'builders');
+var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'vtol', 'builders');
 var debugName;
 
 //Координаты всех ресурсов, свободных и занятых
