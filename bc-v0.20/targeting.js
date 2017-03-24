@@ -42,7 +42,13 @@ function targetFixers(){
 	
 	//Армия дохнет? Спасаем задницу бегством!
 	if(partisans.length <= 3){
-		fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, base.x, base.y);})
+		var def = enumStruct(me,DEFENSE);
+		if(def.length == 0){
+			if(distBetweenTwoPoints(base.x, base.y, fixers[0].x, fixers[0].y) > 3) fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, base.x, base.y);});
+		}else{
+			def = sortByDistance(def,fixers[0], 1);
+			if(distBetweenTwoPoints(def[0].x, def[0].y, fixers[0].x, fixers[0].y) > 2) fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, def[0].x, def[0].y);});
+		}
 		return;
 	}
 	
@@ -176,7 +182,7 @@ function targetCyborgs(){
 		target = target.concat(getEnemyDefences());
 	}
 	var enemy = getEnemyNearBase();
-	if(enemy.length == 0)getEnemyNearAlly();
+	if(enemy.length == 0)enemy = getEnemyNearAlly();
 	
 	if(enemy.length != 0) target = enemy; //Заменяем
 	

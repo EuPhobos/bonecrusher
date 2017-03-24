@@ -222,11 +222,11 @@ function produceDroids(){
 		
 		//Строители
 		//Если строители не в лимите -И- база не подвергается нападению
-		//Если целей для охотников более 7 -И- денег более 700 -ИЛИ- строитель всего один а денег более 100 -ИЛИ- вообще нет строителей
+		//Если целей для охотников более 7 -И- денег более 750 -ИЛИ- строитель всего один а денег более 150 -ИЛИ- вообще нет строителей
 		//ТО заказуаэм!
 		debugMsg("buildersTrigger="+buildersTrigger+"; fixersTrigger="+fixersTrigger+"; gameTime="+gameTime, 'production');
 		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range).value)
-			&& ( (playerPower(me) > 700 && builder_targets.length > 7 && buildersTrigger < gameTime) || (groupSize(buildersMain) == 1 && playerPower(me) > 100) || builders.length == 0 ) ){
+			&& ( (playerPower(me) > 750 && builder_targets.length > 7 && buildersTrigger < gameTime) || (groupSize(buildersMain) == 1 && playerPower(me) > 150) || builders.length == 0 ) ){
 			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
 			buildersTrigger = gameTime + buildersTimer;
 			return;
@@ -331,7 +331,7 @@ function stats(){
 	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers), 'stats');
 	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length, 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
-	debugMsg("Base: defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length, 'stats');
+	debugMsg("Base: safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length, 'stats');
 	debugMsg("Bodies: light="+light_bodies.length+"; medium="+medium_bodies.length+"; heavy="+heavy_bodies.length, 'stats');
 	debugMsg("Misc: nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen+"; known defence="+defence.length+"; known AA="+AA_defence.length+"; AA_queue="+AA_queue.length, 'stats');
 }
@@ -624,10 +624,12 @@ function filterNearAlly(obj){
 	return obj;
 }
 
-//Turning off
-//TODO need to fix logic
+
+//TODO need to fix logic, sometimes it's buggy
+//it's triggered in middle of battlefield,
+//and send help to random location.. don't known why..
 function getEnemyNearAlly(){
-	return [];
+//	return []; // <-- disable this funtion
 	var targ = [];
 	var enemy = [];
 	for ( var e = 0; e < maxPlayers; ++e ) {
@@ -635,7 +637,7 @@ function getEnemyNearAlly(){
 		targ = targ.concat(enumDroid(e, DROID_WEAPON, me));
 	}
 	if(scavengers == true) {
-		targ = targ.concat(enumStruct(scavengerPlayer, DROID_WEAPON, me));
+		targ = targ.concat(enumDroid(scavengerPlayer, DROID_WEAPON, me));
 	}
 	
 	for ( var p = 0; p < maxPlayers; ++p ) {

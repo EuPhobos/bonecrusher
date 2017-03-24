@@ -13,7 +13,7 @@ function eventDroidIdle(droid) {
 //			if(gameTime > eventsRun['targetCyborgs']){
 //				debugMsg("targetCyborgs",'events');
 //				eventsRun['targetCyborgs'] = gameTime + 1000;
-				targetCyborgs();
+//				targetCyborgs();
 //			}
 		break;
 		case DROID_WEAPON:
@@ -22,7 +22,7 @@ function eventDroidIdle(droid) {
 		case DROID_CONSTRUCT:
 			if(gameTime > eventsRun['buildersOrder']){
 				debugMsg("buildersOrder",'events');
-				eventsRun['buildersOrder'] = gameTime + 1000;
+				eventsRun['buildersOrder'] = gameTime + 10000;
 				buildersOrder();
 			}
 		break;
@@ -92,11 +92,20 @@ function eventObjectTransfer(gameObject, from) {
 //Срабатывает при завершении строительства здания
 function eventStructureBuilt(structure, droid){
 
-
-	buildersOrder();
 	switch (structure.stattype) {
 		case RESEARCH_LAB:
 			queue("doResearch", 1000);
+			if(difficulty != EASY){
+				//Ротация строителей в начале игры, для более быстрого захвата ресурсов на карте
+				//Отключено в лёгком режиме
+				factory = enumStruct(me, FACTORY);
+				research_lab = enumStruct(me, RESEARCH_LAB);
+				factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
+				research_lab_ready = research_lab.filter(function(e){if(e.status == 1)return true; return false;});
+				if(factory_ready.length == 1 && research_lab_ready.length == 1) 
+					enumDroid(me, DROID_CONSTRUCT).forEach(function(e,i){if(i!=0){groupAddDroid(buildersHunters, e);debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');}});
+			}
+			
 		break;
 		case FACTORY:
 			produceDroids();
@@ -111,6 +120,8 @@ function eventStructureBuilt(structure, droid){
 			prepeareProduce();
 		break;
 	}
+	
+	buildersOrder();
 }
 
 //этот триггер срабатывает при выходе из завода нового свежего юнита.

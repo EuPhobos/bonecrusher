@@ -10,22 +10,20 @@ include("multiplay/skirmish/bc-v"+vernum+"/events.js");
 include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 
 //FIXME/TODO//
-// ?!! Не строить модули на здания, пока база под атакой!
-// !!! Использовать поздние технологии, лазеры, рельсаганы и т.д.
-// !!! Создать несоклько путей развития
-// ?!  Если на базе уничтожены главные строители, но есть строитель-охотник, охотника в главные базу на строителя
-// !!  Если нет готовых заводов и все строители уничтожены, создать киборга-строителя
-// ?!  Улучшить В.В.иП.: Атака на заводы, скаут на всё остальное
-// !   Определять ближайшего врага и ближайшего союзника, для атаки/подмоги по приоритету
-// !   Отдельный путь развития для игры в команде
-// !   Отдельная логика для игры на богатых картах "NTW"
-// !   Больше использовать getInfoNear() для прироста производительности
+// --- Использовать поздние технологии, лазеры, рельсаганы и т.д.
+// --- Создать несоклько путей развития
+// -+  Если на базе уничтожены главные строители, но есть строитель-охотник, охотника в главные базу на строителя
+// --  Если нет готовых заводов и все строители уничтожены, создать киборга-строителя
+// -   Определять ближайшего врага и ближайшего союзника, для атаки/подмоги по приоритету
+// -   Отдельный путь развития для игры в команде
+// -   Отдельная логика для игры на богатых картах "NTW"
+// -   Больше использовать getInfoNear() для прироста производительности
 
 //DEBUG: количество вывода, закоментить перед релизом
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 //var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
-var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'vtol', 'builders');
+var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'builders');
 var debugName;
 
 //Координаты всех ресурсов, свободных и занятых
@@ -38,7 +36,7 @@ var base;
 var base_range = 40; // В каких пределах работают основные строители (не охотники)
 
 var buildersTimer = 25000;		//Триггер для заказа строителей (что бы не выходили пачкой сразу)
-var fixersTimer = 50000;		//Триггер для заказа инженеров
+var fixersTimer = 50000;		//Триггер для заказа рем.инженеров
 var buildersTrigger = 0;
 var fixersTrigger = 0;
 
@@ -225,9 +223,14 @@ function letsRockThisFxxxingWorld(){
 	scavengerPlayer = (scavengers) ? Math.max(7,maxPlayers) : -1;
 	if(scavengers)debugMsg("На карте присудствуют гопники! {"+scavengerPlayer+"}", "init");
 	else debugMsg("На карте отсутствуют гопники", "init");
+
+	//Первых строителей в группу
+	var _builders = enumDroid(me,DROID_CONSTRUCT);
+	_builders.forEach(function(e){groupBuilders(e);});
 	
 	//Получаем свои координаты
-	base = startPositions[me];
+	if(_builders.length != 0) base = {x:_builders[0].x, y:_builders[0].y};
+	else base = startPositions[me];
 	debugMsg("Похоже это моя стартовая позиция: ("+base.x+","+base.y+")", 'init');
 	
 	//Получаем координаты всех ресурсов и занятых и свободных
@@ -265,8 +268,8 @@ function letsRockThisFxxxingWorld(){
 		debugMsg("Похоже я играю с нубами, будем поддаваться:", 'init');
 		
 		//Забываем все предустановленные исследования
-		//Исследуем в полном рандоме.
-		research_way=[["R-Wpn-MG1Mk1"]];
+		//Исследуем оружия и защиту в полном рандоме.
+		research_way=[["R-Wpn-MG1Mk1"],["R-Struc-Research-Upgrade09"],["R-Struc-Power-Upgrade03a"]];
 		
 		//Уменьшаем размеры армий
 		(maxPartisans > 7)?maxPartisans = 7:{};
@@ -283,6 +286,9 @@ function letsRockThisFxxxingWorld(){
 		(maxFactoriesCyb > 1)?maxFactoriesCyb = 1:{};
 		(maxFactoriesVTOL > 1)?maxFactoriesVTOL = 1:{};
 		(maxPads > 2)?maxPads = 2:{};
+		
+		//Производим строителя раз в минуту, не раньше
+		buildersTimer = 60000;
 	}
 	
 	debugMsg("Лимиты базы: maxFactories="+maxFactories+"; maxFactoriesCyb="+maxFactoriesCyb+"; maxFactoriesVTOL="+maxFactoriesVTOL+"; maxPads="+maxPads+"; maxLabs="+maxLabs+"; maxGenerators="+maxGenerators+"; maxExtractors="+maxExtractors, 'init');
@@ -327,10 +333,6 @@ function letsRockThisFxxxingWorld(){
 	nastyFeatures = []; // Сброс, потому что без проверки по propulsionCanReach, переинициализируется в nastyFeaturesClean();
 	//nastyFeatures.forEach(function(e){debugMsg(e.id+" "+e.x+"x"+e.y+" "+e.name+" "+e.damageable+" "+e.player, 'init');});
 
-	
-	//Первых строителей в группу
-	enumDroid(me,DROID_CONSTRUCT).forEach(function(e){groupBuilders(e);});
-	
 	//Первых военных в группу
 	enumDroid(me,DROID_CYBORG).forEach(function(e){groupAddDroid(armyCyborgs, e);});
 	enumDroid(me,DROID_WEAPON).forEach(function(e){groupAddDroid(armyCyborgs, e);}); // <-- Это не ошибка, первых бесплатных определяем как киборгов (работа у них будет киборгская)

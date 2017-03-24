@@ -2,16 +2,21 @@ const research_test = ["R-Wpn-MG1Mk1"];
 
 const research_primary = [
 "R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
-"R-Sys-Engineering01",			//Инженерия
-"R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
-"R-Sys-Sensor-Turret01",		//Сенсор
 "R-Wpn-MG-Damage02",			//APDSB MG Bullets
-"R-Struc-CommandRelay",
+"R-Defense-Tower01",			//Оборонная вышка / пулемётная башня (старт)
 "R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
+"R-Vehicle-Engine01",			//Fuel Injection Engine
+"R-Sys-Sensor-Turret01",		//Сенсор
+"R-Struc-CommandRelay",
 "R-Struc-PowerModuleMk1",		//Модуль на генератор
 "R-Struc-Research-Module",		//Модуль для лаборотории
 "R-Wpn-MG-Damage03",			//APDSB MG Bullets Mk2
 "R-Wpn-MG3Mk1",					//Heavy Machinegun
+"R-Struc-Power-Upgrade01",
+"R-Struc-Power-Upgrade01b",
+"R-Struc-Power-Upgrade01c",
+"R-Struc-Power-Upgrade02",
+"R-Struc-Power-Upgrade03",
 "R-Struc-Power-Upgrade03a",
 //"R-Struc-VTOLFactory",			//Авиазавод
 //"R-Struc-VTOLPad-Upgrade06",	//Заправка авиации A0VtolPad
@@ -19,13 +24,18 @@ const research_primary = [
 
 
 const research_way_1 = [
+"R-Sys-Engineering01",			//Инженерия
+"R-Struc-PowerModuleMk1",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
-"R-Wpn-Cannon1Mk1",				//Лёгкая пушка
 "R-Sys-MobileRepairTurret01",	//Паяльник
+"R-Wpn-Cannon1Mk1",				//Лёгкая пушка
+"R-Struc-Factory-Cyborg",		//Завод киборгов
+"R-Wpn-Flamer01Mk1",
+"R-Wpn-Rocket05-MiniPod",
+"R-Defense-WallTower02",
 "R-Vehicle-Body05",				//Средняя начальная броня
 "R-Vehicle-Body04",				//Лёгкая броня Bug
 //	"R-Wpn-MG-Damage03",
-"R-Struc-Factory-Cyborg",		//Завод киборгов
 "R-Wpn-MG-Damage04",			//APDSB MG Bullets Mk3
 //	"R-Sys-Engineering01",			//Инженерия (старт)
 //	"R-Sys-Sensor-Turret01",		//Сенсорная башня (для лидера)
@@ -159,7 +169,7 @@ function mainBuilders(rotation){
 		if(resource_extractor_ready.length == 0 && power_gen_ready.length != 0){oilHunt(obj, true);return;}
 		
 		//Модули на здания
-		var safe = getInfoNear(base.x,base.y,'safe',base_range).value;
+		var safe = getInfoNear(base.x,base.y,'safe',(base_range/2)).value;
 		if(safe){
 			if(playerPower(me) > 100){
 				if(getResearch("R-Struc-Factory-Module").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
@@ -186,7 +196,7 @@ function mainBuilders(rotation){
 		if(hq_ready.length == 0) { if(builderBuild(obj, "A0CommandCentre", rotation)) return; }
 		//Генератор энергии
 		if(power_gen_ready.length == 0) { if(builderBuild(obj, "A0PowerGenerator", rotation)) return; }
-		if(research_lab_ready.length < 3) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
+		if(research_lab_ready.length < 2) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
 		if(factory_ready.length < 2 && playerPower(me) > 300) { if(builderBuild(obj, "A0LightFactory", rotation)) return; }
 		if(research_lab_ready.length < 4 && playerPower(me) > 400) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
 		if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 2 && playerPower(me) > 300) { if(builderBuild(obj, "A0CyborgFactory", rotation)) return; }
