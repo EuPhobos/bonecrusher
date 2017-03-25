@@ -259,8 +259,11 @@ function produceCyborgs(){
 	debugMsg("Cyborg: fact="+cyborg_factories.length+"; cyb="+avail_cyborgs.length, 'production');
 	if(cyborg_factories.length != 0 && avail_cyborgs.length != 0 && groupSize(armyCyborgs) < 20){
 		var _cyb = avail_cyborgs[Math.floor(Math.random()*Math.min(avail_cyborgs.length, 3))]; //Случайный киборг из 3 полседних крутых
-		debugMsg("Cyborg: body="+_cyb[0]+"; weapon="+_cyb[1] ,'production');
-		buildDroid(cyborg_factories[0], "Terminator", _cyb[0], "CyborgLegs", "", DROID_CYBORG, _cyb[1]);
+		var _body = _cyb[0];
+		if(version == '3.2') _body = 'CyborgLightBody'; //For 3.2+ support
+		var _weapon = _cyb[1];
+		debugMsg("Cyborg: body="+_body+"; weapon="+_weapon ,'production');
+		buildDroid(cyborg_factories[0], "Terminator", _body, "CyborgLegs", "", DROID_CYBORG, _weapon);
 	}
 }
 

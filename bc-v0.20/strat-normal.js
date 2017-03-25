@@ -47,6 +47,7 @@ const research_way_1 = [
 "R-Struc-VTOLPad",				//Заправка авиации A0VtolPad
 "R-Defense-AASite-QuadMg1",		//Hurricane AA Site
 "R-Wpn-Rocket01-LtAT",			//Лансер
+"R-Sys-Autorepair-General",		//Автопочинка
 "R-Wpn-Bomb03",					//Фосфорные бомбы
 "R-Vehicle-Body12",				//Heavy Body - Mantis
 "R-Wpn-Rocket05-MiniPod",		//Скорострельная ракетница
@@ -133,11 +134,6 @@ const research_way_cannon = [
 "R-Wpn-Cannon-Damage09"		//HVAPFSDS Cannon Rounds Mk3
 ];
 
-const research_way_3 = [
-"R-Sys-Autorepair-General",		//Автопочинка
-"R-Struc-VTOLPad-Upgrade06",
-//	"R-Defense-Wall-RotMg",
-];
 
 const research_way_5 = [
 "R-Cyborg-Armor-Heat09",		//Термостойкая броня киборгов (финал)
@@ -156,7 +152,6 @@ research_way_defence,
 research_way_armor,
 research_way_cannon,
 research_rockets,
-research_way_3,
 research_way_5
 ];
 
