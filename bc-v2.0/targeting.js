@@ -13,7 +13,7 @@ function targetVTOL(){
 	}
 	
 	var ready = enumGroup(VTOLAttacker).filter(function(e){
-		debugMsg(e.id+"-"+e.action, 'vtol');
+//		debugMsg(e.id+"-"+e.action, 'vtol');
 		if( e.action == 32 || e.action == 33 || e.action == 34 || e.action == 35 || e.action == 36 || e.action == 37 || e.action == 41 || e.action == 1 )return false;
 		return true;
 	});
@@ -22,9 +22,15 @@ function targetVTOL(){
 	if(group.length >= 3 && (target.length != 0 || scout.length != 0) ) {
 		debugMsg("Attack!", "vtol");
 		if(target.length != 0){
-			group.forEach(function(e){var attack = orderDroidObj(e, DORDER_ATTACK, target[0]); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');});
+			group.forEach(function(e){
+				var attack = orderDroidObj(e, DORDER_ATTACK, target[0]);
+//				debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');
+			});
 		}else if(scout.length != 0){
-			group.forEach(function(e){var attack = orderDroidLoc(e, DORDER_SCOUT, scout[0].x, scout[0].y); debugMsg("Scouting: "+scout[0].name+"-"+attack, 'vtol');});
+			group.forEach(function(e){
+				var attack = orderDroidLoc(e, DORDER_SCOUT, scout[0].x, scout[0].y);
+//				debugMsg("Scouting: "+scout[0].name+"-"+attack, 'vtol');
+			});
 		}
 
 //		group.forEach(function(e){var attack = orderDroidLoc(e, 40, target[0].x, target[0].y); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');}); // 40 - DORDER_CIRCLE
@@ -93,7 +99,7 @@ function targetPartisan(){
 	var target=[];
 	target = target.concat(sortByDistance(getEnemyWalls().filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range)return true;return false;}), base, 1));
 	
-	if(target.length != 0) debugMsg("partisans TARGET walls", 'targeting');
+//	if(target.length != 0) debugMsg("partisans TARGET walls", 'targeting');
 	
 	if(target.length == 0){
 		target = target.concat(getEnemyNearBase());

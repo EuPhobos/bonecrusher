@@ -60,12 +60,12 @@ function getInfoNear(x,y,command,range,time,obj,cheat){
 			for ( var d in defenses ) {
 				if ( distBetweenTwoPoints(x,y,defenses[d].x,defenses[d].y) < range ) { 
 					_globalInfoNear[x][y][command].value = true;
-					debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
+//					debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
 					return _globalInfoNear[x][y][command];
 				}
 			}
 			_globalInfoNear[x][y][command].value = false;
-			debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
+//			debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
 			return _globalInfoNear[x][y][command];
 			
 		}else if(command == 'buildDef'){
@@ -75,7 +75,7 @@ function getInfoNear(x,y,command,range,time,obj,cheat){
 			if(_builder.length == 0){ //Невозможно в данный момент проверить, запоминаем на 10 секунд
 				_globalInfoNear[x][y][command].updateIn = 10000;
 				_globalInfoNear[x][y][command].value = false;
-				debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
+//				debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
 				return _globalInfoNear[x][y][command];
 			}
 			var toBuild = defence[Math.floor(Math.random()*defence.length)];
@@ -85,7 +85,7 @@ function getInfoNear(x,y,command,range,time,obj,cheat){
 			}else{
 				_globalInfoNear[x][y][command].value = false;
 			}
-			debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
+//			debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
 			return _globalInfoNear[x][y][command];
 		}
 	}
@@ -404,7 +404,7 @@ function isBeingRepaired(who){
 			break;
 		}
 		default: {
-			debugMsg("Нууу, не знаю, нас атакует Ктулху! ["+who.player+"]",5);
+//			debugMsg("Нууу, не знаю, нас атакует Ктулху! ["+who.player+"]",5);
 			return false;
 			break;
 		}
@@ -464,7 +464,7 @@ function doResearch(){
 	
 	if ( research_way.length < 5 ){
 		var _research = avail_research[Math.floor(Math.random()*avail_research.length)].name;
-		debugMsg(_research, 'temp');
+//		debugMsg(_research, 'temp');
 		research_way.push([_research]);
 		debugMsg("doResearch: Исследовательские пути ("+research_way.length+") подходят к концу! Добавляем рандом. \""+research_name[_research]+"\" ["+_research+"]", 'research');
 	}
@@ -649,10 +649,10 @@ function getEnemyNearAlly(){
 //		if ( playerLoose(p) ) continue; //Пропускаем проигравших
 		if ( playerSpectator(p) ) continue;
 		enemy = enemy.concat(targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) ){
-			debugMsg("TRUE name="+e.name+"; id="+e.id+"; dist="+distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y)+"<"+(base_range/2)+"; player="+p,'temp');
+//			debugMsg("TRUE name="+e.name+"; id="+e.id+"; dist="+distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y)+"<"+(base_range/2)+"; player="+p,'temp');
 			return true;
 		}
-		debugMsg("FALSE name="+e.name+"; id="+e.id+"; dist="+distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y)+"<"+(base_range/2)+"; player="+p, 'temp');
+//		debugMsg("FALSE name="+e.name+"; id="+e.id+"; dist="+distBetweenTwoPoints(e.x,e.y,startPositions[p].x,startPositions[p].y)+"<"+(base_range/2)+"; player="+p, 'temp');
 		return false;}));
 	}
 	

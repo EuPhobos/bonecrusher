@@ -1,5 +1,5 @@
-const vernum    = "0.20";
-const verdate   = "xx.xx.2017";
+const vernum    = "2.0";
+const verdate   = "26.03.2017";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 
@@ -24,7 +24,8 @@ include("multiplay/skirmish/bc-v"+vernum+"/names.js");
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 //var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
-var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'builders');
+//var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'builders');
+var debugLevels = new Array('init', 'end');
 var debugName;
 
 //Координаты всех ресурсов, свободных и занятых

@@ -240,24 +240,24 @@ function buildersOrder(order,target) {
 //Функция постройка защиты у ресурса
 function rigDefence(obj){
 	if(playerPower(me) < 700) return false;
-	debugMsg("rigDefence(): "+defQueue.length);
+//	debugMsg("rigDefence(): "+defQueue.length);
 	if(defQueue.length == 0) return false; //Очередь для постройки защиты
 	if(defence.length == 0) return false; //Количество возможных защитных башен исследовано
 	var toBuild = defence[Math.floor(Math.random()*defence.length)];
 	defQueue = sortByDistance(defQueue,obj,0);
 	if(!getInfoNear(defQueue[0].x,defQueue[0].y,'safe').value) {
 		defQueue.shift();
-		debugMsg("rigDefence(): Danger, cancel "+defQueue.length);
+//		debugMsg("rigDefence(): Danger, cancel "+defQueue.length);
 		return false;
 	}
-	debugMsg("rigDefence(): Строителем №"+obj.id+" строим "+toBuild+" "+defQueue[0].x+"x"+defQueue[0].y);
+//	debugMsg("rigDefence(): Строителем №"+obj.id+" строим "+toBuild+" "+defQueue[0].x+"x"+defQueue[0].y);
 	var pos = pickStructLocation(obj,toBuild,defQueue[0].x+Math.round(Math.random()*2-1), defQueue[0].y+Math.round(Math.random()*2-1));
 	if(!!pos && !builderBusy(obj)){
 		orderDroidBuild(obj, DORDER_BUILD, toBuild, pos.x, pos.y, 0);
 		defQueue.shift();
 		return true;
 	}
-	debugMsg("rigDefence(): Отмена");
+//	debugMsg("rigDefence(): Отмена");
 	return false;
 }
 
@@ -352,10 +352,10 @@ function oilHunt(obj, nearbase){
 	for(var i in builder_targets){
 		if (getInfoNear(builder_targets[i].x,builder_targets[i].y,'safe').value){
 			if(distBetweenTwoPoints(builder_targets[i].x,builder_targets[i].y,obj.x,obj.y) <= 7){
-				if ( typeof builder_targets[i] === "undefined" ) { debugMsg("ERROR in oilHunt(): Выход за пределы массива, исправить!"); break;}
+				if ( typeof builder_targets[i] === "undefined" ) { debugMsg("ERROR in oilHunt(): Выход за пределы массива, исправить!", 'error'); break;}
 				if(builder_targets[i].type == FEATURE){
 					orderDroidBuild(obj,DORDER_BUILD,"A0ResourceExtractor",builder_targets[i].x,builder_targets[i].y);
-					debugMsg("oilHunt(): Захват ресурса строителем №"+obj.id);
+//					debugMsg("oilHunt(): Захват ресурса строителем №"+obj.id);
 					builder_targets.splice(i,1);
 					return true;
 				}else if(builder_targets[i].type == STRUCTURE && builder_targets[i].stattype == DEFENSE && builder_targets[i].player == me){
@@ -369,15 +369,14 @@ function oilHunt(obj, nearbase){
 					var pos = pickStructLocation(obj,toBuild,builder_targets[i].x+Math.round(Math.random()*2-1), builder_targets[i].y+Math.round(Math.random()*2-1));
 					if(!!pos && !builderBusy(obj)){
 						orderDroidBuild(obj, DORDER_BUILD, toBuild, pos.x, pos.y, 0);
-						debugMsg("oilHunt(): Строим вышку у вражеского ресурса");
+//						debugMsg("oilHunt(): Строим вышку у вражеского ресурса");
 						return true;
 					} else {
 						builder_targets.splice(i,1);
 						return false;
 					}
 				}else{
-					debugMsg("oilHunt(): Разведка строителем #"+obj.id+" на ближайшую неизвестную "+builder_targets[i].x+"x"+builder_targets[i].y+" "+i+"/"+builder_targets.length+" "
-					+builder_targets[i].name+","+builder_targets[i].type+","+builder_targets[i].player);
+//					debugMsg("oilHunt(): Разведка строителем #"+obj.id+" на ближайшую неизвестную "+builder_targets[i].x+"x"+builder_targets[i].y+" "+i+"/"+builder_targets.length+" "+builder_targets[i].name+","+builder_targets[i].type+","+builder_targets[i].player);
 					orderDroidLoc(obj,DORDER_MOVE,builder_targets[i].x,builder_targets[i].y);
 					builder_targets.splice(i,1);
 					return true;
@@ -391,7 +390,7 @@ function oilHunt(obj, nearbase){
 	if(nearbase) if ( distBetweenTwoPoints(base.x,base.y,builder_targets[0].x,builder_targets[0].y) > base_range ) return false; //Запрещаем основным строителям далеко отходить от базы
 	if(getInfoNear(builder_targets[0].x,builder_targets[0].y,'safe').value){
 		orderDroidLoc(obj,DORDER_MOVE,builder_targets[0].x,builder_targets[0].y); //"A0ResourceExtractor"
-		debugMsg("oilHunt() двигаем строителем #"+obj.id+" к "+builder_targets[0].name+","+builder_targets[0].type+","+builder_targets[0].player+", поз.: "+builder_targets[0].x+"x"+builder_targets[0].y+" "+builder_targets.length);
+//		debugMsg("oilHunt() двигаем строителем #"+obj.id+" к "+builder_targets[0].name+","+builder_targets[0].type+","+builder_targets[0].player+", поз.: "+builder_targets[0].x+"x"+builder_targets[0].y+" "+builder_targets.length);
 		builder_targets.shift();
 		return true;
 	}

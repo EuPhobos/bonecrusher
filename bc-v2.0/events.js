@@ -51,7 +51,7 @@ function eventObjectSeen(sensor, gameObject) {
 		}
 		break;
 		case FEATURE:
-			debugMsg("eventObjectSeen: "+ sensor.name+" обнаружил FEATURE: "+gameObject.name, 'events');
+//			debugMsg("eventObjectSeen: "+ sensor.name+" обнаружил FEATURE: "+gameObject.name, 'events');
 //			getTarget();
 			buildersOrder();
 		break;

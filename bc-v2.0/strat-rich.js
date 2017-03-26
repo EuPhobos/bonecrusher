@@ -1,4 +1,14 @@
 
+
+/*
+ * OFFLINE
+ * Это часть скрипта пока не используется
+ * 
+ * */
+
+
+
+
 const research_primary = [
 "R-Wpn-MG1Mk1",					//Лёгкий пулемёт (старт)
 "R-Wpn-MG-Damage02",

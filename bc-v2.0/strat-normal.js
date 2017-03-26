@@ -159,7 +159,10 @@ research_way_5
 function mainBuilders(rotation){
 	var helped=0;
 	enumGroup(buildersMain).forEach( function(obj, iter){
-		if(builderBusy(obj) == true) {debugMsg("buildersOrder(): Строитель занят "+iter);return;}
+		if(builderBusy(obj) == true) {
+//			debugMsg("buildersOrder(): Строитель занят "+iter);
+			return;
+		}
 		
 		if(resource_extractor_ready.length == 0 && power_gen_ready.length != 0){oilHunt(obj, true);return;}
 		
@@ -207,7 +210,7 @@ function mainBuilders(rotation){
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 2 && playerPower(me) > 500){ if(builderBuild(obj, "A0VTolFactory1", rotation)) return; }
 		if(isStructureAvailable("A0VtolPad") && playerPower(me) > 2000 && rearm_pad.length < enumGroup(VTOLAttacker).length && rearm_pad.length <= maxPads){ if(builderBuild(obj, "A0VtolPad", rotation)) return; }
 		
-		debugMsg("Строителям нечего строить "+iter, 'builders');
+//		debugMsg("Строителям нечего строить "+iter, 'builders');
 		
 
 		
@@ -216,7 +219,7 @@ function mainBuilders(rotation){
 
 		//Если свободны, и далеко от базы - отправляем домой
 //		if(distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) > 10 && !builderBusy(obj)) { orderDroidLoc(obj,DORDER_MOVE,base.x,base.y); return; }
-		debugMsg("Строители бездельничают "+iter, 'builders');
+//		debugMsg("Строители бездельничают "+iter, 'builders');
 		if(iter != 0 && distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) <= 2 && groupSize(buildersHunters) < 5 && getInfoNear(base.x,base.y,'safe',base_range).value){
 			groupAddDroid(buildersHunters, obj);
 			debugMsg('Builder --> Hunter +1', 'group');
