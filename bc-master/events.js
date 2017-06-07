@@ -60,6 +60,7 @@ function eventObjectSeen(sensor, gameObject) {
 
 //Если произошла передача от игрока к игроку
 function eventObjectTransfer(gameObject, from) {
+	debugMsg("I="+me+"; object '"+gameObject.name+"' getting to "+gameObject.player+" from "+from, 'transfer');
 	
 	if (gameObject.player == me) { // Что то получили
 		if (allianceExistsBetween(me,from)) { // От союзника
@@ -95,13 +96,16 @@ function eventStructureBuilt(structure, droid){
 	switch (structure.stattype) {
 		case RESEARCH_LAB:
 			queue("doResearch", 1000);
-			if(difficulty != EASY){
+			if(difficulty != EASY && gameTime < 300000){
 				//Ротация строителей в начале игры, для более быстрого захвата ресурсов на карте
 				//Отключено в лёгком режиме
 				factory = enumStruct(me, FACTORY);
 				research_lab = enumStruct(me, RESEARCH_LAB);
+//				power_gen = enumStruct(me, POWER_GEN);
+//				power_gen_ready = power_gen.filter(function(e){if(e.status == 1)return true; return false;});
 				factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 				research_lab_ready = research_lab.filter(function(e){if(e.status == 1)return true; return false;});
+//				if( (factory_ready.length == 1 && research_lab_ready.length == 1) || power_gen_ready.length == 1)
 				if(factory_ready.length == 1 && research_lab_ready.length == 1) 
 					enumDroid(me, DROID_CONSTRUCT).forEach(function(e,i){if(i!=0){groupAddDroid(buildersHunters, e);debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');}});
 			}
@@ -127,6 +131,13 @@ function eventStructureBuilt(structure, droid){
 //этот триггер срабатывает при выходе из завода нового свежего юнита.
 function eventDroidBuilt(droid, structure) {
 	
+	
+	if(produceTrigger[structure.id]){
+		var rem = produceTrigger.splice(structure.id, 1);
+		debugMsg('BUILT: removed from '+structure.id+' '+rem, 'triggers');
+		groupArmy(droid, rem);
+		return;
+	}
 
 	switch (droid.droidType) {
 		case DROID_WEAPON:
@@ -158,9 +169,45 @@ function eventDroidBuilt(droid, structure) {
 	}
 	
 }
+/*			if(gameTime > eventsRun['buildersOrder']){
+				debugMsg("buildersOrder",'events');
+				eventsRun['buildersOrder'] = gameTime + 10000;
+				buildersOrder();
+			}
+*/
+
 
 function eventAttacked(victim, attacker) {
+	if(allianceExistsBetween(me, attacker.player)) return;
+	
+	//Если атака с самолёта рядом с базой, строим ПВО
 	if(isFixVTOL(attacker) && distBetweenTwoPoints(victim.x,victim.y,base.x,base.y) < base_range) AA_queue.push({x:victim.x,y:victim.y});
+	
+	//Если атака по стратегическим точкам, направляем основную армию
 	if((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE) ) targetRegular(attacker);
+	
+	//Если атака по армии, отводим атакованного
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)) orderDroidLoc(victim, DORDER_MOVE, base.x, base.y);
+	
+	//Если атака по киборгам, ответный огонь ближайшими киборгами
+	if(victim.type == DROID && victim.droidType == DROID_CYBORG && !isFixVTOL(victim) && gameTime > eventsRun['victimCyborgs']) {
+		eventsRun['victimCyborgs'] = gameTime + 10000;
+		var cyborgs = enumGroup(armyCyborgs);
+		cyborgs.forEach(function(e){
+			if(distBetweenTwoPoints(e.x,e.y,attacker.x,attacker.y) < 10)
+//			orderDroidLoc(e, DORDER_SCOUT, {x:attacker.x,y:attacker.y});
+			orderDroidObj(e, DORDER_ATTACK, attacker);
+		});
+	}
+	
+}
+
+
+function eventDestroyed(obj){
+	if(obj.type == STRUCTURE && obj.stattype == FACTORY){
+		if(produceTrigger[obj.id]){
+			var rem = produceTrigger.splice(obj.id, 1);
+			debugMsg('DESTROYED: removed from '+obj.id+' '+rem, 'triggers');
+		}
+	}
 }

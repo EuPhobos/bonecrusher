@@ -91,102 +91,17 @@ function getInfoNear(x,y,command,range,time,obj,cheat){
 	}
 }
 
-//Подготавливаем технологии для производства
-//на самом деле лишняя функция, однако необходимая
-//для того, что бы не читерить. Мы не можем производить
-//войска по исследованным технологиям без HQ, так этой функцией запретим
-//это делать и ИИ
-function prepeareProduce(){
-	
-	//Если есть HQ
-	var hq = enumStruct(me, HQ).filter(function (e){if(e.status == BUILT)return true;return false;});
-	if (hq.length != 0){
-		
-		//Составляем корпуса
-		light_bodies=[];
-		medium_bodies=[];
-		heavy_bodies=[];
-		bodies.forEach(function(e){
-//			debugMsg("Body: "+e[1]+" "+getResearch(e[0]).done, 'production');
-			switch (e[1]){
-				case "Body1REC":
-				case "Body4ABT":
-				case "Body2SUP":
-				case "Body3MBT":
-					if(getResearch(e[0]).done) light_bodies.unshift(e[1]);
-				break;
-				case "Body5REC":
-				case "Body8MBT":
-				case "Body6SUPP":
-				case "Body7ABT":
-					if(getResearch(e[0]).done) medium_bodies.unshift(e[1]);
-				break;
-				case "Body11ABT":
-				case "Body12SUP":
-				case "Body9REC":
-				case "Body10MBT":
-				case "Body13SUP":
-				case "Body14SUP":
-					if(getResearch(e[0]).done) heavy_bodies.unshift(e[1]);
-				break;
-				
-			}
-		});
-		
-		
-		//Сортируем пушки по "крутизне", базируясь на research.points
-		var _guns=guns.filter(function(e){if(getResearch(e[0]).done)return true;return false;}).sort(function (a,b){
-			if(getResearch(a[0]).points < getResearch(b[0]).points ) return -1;
-			if(getResearch(a[0]).points > getResearch(b[0]).points ) return 1;
-			return 0;
-		});
-		avail_guns=[];
-		for (var i in _guns){
-			avail_guns.push(_guns[i][1]);
-//			debugMsg(getResearch(_guns[i][0]).points+" "+_guns[i][0]+"->"+_guns[i][1], 'production');
-		}
-		if(avail_guns.length > 2) avail_guns.shift(); //Выкидываем первый пулемётик
-		if(avail_guns.length > 2) avail_guns.shift(); //Выкидываем спаренный пулемётик
-		avail_guns.reverse();
-		
-		//Сайборги заполонили!
-		avail_cyborgs=[];
-		var _cyb=cyborgs.filter(function(e){if(getResearch(e[0]).done)return true;return false;}).sort(function (a,b){
-			if(getResearch(a[0]).points < getResearch(b[0]).points ) return -1;
-			if(getResearch(a[0]).points > getResearch(b[0]).points ) return 1;
-			return 0;
-		});
-		for (var i in _cyb){
-			avail_cyborgs.push([_cyb[i][1],_cyb[i][2]]);
-		}
-		avail_cyborgs.reverse();
-		
-		//В.В.иП.
-		avail_vtols=[];
-		var _vtols=vtols.filter(function(e){if(getResearch(e[0]).done)return true;return false;}).sort(function (a,b){
-			if(getResearch(a[0]).points < getResearch(b[0]).points ) return -1;
-			if(getResearch(a[0]).points > getResearch(b[0]).points ) return 1;
-			return 0;
-		});
-		for (var i in _vtols){
-			avail_vtols.push(_vtols[i][1]);
-		}
-		avail_vtols.reverse();
-		avail_vtols.unshift("Bomb3-VTOL-LtINC");	// <-- *facepalm*
-		avail_vtols.unshift("Bomb4-VTOL-HvyINC");	// <-- *facepalm*
-	}
-	
-	defence=[];
-	towers.forEach(function(e){if(getResearch(e[0]).done)defence.unshift(e[1]);});
-	
-	AA_defence=[];
-	AA_towers.forEach(function(e){if(getResearch(e[0]).done)AA_defence.unshift(e[1]);});
-	
-//	if(AA_defence.length != 0) defence.unshift(AA_defence[0]); //add best AA to normal defence
-	
-}
 
-function groupArmy(droid){
+
+function groupArmy(droid, type){
+	
+	if ( typeof type === "undefined" ) type = false;
+	
+	if(type == 'jammer'){
+		debugMsg("armyJammers +1", 'group');
+		groupAddDroid(armyJammers, droid);
+		return;
+	}
 	
 	if(droid.droidType == DROID_REPAIR){
 		debugMsg("armyFixers +1", 'group');
@@ -209,138 +124,43 @@ function groupArmy(droid){
 		groupAddDroid(armyRegular, droid);
 	}
 	
+	//Перегрупировка
+	if(groupSize(armyPartisans) < 3 && groupSize(armyRegular) > 3){
+		var regroup = enumGroup(armyRegular);
+		regroup.forEach(function(e){
+			debugMsg("armyRegular --> armyPartisans +1", 'group');
+			groupAddDroid(armyPartisans, e);
+		});
+	}
+	
 }
 
-function produceDroids(){
-	var droid_factories = enumStruct(me,FACTORY).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
-	
-//	var builders_limit = getDroidLimit(me, DROID_CONSTRUCT);
-	var builders = enumDroid(me, DROID_CONSTRUCT);
-//	debugMsg("Have builders: "+builders.length+"; limits: "+builders_limit, 'production');
-//	debugMsg("Have warriors="+groupSize(armyRegular)+" partisan="+groupSize(armyPartisans), 'production');
-	if(droid_factories.length != 0){
-		
-		//Строители
-		//Если строители не в лимите -И- база не подвергается нападению
-		//Если целей для охотников более 7 -И- денег более 750 -ИЛИ- строитель всего один а денег более 150 -ИЛИ- вообще нет строителей
-		//ТО заказуаэм!
-		debugMsg("buildersTrigger="+buildersTrigger+"; fixersTrigger="+fixersTrigger+"; gameTime="+gameTime, 'production');
-		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range).value)
-			&& ( (playerPower(me) > 750 && builder_targets.length > 7 && buildersTrigger < gameTime) || (groupSize(buildersMain) == 1 && playerPower(me) > 150) || builders.length == 0 ) ){
-			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
-			buildersTrigger = gameTime + buildersTimer;
-			return;
-		}
-		
-		if (getInfoNear(base.x,base.y,'safe',base_range).value && groupSize(armyFixers) < maxFixers && groupSize(armyPartisans) > 5 && fixersTrigger < gameTime && getResearch("R-Sys-MobileRepairTurret01").done && (playerPower(me) > 300 || groupSize(armyFixers) == 0)){
-			fixersTrigger = gameTime + fixersTimer;
-			var _repair = "LightRepair1";
-			if(getResearch("R-Sys-MobileRepairTurretHvy").done) _repair = "HeavyRepair";
-			buildDroid(droid_factories[0], "Fixer", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_REPAIR, _repair);
-			return;
-		}
-//		return;
-		//Армия
-		if(light_bodies.length != 0 && avail_guns.length != 0){
-			if( (groupSize(armyPartisans) < 7 || playerPower(me) > 250) && groupSize(armyPartisans) < maxPartisans){
-				var _body=light_bodies;
-				if(playerPower(me)>300 && playerPower(me)<500 && medium_bodies.length != 0) _body = medium_bodies;
-				if(playerPower(me)>800 && heavy_bodies.length != 0) _body = heavy_bodies;
-				var _weapon = avail_guns[Math.floor(Math.random()*Math.min(avail_guns.length, 5))]; //Случайная из 5 последних крутых пушек
-				buildDroid(droid_factories[0], "Army", _body, ['HalfTrack','wheeled01'], "", DROID_WEAPON, _weapon);
-			}
-		}
-	}
-}
-function produceCyborgs(){
-	if(groupSize(armyCyborgs) >= maxCyborgs) return;
-	if(playerPower(me) < 200 && groupSize(armyCyborgs) > 2) return;
-	var cyborg_factories = enumStruct(me,CYBORG_FACTORY).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
-	debugMsg("Cyborg: fact="+cyborg_factories.length+"; cyb="+avail_cyborgs.length, 'production');
-	if(cyborg_factories.length != 0 && avail_cyborgs.length != 0 && groupSize(armyCyborgs) < 20){
-		var _cyb = avail_cyborgs[Math.floor(Math.random()*Math.min(avail_cyborgs.length, 3))]; //Случайный киборг из 3 полседних крутых
-		var _body = _cyb[0];
-		if(version == '3.2') _body = 'CyborgLightBody'; //For 3.2+ support
-		var _weapon = _cyb[1];
-		debugMsg("Cyborg: body="+_body+"; weapon="+_weapon ,'production');
-		buildDroid(cyborg_factories[0], "Terminator", _body, "CyborgLegs", "", DROID_CYBORG, _weapon);
-	}
-}
-
-function produceVTOL(){
-	if(groupSize(VTOLAttacker) >= maxVTOL) return;
-	if(playerPower(me) < 300 && groupSize(VTOLAttacker) > 3) return;
-	/*
-	 * Missile-VTOL-AT			_("VTOL Scourge Missile")
-	 * Rocket-VTOL-BB			_("VTOL Bunker Buster")
-	 * Rocket-VTOL-Pod			_("VTOL Mini-Rocket")
-	 * Rocket-VTOL-LtA-T			_("VTOL Lancer")
-	 * Rocket-VTOL-HvyA-T		_("VTOL Tank Killer")
-	 * AAGun2Mk1-VTOL				_("VTOL Flak Cannon")
-	 * Cannon1-VTOL				_("VTOL Cannon")
-	 * Cannon4AUTO-VTOL				_("VTOL Hyper Velocity Cannon")
-	 * Cannon5Vulcan-VTOL			_("VTOL Assault Cannon")
-	 * Laser2PULSE-VTOL				_("VTOL Pulse Laser")
-	 * MG1-VTOL					_("VTOL Machinegun")
-	 * MG2-VTOL					_("VTOL Twin Machinegun")
-	 * MG3-VTOL					_("VTOL Heavy Machinegun")
-	 * MG4ROTARY-VTOL				_("VTOL Assault Gun")
-	 * RailGun1-VTOL				_("VTOL Needle Gun")
-	 * RailGun2-VTOL				_("VTOL Rail Gun")
-	 * Bomb1-VTOL-LtHE				_("VTOL Cluster Bomb Bay")
-	 * Bomb2-VTOL-HvHE				_("VTOL Heap Bomb Bay")
-	 * Bomb3-VTOL-LtINC				_("VTOL Phosphor Bomb Bay")
-	 * Bomb4-VTOL-HvyINC				_("VTOL Thermite Bomb Bay")
-	 * 
-	 * Cannon1-VTOL                            _("VTOL Cannon")
-	 * Cannon4AUTO-VTOL                                _("VTOL Hyper Velocity Cannon")
-	 * Cannon5Vulcan-VTOL                      _("VTOL Assault Cannon")
-	 * Laser2PULSE-VTOL                                _("VTOL Pulse Laser")
-	 * 
-	 * MG1-VTOL                                        _("VTOL Machinegun")
-	 * MG2-VTOL                                        _("VTOL Twin Machinegun")
-	 * MG3-VTOL                                        _("VTOL Heavy Machinegun")
-	 * MG4ROTARY-VTOL                          _("VTOL Assault Gun")
-	 * RailGun1-VTOL                           _("VTOL Needle Gun")
-	 * RailGun2-VTOL                           _("VTOL Rail Gun")
-	 * 
-	 * PBomb                                           _("Proximity Bomb Turret")
-	 * SPBomb                                  _("Proximity Superbomb Turret")
-	 * 
-	 * Bomb1-VTOL-LtHE                         _("VTOL Cluster Bomb Bay")
-	 * Bomb2-VTOL-HvHE                         _("VTOL Heap Bomb Bay")
-	 * Bomb3-VTOL-LtINC                                _("VTOL Phosphor Bomb Bay")
-	 * Bomb4-VTOL-HvyINC                               _("VTOL Thermite Bomb Bay")
-	 * Bomb5-VTOL-Plasmite			_("VTOL Plasmite Bomb Bay")
-	 * 
-	 * 
-	 * */
-	
-	if(groupSize(VTOLAttacker) > 20) return;
-	vtol_factory = enumStruct(me, VTOL_FACTORY);
-	var vtol_factories = vtol_factory.filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
-	if(vtol_factories.length != 0 ){
-		var _body=light_bodies;
-		if(playerPower(me)>300 && playerPower(me)<500 && medium_bodies.length != 0) _body = medium_bodies;
-		if(playerPower(me)>800 && heavy_bodies.length != 0) _body = heavy_bodies;
-		var _weapon = avail_vtols[Math.floor(Math.random()*Math.min(avail_vtols.length, 5))]; //Случайная из 5 последних крутых пушек
-		buildDroid(vtol_factories[0], "Bomber", _body, "V-Tol", "", DROID_WEAPON, _weapon);
-	}
-}
 
 function stats(){
+//	if(release) return;
 	debugMsg("Power: "+playerPower(me)+"; rigs="+enumStruct(me,RESOURCE_EXTRACTOR).length+"; free="+enumFeature(me, "OilResource").length+"; enemy="+getEnemyResources().length+"; unknown="+getUnknownResources().length, 'stats');
 	debugMsg("Army: "+enumDroid(me, DROID_WEAPON).length+"; Partisans="+groupSize(armyPartisans)+"; Regular="+groupSize(armyRegular)+"; Borgs="+groupSize(armyCyborgs)+"; VTOL="+groupSize(VTOLAttacker), 'stats');
-	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers), 'stats');
+	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; targets="+builder_targets.length, 'stats');
 	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length, 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
 	debugMsg("Base: safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length, 'stats');
 	debugMsg("Bodies: light="+light_bodies.length+"; medium="+medium_bodies.length+"; heavy="+heavy_bodies.length, 'stats');
-	debugMsg("Misc: nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen+"; known defence="+defence.length+"; known AA="+AA_defence.length+"; AA_queue="+AA_queue.length, 'stats');
+	debugMsg("Misc: nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen+"; barrels="+enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.player == 99)return true;return false;}).length
+		+"; known defence="+defence.length+"; known AA="+AA_defence.length+"; AA_queue="+AA_queue.length, 'stats');
+	debugMsg("Produce: "+produceTrigger.length, 'stats');
+//	enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.armour == 5 && e.thermal == 5 && !e.damageable && e.health == 100 && e.player==12)return true;return false;})
+//	.forEach(function(e){
+//		debugMsg(e.name+' '+e.x+'x'+e.y+'; type='+e.type+'; id='+e.id+'; player='+e.player+'; selected='+e.selected+'; health='+e.health+'; armour='+e.armour+'; thermal='+e.thermal+'; damageable='+e.damageable, 'stats');
+//	});
 }
 
 
 function nastyFeaturesClean(){
+	if(nfAlgorithm == false){
+		removeTimer("nastyFeaturesClean");
+		debugMsg("nastyFeaturesClean stop", "end");
+		return;
+	}
 	if(nastyFeatures.length != 0) return;
 	var _cyborgs = enumGroup(armyCyborgs);
 	if(_cyborgs.length == 0) return;
@@ -361,8 +181,8 @@ function nastyFeaturesClean(){
 		nastyFeatures = removeDuplicates(nastyFeatures, 'id').filter(function(e){if(droidCanReach(_cyborgs[0], e.x, e.y))return true;return false;});
 		nastyFeaturesLen = nastyFeatures.length;
 	}else{
-		removeTimer("nastyFeaturesClean"); // теперь чисто, выход от сюда навсегда
-		debugMsg("nastyFeaturesClean complete", "end");
+		// теперь чисто, выход от сюда навсегда
+		nfAlgorithm = false;
 	}
 }
 
@@ -460,6 +280,9 @@ function _doResearch(){
 //2. При постройке лабаротории
 //3. При завершении исследования
 function doResearch(){
+	
+	if(!getInfoNear(base.x,base.y,'safe',base_range).value && playerPower(me) < 300 && avail_guns.length != 0) return;
+	
 	avail_research = enumResearch().filter(function(e){if(e.started)return false;return true;});
 	
 	if ( research_way.length < 5 ){
@@ -591,9 +414,9 @@ function checkProcess(){
 		removeTimer("produceCyborgs");
 		removeTimer("targetRegular");
 		removeTimer("targetVTOL");
-		removeTimer("nastyFeaturesClean");
+		if(nfAlgorithm)removeTimer("nastyFeaturesClean");
 		removeTimer("checkProcess");
-		removeTimer("stats");
+		if(!release)removeTimer("stats");
 	}
 }
 
@@ -736,9 +559,11 @@ function getEnemyNearBase(){
 	for ( var e = 0; e < maxPlayers; ++e ) {
 		if ( allianceExistsBetween(me,e) ) continue;
 		targ = targ.concat(enumDroid(e, DROID_ANY, me));
+		targ = targ.concat(enumStruct(e, DEFENSE, me));
 	}
 	if(scavengers == true) {
 		targ = targ.concat(enumStruct(scavengerPlayer, DROID_ANY, me));
+		targ = targ.concat(enumStruct(scavengerPlayer, DEFENSE, me));
 	}
 	return targ.filter(function(e){if(distBetweenTwoPoints(e.x,e.y,base.x,base.y) < base_range && !isFixVTOL(e))return true; return false;});
 }
@@ -809,6 +634,57 @@ function getEnemyResources(){
 	return enemyRigs;
 }
 
+function fixResearchWay(way){
+	if ( typeof way === "undefined" ) return false;
+	if(!(way instanceof Array)) return false;
+//	debugMsg('Check tech '+way.length, 'research');
+	var _out = [];
+	
+	for(i in way){
+//		debugMsg('Check: '+way[i], 'research');
+		var _res = getResearch(way[i]);
+		if(_res == null){
+			debugMsg('Unknown research "'+way[i]+'" - ignored', 'error');
+			continue;
+		}
+		_out.push(way[i]);
+	}
+	
+	debugMsg('Checked research way length='+way.length+', returned='+_out.length, 'research');
+	return _out;
+}
+
+function addPrimaryWay(){
+	if ( typeof research_primary === "undefined" ) return false;
+	if(!(research_primary instanceof Array)) return false;
+	if(researchStrategy == "Smudged"){
+		research_primary.reverse();
+		for(i in research_primary){
+			research_way.unshift([research_primary[i]]);
+		}
+		debugMsg("research_primary smudged", 'research');
+		return true;
+	}
+	if(researchStrategy == "Strict"){
+		var _out=[];
+		for(i in research_primary){
+			_out.push(research_primary[i]);
+		}
+		research_way.unshift(_out);
+		debugMsg("research_primary strict", 'research');
+		return true;
+	}
+	if(researchStrategy == "Random"){
+		shuffle(research_primary);
+		for(i in research_primary){
+			research_way.unshift([research_primary[i]]);
+		}
+		debugMsg("research_primary random", 'research');
+		return true;
+	}
+	return false;
+}
+
 function removeDuplicates(originalArray, objKey) {
 	var trimmedArray = [];
 	var values = [];
@@ -827,6 +703,28 @@ function removeDuplicates(originalArray, objKey) {
 	
 }
 
+//Возвращает кол-во производящихся на данный момент типов в заводах.
+function inProduce(type){
+	if(produceTrigger.length == 0) return 0;
+	var _prod = 0;
+	
+	for ( var p in produceTrigger ){
+		if (produceTrigger[p] == type) _prod++;
+	}
+	
+	return _prod;
+}
+
+
+function unitIdle(obj){
+	debugMsg(obj.name+" "+obj.order+" "+obj.action, 'temp');
+	if(obj.order == DORDER_NONE){
+		debugMsg(obj.name+" idle", 'temp');
+		return true;
+	}
+	return false;
+}
+
 //from: https://warzone.atlassian.net/wiki/pages/viewpage.action?pageId=360669
 // More reliable way to identify VTOLs
 var isFixVTOL = function(obj) {
@@ -834,5 +732,16 @@ var isFixVTOL = function(obj) {
 		return ( (obj.type == DROID) && (("isVTOL" in obj && obj.isVTOL) || isVTOL(obj)) );
 	} catch(e) {
 		debugMsg("isFixVTOL(): "+e.message, 'error');
+	}
+}
+
+//from: http://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
+function shuffle(a) {
+	var j, x, i;
+	for (i = a.length; i; i--) {
+		j = Math.floor(Math.random() * i);
+		x = a[i - 1];
+		a[i - 1] = a[j];
+		a[j] = x;
 	}
 }

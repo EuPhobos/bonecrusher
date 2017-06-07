@@ -7,8 +7,8 @@ function groupBuilders(droid){
 	
 	//распределяем строителей по группам
 	if ( droid ) {
-		//Если основных строителей меньше двух, то добавляем новичка в группу основных строителей
-		if ( buildersMainLen < 3) { groupAddDroid(buildersMain, droid); debugMsg("buildersMain +1", 'group'); } 
+		//Если основных строителей меньше минимальных, то добавляем новичка в группу основных строителей
+		if ( buildersMainLen < minBuilders) { groupAddDroid(buildersMain, droid); debugMsg("buildersMain +1", 'group'); } 
 		//Если нет строителей-охотников, то добавляем к ним новичка
 		else if (buildersHuntersLen < 1) { groupAddDroid(buildersHunters, droid);  debugMsg("buildersHunters +1",'group');}
 		//Держим такой баланс в группе: строителей на 1 больше чем строителей-охотников
@@ -29,6 +29,7 @@ function checkBase(){
 	cyborg_factory = enumStruct(me, CYBORG_FACTORY);
 	vtol_factory = enumStruct(me, VTOL_FACTORY);
 	rearm_pad = enumStruct(me, REARM_PAD);
+	uplink_center = enumStruct(me, SAT_UPLINK);
 	
 	factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 	power_gen_ready = power_gen.filter(function(e){if(e.status == 1)return true; return false;});
@@ -39,7 +40,7 @@ function checkBase(){
 	vtol_factory_ready = vtol_factory.filter(function(e){if(e.status == 1)return true; return false;});
 	rearm_pad_ready = rearm_pad.filter(function(e){if(e.status == 1)return true; return false;});
 	
-	
+	/*
 	debugMsg("checkBase(): factory="+factory_ready.length+"/"+factory.length
 	+"; power_gen="+power_gen_ready.length+"/"+power_gen.length
 	+"; resource_extractor="+resource_extractor_ready.length+"/"+resource_extractor.length
@@ -48,6 +49,7 @@ function checkBase(){
 	+"; hq="+hq_ready.length+"/"+hq.length
 	+"; vtol_factory="+vtol_factory_ready.length+"/"+vtol_factory.length
 	);
+	*/
 /*
 	research_lab.forEach( function(e,i){
 		debugMsg("checkBase(): lab["+i+"] status:"+e.status );
@@ -129,6 +131,11 @@ function buildersOrder(order,target) {
 	if ( typeof order === "undefined" ) order = false;
 	if ( typeof target === "undefined" ) target = false;
 	
+	var buildersMainLen = groupSize(buildersMain);
+	var buildersHuntersLen = groupSize(buildersHunters);
+	
+	if(buildersMainLen == 0 && buildersHuntersLen == 0) return false;
+	
 	/*
 	if(order == "AA" && AA_defence.length != 0 && target !== false){
 		var _def = AA_defence[Math.floor(Math.random()*Math.min(AA_defence.length, 3))]; //Случайная из 3 последних
@@ -160,10 +167,9 @@ function buildersOrder(order,target) {
 		case 3:rotation = 270;break;
 	}
 	checkBase(); // <-- подсчитываем количество строений на базе
-	var buildersMainLen = groupSize(buildersMain);
-	var buildersHuntersLen = groupSize(buildersHunters);
+
 //	debugMsg("buildersOrder(): buildersMainLen="+buildersMainLen+"; buildersHuntersLen="+buildersHuntersLen+"; rnd="+rnd+"; rotation="+rotation+"; order="+order, 'builders');
-	if ( buildersHuntersLen < 2 ) need_builder = true;
+//	if ( buildersHuntersLen < 2 ) need_builder = true;
 	
 	builder_targets = [];
 	if(resource_extractor.length < maxExtractors) builder_targets = filterNearAlly(builder_targets.concat(enumFeature(me, "OilResource")));
@@ -224,7 +230,7 @@ function buildersOrder(order,target) {
 					debugMsg("Help with "+problemBuildings[0].name, 'builders');
 					if(problemBuildings[0].status == BEING_BUILT) {orderDroidObj(hunters[h], DORDER_HELPBUILD, problemBuildings[0]);continue;}
 					if(problemBuildings[0].health < 99) {orderDroidObj(hunters[h], DORDER_REPAIR, problemBuildings[0]);continue;}
-					problemBuildings.shift();
+					if(problemBuildings.length != 1)problemBuildings.shift();
 					continue;
 				}
 				orderDroidLoc(hunters[h],DORDER_MOVE,base.x,base.y);
@@ -387,7 +393,7 @@ function oilHunt(obj, nearbase){
 
 	
 	builder_targets = sortByDistance(builder_targets,obj,0,true);
-	if(nearbase) if ( distBetweenTwoPoints(base.x,base.y,builder_targets[0].x,builder_targets[0].y) > base_range ) return false; //Запрещаем основным строителям далеко отходить от базы
+	if(nearbase) if ( distBetweenTwoPoints(base.x,base.y,builder_targets[0].x,builder_targets[0].y) > (base_range/2) ) return false; //Запрещаем основным строителям далеко отходить от базы
 	if(getInfoNear(builder_targets[0].x,builder_targets[0].y,'safe').value){
 		orderDroidLoc(obj,DORDER_MOVE,builder_targets[0].x,builder_targets[0].y); //"A0ResourceExtractor"
 //		debugMsg("oilHunt() двигаем строителем #"+obj.id+" к "+builder_targets[0].name+","+builder_targets[0].type+","+builder_targets[0].player+", поз.: "+builder_targets[0].x+"x"+builder_targets[0].y+" "+builder_targets.length);

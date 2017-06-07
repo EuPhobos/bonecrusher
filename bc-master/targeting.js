@@ -112,7 +112,7 @@ function targetPartisan(){
 	}
 
 	//Если слишком мало партизан -И- нет срочной нужны в подмоге, то кучкуем армию у ближайших ресурсов за пределами базы
-	if(partisans.length < 5 && target.length==0){
+	if(partisans.length < minPartisans && target.length==0){
 		if(fixers.length == 0){
 			target = target.concat(getUnknownResources());
 			target = target.concat(getSeeResources());
@@ -187,6 +187,9 @@ function targetCyborgs(){
 	if(groupSize(armyCyborgs) >= 10){
 		target = target.concat(getEnemyDefences());
 	}
+	if(groupSize(armyCyborgs) >= 15){
+		target = target.concat(getEnemyFactories());
+	}
 	var enemy = getEnemyNearBase();
 	if(enemy.length == 0)enemy = getEnemyNearAlly();
 	
@@ -206,7 +209,7 @@ function targetCyborgs(){
 			var feature = false;
 			var err = true;
 			try {if(target[0].type == FEATURE){feature = true;}err = false;}
-			catch(e) {debugMsg("!! "+e.message+' !!', 'error'); feature = false;}
+			catch(e) {if(!release)debugMsg("!! "+e.message+' !!', 'error'); feature = false;}
 			
 			if(err){
 				if(nastyFeatures.length != 0 && enemy.length == 0){
@@ -218,7 +221,7 @@ function targetCyborgs(){
 			if(feature == true){ //Если всё таки мусор ближе, атакуем
 //				debugMsg("Cyborgs purge trash #"+target[0].id+" "+target[0].name+" at "+target[0].x+"x"+target[0].y, 'targeting');
 				try {orderDroidObj(e, DORDER_ATTACK, target[0]);}
-				catch(e) {debugMsg("!!! "+e.message+' !!!', 'error');}
+				catch(e) {if(!release)debugMsg("!!! "+e.message+' !!!', 'error');}
 //				debugMsg(nastyFeatures.length+"/"+nastyFeaturesLen+' Delete trash '+_deleted.name+' at '+_deleted.x+'x'+_deleted.y, 'targeting');
 				target = _target; // и возвращаем переменную целей
 				return;
@@ -285,7 +288,7 @@ function targetRegular(target){
 	}
 	else{
 		debugMsg("regular: Армия далеко от цели, собрано: "+Math.floor(_reach.length * 100 / regular.length)+"%", 'targeting');
-		if(regular.length > 10){
+		if(regular.length > minRegular){
 			debugMsg("regular: Атака "+distBetweenTwoPoints(targRegular.x,targRegular.y,regular[0].x,regular[0].y), 'targeting');
 			regular.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, targRegular.x, targRegular.y);});
 		}else{
