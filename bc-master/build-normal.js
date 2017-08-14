@@ -46,16 +46,16 @@ function mainBuilders(rotation){
 			
 		}else{
 			//Завод, лаборатория,генератор,ком-центр! - вот залог хорошего пионера!
-			if(factory_ready.length == 0) { if(builderBuild(obj, "A0LightFactory", rotation)) return; }
+			if(factory_ready.length <= 1) { if(builderBuild(obj, "A0LightFactory", rotation)) return; }
 			if(research_lab_ready.length < 1) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
 			//Ком центр
 			if(hq_ready.length == 0) { if(builderBuild(obj, "A0CommandCentre", rotation)) return; }
 			//Генератор энергии
-			if(power_gen_ready.length == 0) { if(builderBuild(obj, "A0PowerGenerator", rotation)) return; }
-			if(research_lab_ready.length < 2) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
-			if(factory_ready.length < 2 && playerPower(me) > 300) { if(builderBuild(obj, "A0LightFactory", rotation)) return; }
+			if(power_gen_ready.length <= 1) { if(builderBuild(obj, "A0PowerGenerator", rotation)) return; }
+			if(research_lab_ready.length < 3) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
+			if(factory_ready.length <= 4 && playerPower(me) > 500) { if(builderBuild(obj, "A0LightFactory", rotation)) return; }
 			if(research_lab_ready.length < 4 && playerPower(me) > 400) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }
-			if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 2 && playerPower(me) > 300) { if(builderBuild(obj, "A0CyborgFactory", rotation)) return; }
+			if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 4 && playerPower(me) > 300) { if(builderBuild(obj, "A0CyborgFactory", rotation)) return; }
 			if( (power_gen_ready.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation))return;}
 		}
 		if(research_lab.length < 5 && playerPower(me) > 500) { if(builderBuild(obj, "A0ResearchFacility", rotation)) return; }

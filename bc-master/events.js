@@ -106,7 +106,7 @@ function eventStructureBuilt(structure, droid){
 				factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 				research_lab_ready = research_lab.filter(function(e){if(e.status == 1)return true; return false;});
 //				if( (factory_ready.length == 1 && research_lab_ready.length == 1) || power_gen_ready.length == 1)
-				if(factory_ready.length == 1 && research_lab_ready.length == 1) 
+				if(factory_ready.length == 2 && research_lab_ready.length == 1) 
 					enumDroid(me, DROID_CONSTRUCT).forEach(function(e,i){if(i!=0){groupAddDroid(buildersHunters, e);debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');}});
 			}
 			

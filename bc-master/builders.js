@@ -19,7 +19,9 @@ function groupBuilders(droid){
 
 
 //Подсчитываем постройки на базе
-var factory, power_gen, resource_extractor, research_lab, hq, cyborg_factory, vtol_factory;
+var factory, power_gen, resource_extractor, research_lab, hq, cyborg_factory, vtol_factory, rearm_pad, uplink_center;
+var factory_ready, power_gen_ready, resource_extractor_ready, research_lab_ready, hq_ready, cyborg_factory_ready, vtol_factory_ready, rearm_pad_ready, uplink_center_ready;
+
 function checkBase(){
 	factory = enumStruct(me, FACTORY);
 	power_gen = enumStruct(me, POWER_GEN);
@@ -39,7 +41,8 @@ function checkBase(){
 	cyborg_factory_ready = cyborg_factory.filter(function(e){if(e.status == 1)return true; return false;});
 	vtol_factory_ready = vtol_factory.filter(function(e){if(e.status == 1)return true; return false;});
 	rearm_pad_ready = rearm_pad.filter(function(e){if(e.status == 1)return true; return false;});
-	
+	uplink_center_ready = uplink_center.filter(function(e){if(e.status == 1)return true; return false;});
+
 	/*
 	debugMsg("checkBase(): factory="+factory_ready.length+"/"+factory.length
 	+"; power_gen="+power_gen_ready.length+"/"+power_gen.length
@@ -65,6 +68,7 @@ function builderBuild(droid, structure, rotation){
 		case "A0ResearchFacility":if(enumStruct(me,RESEARCH_LAB).length >= maxLabs)return false;struct = research_lab; break;
 		case "A0PowerGenerator":if(enumStruct(me,POWER_GEN).length >= maxGenerators)return false;struct = power_gen; break;
 		case "A0CommandCentre":struct = hq; break;
+		case "A0Sat-linkCentre":struct = uplink_center; break;
 		case "A0CyborgFactory":if(enumStruct(me,CYBORG_FACTORY).length >= maxFactoriesCyb)return false;struct = cyborg_factory; break;
 		case "A0VTolFactory1":if(enumStruct(me,VTOL_FACTORY).length >= maxFactoriesVTOL)return false;struct = vtol_factory; break;
 		case "A0VtolPad":if(enumStruct(me,REARM_PAD).length >= maxPads)return false;struct = rearm_pad; break;
@@ -74,7 +78,7 @@ function builderBuild(droid, structure, rotation){
 	var stop=false;
 	//Проверяем, если заданное здание уже кем-либо заложено и строится, просто едем помочь достроить
 	if ( struct.length != 0 ){struct.forEach( function (obj){
-		debugMsg("builderBuild(): name="+obj.name+"; status="+obj.status);
+//		debugMsg("builderBuild(): name="+obj.name+"; status="+obj.status);
 		if(obj.status == 0) { orderDroidObj(droid, DORDER_HELPBUILD, obj); stop=true; return true;}
 	});}
 	if ( stop ) return true;
@@ -200,7 +204,7 @@ function buildersOrder(order,target) {
 			}
 		}else{
 			_hunters = enumGroup(buildersHunters);
-			if(_hunters.length != 0){
+			if(_hunters.length > 2){
 				_hunters = sortByDistance(_hunters, base, 1);
 				groupAddDroid(buildersMain, _hunters[0]);
 				debugMsg('Hunter --> Builder +1', 'group');

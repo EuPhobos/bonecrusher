@@ -725,6 +725,59 @@ function unitIdle(obj){
 	return false;
 }
 
+//Функция равномерного распределения войск на несколько целей
+//targets - цель
+//warriors - атакующая группа
+//num - количество целей для распределения от 1 до 10
+function attackObjects(targets, warriors, num){
+	if ( targets.length == 0 || warriors.length == 0 ) return false;
+	if ( typeof num === "undefined" || num == null || num == 0 ) num = 3;
+	if ( num > 10 ) num = 10;
+	if ( warriors.length < num ) num = warriors.length;
+
+	targets = targets.slice(0,num);
+
+	for ( i in targets ) {
+		var target = isBeingRepaired(targets[i]);
+		if ( target != false) {
+			targets[i] = target;
+		}
+	}
+
+	if ( targets.length >= warriors.length ) {
+		for ( i = 0, len = warriors.length; i<len; ++i ) {
+			orderDroidObj( warriors[i], DORDER_ATTACK, targets[i] );
+		}
+		return true;
+	}else{
+		var a = Math.floor(warriors.length/targets.length);
+		var i=0;
+		var t=0;
+		for ( var n in warriors ) { 
+			t++;
+			if ( i == targets.length ) return true;
+			var busy = false;
+			for ( var j in targets ) {
+				if ( distBetweenTwoPoints ( targets[j].x,targets[j].y,warriors[n].x,warriors[n].y ) < 7 ) {
+					orderDroidObj( warriors[n], DORDER_ATTACK, targets[j] );
+					busy = true;
+				}
+			}
+			if ( busy ) continue;	
+			orderDroidObj( warriors[n], DORDER_ATTACK, targets[i] );
+			if ( t >= a ){
+				debugMsg("getTarget: Атака на "+targets.length+" цели по "+a+" юнита ("+targets[i].x+","+targets[i].y+")",4);
+				t=0;
+				i++;
+			}
+		}
+		return true;
+	}
+	return false;
+	
+}
+
+
 //from: https://warzone.atlassian.net/wiki/pages/viewpage.action?pageId=360669
 // More reliable way to identify VTOLs
 var isFixVTOL = function(obj) {

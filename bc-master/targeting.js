@@ -22,10 +22,18 @@ function targetVTOL(){
 	if(group.length >= 3 && (target.length != 0 || scout.length != 0) ) {
 		debugMsg("Attack!", "vtol");
 		if(target.length != 0){
-			group.forEach(function(e){
-				var attack = orderDroidObj(e, DORDER_ATTACK, target[0]);
-//				debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');
-			});
+			if(group.length <= 8){
+				group.forEach(function(e){
+					var attack = orderDroidObj(e, DORDER_ATTACK, target[0]);
+//					debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');
+				});
+			}else if(group.length <= 10){
+				attackObjects(target, group, 2);
+			}else if(group.length <= 15){
+				attackObjects(target, group, 3);
+			}else{
+				attackObjects(target, group, 5);
+			}
 		}else if(scout.length != 0){
 			group.forEach(function(e){
 				var attack = orderDroidLoc(e, DORDER_SCOUT, scout[0].x, scout[0].y);
