@@ -4,8 +4,95 @@ const research_test = [
 
 ];
 
+const research_blue = [
+"R-Sys-ECM-Upgrade02",	//Глушилка
+"R-Cyborg-Hvywpn-A-T",
+"R-Sys-Autorepair-General",             //Автопочинка
+"R-Struc-Power-Upgrade03a",
+"R-Struc-Research-Upgrade09",
+"R-Struc-VTOLPad",
+"R-Wpn-Plasmite-Flamer", // plasmite
+"R-Wpn-Bomb04"
+];
 
-const research_flamer_mortair = [
+const research_green = [
+"R-Wpn-MG1Mk1",
+"R-Sys-Engineering01",
+"R-Wpn-Cannon1Mk1",		// #6  Light Cannon
+"R-Struc-PowerModuleMk1",
+"R-Vehicle-Prop-Halftracks",    //Полугусенецы
+"R-Defense-WallTower02", //защита лёгкая пушка
+"R-Struc-Research-Upgrade09",
+"R-Sys-MobileRepairTurretHvy",
+"R-Sys-Autorepair-General",             //Автопочинка
+"R-Sys-ECM-Upgrade01",	//Глушилка
+"R-Wpn-MG-ROF03",				//Hyper Fire Chaingun Upgrade
+"R-Vehicle-Body11",		// #101  Heavy Body - Python
+"R-Wpn-MG3Mk1",
+"R-Wpn-Cannon4AMk1",			//Hyper Velocity Cannon
+"R-Sys-ECM-Upgrade02",
+"R-Wpn-MG5",					//Twin Assault Gun
+"R-Cyborg-Metals04",            // #16  Cyborg Dense Composite Alloys
+"R-Vehicle-Metals03",           // #11  Composite Alloys Mk3
+'R-Defense-Emplacement-HPVcannon',
+"R-Wpn-Cannon6TwinAslt",		////Спаренная штурмовая пушка
+"R-Cyborg-Hvywpn-Acannon",		// #46  Super Auto-Cannon Cyborg
+"R-Struc-Power-Upgrade03a",
+"R-Wpn-Plasmite-Flamer", // plasmite
+"R-Wpn-Cannon-ROF06",			//Cannon Rapid Loader Mk3
+"R-Wpn-Cannon-Accuracy02",		//Cannon Laser Designator
+"R-Wpn-MG-Damage04",            // #32  APDSB MG Bullets Mk3
+"R-Wpn-Cannon-Damage09",		//HVAPFSDS Cannon Rounds Mk3
+"R-Sys-MobileRepairTurretHvy",
+'R-Defense-WallTower-HPVcannon',
+"R-Wpn-MG5",					//Twin Assault Gun
+"R-Wpn-MG-Damage08",			//Depleted Uranium MG Bullets
+"R-Vehicle-Metals09",			//Superdense Composite Alloys Mk3 (финал)
+"R-Vehicle-Armor-Heat09",		//Vehicle Superdense Thermal Armor Mk3
+"R-Cyborg-Metals09",
+"R-Struc-VTOLPad",
+"R-Wpn-Bomb04",
+"R-Defense-WallTower-DoubleAAgun"		// #107  AA Flak Cannon Hardpoint
+
+];
+
+const research_yellow = [
+"R-Sys-Engineering01",
+"R-Struc-Research-Module",
+"R-Wpn-Flamer01Mk1",
+"R-Struc-PowerModuleMk1",
+"R-Defense-Tower01",
+"R-Struc-Factory-Cyborg",
+"R-Wpn-Flamer-ROF03",
+"R-Struc-Research-Upgrade09",
+"R-Vehicle-Prop-Halftracks",    //Полугусенецы
+"R-Wpn-Plasmite-Flamer", // plasmite
+"R-Struc-Power-Upgrade03a",
+"R-Vehicle-Body05",                             //Средняя начальная броня
+"R-Cyborg-Metals09",
+"R-Sys-ECM-Upgrade02",	//Глушилка
+"R-Sys-MobileRepairTurretHvy",
+"R-Vehicle-Body08",
+"R-Sys-Autorepair-General",             //Автопочинка
+"R-Wpn-Flamer-Damage09",
+"R-Defense-MortarPit-Incenediary",
+"R-Wpn-Mortar-ROF04",
+"R-Wpn-Mortar-Damage06",
+"R-Wpn-Mortar-Acc03",
+"R-Vehicle-Body12",
+"R-Struc-VTOLPad",
+"R-Wpn-Bomb04",
+"R-Wpn-Howitzer-Incenediary",
+"R-Wpn-Howitzer-ROF04",
+"R-Wpn-HvyHowitzer",
+"R-Wpn-Howitzer-Accuracy03",
+"R-Wpn-Howitzer-Damage06",
+"R-Wpn-Howitzer03-Rot",
+"R-Sys-Sensor-UpLink",
+];
+
+//Flamer-cannon-vtols
+const research_orange = [
 "R-Defense-Tower01",
 "R-Sys-Engineering01",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
@@ -16,9 +103,11 @@ const research_flamer_mortair = [
 "R-Struc-Research-Module",
 "R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
 "R-Wpn-Flamer-ROF03",
+"R-Wpn-Plasmite-Flamer", // plasmite
 "R-Struc-Research-Upgrade09",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
 "R-Struc-Power-Upgrade03a",
+"R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Vehicle-Body05",				//Средняя начальная броня
 "R-Cyborg-Metals09",
 "R-Wpn-Cannon6TwinAslt",		////Спаренная штурмовая пушка
@@ -51,7 +140,8 @@ const research_flamer_mortair = [
 
 ];
 
-const research_mg_rocket_art = [
+//mg_rocket_art
+const research_red = [
 "R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
 "R-Wpn-MG-ROF03",				//Hyper Fire Chaingun Upgrade
 "R-Sys-Engineering01",
@@ -69,6 +159,7 @@ const research_mg_rocket_art = [
 "R-Sys-MobileRepairTurretHvy",
 "R-Vehicle-Metals09",			//Superdense Composite Alloys Mk3 (финал) 
 "R-Sys-Autorepair-General",		//Автопочинка
+"R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Wpn-MG5",					//Twin Assault Gun
 "R-Wpn-Rocket-Accuracy02",
 "R-Sys-MobileRepairTurretHvy",
@@ -82,7 +173,8 @@ const research_mg_rocket_art = [
 "R-Cyborg-Hvywpn-A-T",
 ];
 
-const research_cyborg_cannons = [
+//cyborg_cannons
+const research_black = [
 "R-Sys-Engineering01",		// #0  Engineering
 "R-Struc-Factory-Cyborg",		// #1  Cyborg Factory
 "R-Vehicle-Engine01",		// #2  Fuel Injection Engine
@@ -129,6 +221,7 @@ const research_cyborg_cannons = [
 "R-Wpn-Cannon-Damage04",		// #43  APFSDS Cannon Rounds
 "R-Wpn-Cannon-ROF01",		// #44  Cannon Autoloader
 "R-Wpn-Cannon5",		// #45  Assault Cannon
+"R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Cyborg-Hvywpn-Acannon",		// #46  Super Auto-Cannon Cyborg
 "R-Struc-Factory-Upgrade01",		// #47  Automated Manufacturing
 "R-Struc-Factory-Upgrade04",		// #48  Robotic Manufacturing
@@ -272,22 +365,40 @@ const research_cyborg_cannons = [
 */
 ];
 
+var _research = debugName;
+if(typeof forceResearch !== 'undefined') _research = forceResearch;
+setResearchWay(_research);
 
-if(debugName == "Black"){
-	research_primary = research_cyborg_cannons;
-	policy['build'] = 'cyborgs';
-	debugMsg("Использую тестовый путь исследований research_cyborg_cannons", 'init');
-}
-
-
-if(debugName == "Red"){
-	research_primary = research_mg_rocket_art;
-	debugMsg("Использую тестовый путь исследований research_rocket_art", 'init');
-}
-if(debugName == "Yellow"){
-	research_primary = research_flamer_mortair;
-//	researchStrategy = 'Strict';
-	debugMsg("Использую тестовый путь исследований research_flamer", 'init');
+function setResearchWay(way){
+	if(way == "Black"){
+		research_primary = research_black;
+		policy['build'] = 'cyborgs';
+		debugMsg("Использую тестовый путь исследований black", 'init');
+	}
+	if(way == "Green"){
+		research_primary = research_green;
+		debugMsg("Использую тестовый путь исследований green", 'init');
+	}
+	if(way == "Red"){
+		research_primary = research_red;
+		debugMsg("Использую тестовый путь исследований red", 'init');
+	}
+	if(way == "Yellow"){
+		research_primary = research_yellow;
+		//	researchStrategy = 'Strict';
+		debugMsg("Использую тестовый путь исследований yellow", 'init');
+	}
+	if(way == "Orange"){
+		research_primary = research_orange;
+		//	researchStrategy = 'Strict';
+		debugMsg("Использую тестовый путь исследований orange", 'init');
+	}
+	
+	if(way == "Blue"){
+		research_primary = research_blue;
+		//	researchStrategy = 'Strict';
+		debugMsg("Использую тестовый путь исследований blue", 'init');
+	}
 }
 
 

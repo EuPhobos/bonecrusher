@@ -79,7 +79,7 @@ function builderBuild(droid, structure, rotation){
 	//Проверяем, если заданное здание уже кем-либо заложено и строится, просто едем помочь достроить
 	if ( struct.length != 0 ){struct.forEach( function (obj){
 //		debugMsg("builderBuild(): name="+obj.name+"; status="+obj.status);
-		if(obj.status == 0) { orderDroidObj(droid, DORDER_HELPBUILD, obj); stop=true; return true;}
+		if(obj.status == 0) { orderDroidObj_p(droid, DORDER_HELPBUILD, obj); stop=true; return true;}
 	});}
 	if ( stop ) return true;
 	
@@ -181,8 +181,18 @@ function buildersOrder(order,target) {
 	var oil_free = builder_targets; //для дебага
 	var oil_unknown = getUnknownResources();
 	builder_targets = builder_targets.concat(oil_unknown);
+	
+/*
+	var oil_barrel;
+	if(version == "3.2"){
+		oil_barrels = enumFeature(me, "OilDrum");
+		builder_targets = builder_targets.concat(oil_barrels);
+	}
+*/
+
 	var oil_enemy = getEnemyResources();
-	if(defence.length != 0) builder_targets = builder_targets.concat(oil_enemy); 
+
+	if(defence.length != 0) builder_targets = builder_targets.concat(oil_enemy);
 	
 	//	builder_targets.forEach( function(e,i) { debugMsg("#"+i+" "+e.id+" "+e.name+" "+e.type+" "+e.player+" "+e.x+"x"+e.y); } );
 	
@@ -218,7 +228,7 @@ function buildersOrder(order,target) {
 		 if ( builder_targets*.length == 0 ) { // Если нет целей для разведки или захвата ресурсов
 			for ( var h in hunters) {if(!builderBusy(hunters[h])){
 				if(rigDefence(hunters[h])) continue;
-				orderDroidLoc(hunters[h],DORDER_MOVE,base.x,base.y);
+				orderDroidLoc_p(hunters[h],DORDER_MOVE,base.x,base.y);
 			}}
 			return;
 		}
@@ -232,12 +242,12 @@ function buildersOrder(order,target) {
 			if(huntOnDuty === false) if(distBetweenTwoPoints(hunters[h].x,hunters[h].y,base.x,base.y) > 10 && !builderBusy(hunters[h])){
 				if(problemBuildings.length != 0){
 					debugMsg("Help with "+problemBuildings[0].name, 'builders');
-					if(problemBuildings[0].status == BEING_BUILT) {orderDroidObj(hunters[h], DORDER_HELPBUILD, problemBuildings[0]);continue;}
-					if(problemBuildings[0].health < 99) {orderDroidObj(hunters[h], DORDER_REPAIR, problemBuildings[0]);continue;}
+					if(problemBuildings[0].status == BEING_BUILT) {orderDroidObj_p(hunters[h], DORDER_HELPBUILD, problemBuildings[0]);continue;}
+					if(problemBuildings[0].health < 99) {orderDroidObj_p(hunters[h], DORDER_REPAIR, problemBuildings[0]);continue;}
 					if(problemBuildings.length != 1)problemBuildings.shift();
 					continue;
 				}
-				orderDroidLoc(hunters[h],DORDER_MOVE,base.x,base.y);
+				orderDroidLoc_p(hunters[h],DORDER_MOVE,base.x,base.y);
 				continue;
 			}
 //			debugMsg("buildersOrder(): Охотники бездельничают "+h, 'builders');
@@ -364,20 +374,29 @@ function oilHunt(obj, nearbase){
 			if(distBetweenTwoPoints(builder_targets[i].x,builder_targets[i].y,obj.x,obj.y) <= 7){
 				if ( typeof builder_targets[i] === "undefined" ) { debugMsg("ERROR in oilHunt(): Выход за пределы массива, исправить!", 'error'); break;}
 				if(builder_targets[i].type == FEATURE){
+/*					
+					if(version == '3.2'){
+						if(builder_targets[i].stattype == OIL_DRUM){
+							orderDroidObj_p(obj, DORDER_RECOVER, builder_targets[i]);
+							builder_targets.splice(i,1);
+							return true;
+						}
+					}
+*/					
 					orderDroidBuild(obj,DORDER_BUILD,"A0ResourceExtractor",builder_targets[i].x,builder_targets[i].y);
 //					debugMsg("oilHunt(): Захват ресурса строителем №"+obj.id);
 					builder_targets.splice(i,1);
 					return true;
 				}else if(builder_targets[i].type == STRUCTURE && builder_targets[i].stattype == DEFENSE && builder_targets[i].player == me){
-					if(builder_targets[i].status == BEING_BUILT) orderDroidObj(obj, DORDER_HELPBUILD, builder_targets[i]);
-					else orderDroidObj(obj, DORDER_REPAIR, builder_targets[i]);
+					if(builder_targets[i].status == BEING_BUILT) orderDroidObj_p(obj, DORDER_HELPBUILD, builder_targets[i]);
+					else orderDroidObj_p(obj, DORDER_REPAIR, builder_targets[i]);
 					builder_targets.splice(i,1);
 					return true;
 				}else if(defence.length != 0 && builder_targets[i].type == STRUCTURE && builder_targets[i].stattype == RESOURCE_EXTRACTOR
 					&& builder_targets[i].player != me){
 					var toBuild = defence[Math.floor(Math.random()*Math.min(defence.length, 3))];
 					var pos = pickStructLocation(obj,toBuild,builder_targets[i].x+Math.round(Math.random()*2-1), builder_targets[i].y+Math.round(Math.random()*2-1));
-					if(!!pos && !builderBusy(obj)){
+				if(!!pos && !builderBusy(obj) && (!getInfoNear(builder_targets[i].x,builder_targets[i].y,'defended').value || playerPower(me) > 500)){
 						orderDroidBuild(obj, DORDER_BUILD, toBuild, pos.x, pos.y, 0);
 //						debugMsg("oilHunt(): Строим вышку у вражеского ресурса");
 						return true;
@@ -387,7 +406,7 @@ function oilHunt(obj, nearbase){
 					}
 				}else{
 //					debugMsg("oilHunt(): Разведка строителем #"+obj.id+" на ближайшую неизвестную "+builder_targets[i].x+"x"+builder_targets[i].y+" "+i+"/"+builder_targets.length+" "+builder_targets[i].name+","+builder_targets[i].type+","+builder_targets[i].player);
-					orderDroidLoc(obj,DORDER_MOVE,builder_targets[i].x,builder_targets[i].y);
+					orderDroidLoc_p(obj,DORDER_MOVE,builder_targets[i].x,builder_targets[i].y);
 					builder_targets.splice(i,1);
 					return true;
 				}
@@ -395,11 +414,12 @@ function oilHunt(obj, nearbase){
 		}
 	}
 
+	if(builder_targets.length == 0) return;
 	
 	builder_targets = sortByDistance(builder_targets,obj,0,true);
 	if(nearbase) if ( distBetweenTwoPoints(base.x,base.y,builder_targets[0].x,builder_targets[0].y) > (base_range/2) ) return false; //Запрещаем основным строителям далеко отходить от базы
 	if(getInfoNear(builder_targets[0].x,builder_targets[0].y,'safe').value){
-		orderDroidLoc(obj,DORDER_MOVE,builder_targets[0].x,builder_targets[0].y); //"A0ResourceExtractor"
+		orderDroidLoc_p(obj,DORDER_MOVE,builder_targets[0].x,builder_targets[0].y); //"A0ResourceExtractor"
 //		debugMsg("oilHunt() двигаем строителем #"+obj.id+" к "+builder_targets[0].name+","+builder_targets[0].type+","+builder_targets[0].player+", поз.: "+builder_targets[0].x+"x"+builder_targets[0].y+" "+builder_targets.length);
 		builder_targets.shift();
 		return true;

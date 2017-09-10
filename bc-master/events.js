@@ -10,24 +10,47 @@ function eventDroidIdle(droid) {
 	
 	switch (droid.droidType) {
 		case DROID_CYBORG:
-//			if(gameTime > eventsRun['targetCyborgs']){
-//				debugMsg("targetCyborgs",'events');
-//				eventsRun['targetCyborgs'] = gameTime + 1000;
-//				targetCyborgs();
-//			}
+			if(gameTime > eventsRun['targetCyborgs']){
+				debugMsg("targetCyborgs", 'events');
+				eventsRun['targetCyborgs'] = gameTime + 5000;
+				targetCyborgs();
+//				queue("targetPartisan", 1500);
+			}
 		break;
 		case DROID_WEAPON:
-//			getTarget();
+			
+			if(gameTime > eventsRun['targetArmy']){
+				debugMsg("targetArmy", 'events');
+				eventsRun['targetArmy'] = gameTime + 9000;
+				targetPartisan();
+				queue("targetRegular", 1000);
+//				queue("targetCyborgs", 2000);
+			}
+			
 		break;
 		case DROID_CONSTRUCT:
 			if(gameTime > eventsRun['buildersOrder']){
-				debugMsg("buildersOrder",'events');
-				eventsRun['buildersOrder'] = gameTime + 10000;
+				debugMsg("buildersOrder", 'events');
+				eventsRun['buildersOrder'] = gameTime + 2000;
 				buildersOrder();
 			}
 		break;
 		case DROID_SENSOR:
 			// Ищем чего бы подсветить/разведать
+		break;
+		case DROID_ECM:
+			if(gameTime > eventsRun['targetJammers']){
+				debugMsg("targetJammers", 'events');
+				eventsRun['targetJammers'] = gameTime + 5000;
+				targetJammers();
+			}
+		break;
+		case DROID_REPAIR:
+			if(gameTime > eventsRun['targetFixers']){
+				debugMsg("targetFixers", 'events');
+				eventsRun['targetFixers'] = gameTime + 6000;
+				targetFixers();
+			}
 		break;
 	}
 }
@@ -79,7 +102,8 @@ function eventObjectTransfer(gameObject, from) {
 					break;
 			}
 		} else { // От врага, возможно перевербовка
-			
+			groupArmy(gameObject);
+
 		}
 	} else { // Что-то передали
 		if (allianceExistsBetween(gameObject.player,from)) { // Союзнику
@@ -92,7 +116,10 @@ function eventObjectTransfer(gameObject, from) {
 
 //Срабатывает при завершении строительства здания
 function eventStructureBuilt(structure, droid){
-
+	
+	buildersOrder();
+	
+	
 	switch (structure.stattype) {
 		case RESEARCH_LAB:
 			queue("doResearch", 1000);
@@ -112,6 +139,8 @@ function eventStructureBuilt(structure, droid){
 			
 		break;
 		case FACTORY:
+			base.x = structure.x;
+			base.y = structure.y;
 			produceDroids();
 		break;
 		case CYBORG_FACTORY:
@@ -125,12 +154,12 @@ function eventStructureBuilt(structure, droid){
 		break;
 	}
 	
-	buildersOrder();
 }
 
 //этот триггер срабатывает при выходе из завода нового свежего юнита.
 function eventDroidBuilt(droid, structure) {
 	
+	debugMsg("eventDroidBuilt: droidType="+droid.droidType+", name="+droid.name, 'eventDroidBuilt');
 	
 	if(produceTrigger[structure.id]){
 		var rem = produceTrigger.splice(structure.id, 1);
@@ -152,16 +181,17 @@ function eventDroidBuilt(droid, structure) {
 		case FACTORY:
 			if(droid.droidType == DROID_WEAPON) groupArmy(droid);
 			if(droid.droidType == DROID_REPAIR) groupArmy(droid);
+//			if(droid.droidType == DROID_ECM) groupArmy(droid);
 			produceDroids();
-			targetRegular();
+//			targetRegular();
 			break;
 		case CYBORG_FACTORY:
 			if(droid.droidType == DROID_CYBORG) groupArmy(droid);
 			produceCyborgs();
-			targetCyborgs();
+//			targetCyborgs();
 			break;
 		case VTOL_FACTORY:
-			orderDroidLoc(droid, 40, base.x, base.y);
+			orderDroidLoc_p(droid, 40, base.x, base.y);
 			groupAddDroid(VTOLAttacker, droid);
 			produceVTOL();
 //			targetVTOL();
@@ -184,10 +214,26 @@ function eventAttacked(victim, attacker) {
 	if(isFixVTOL(attacker) && distBetweenTwoPoints(victim.x,victim.y,base.x,base.y) < base_range) AA_queue.push({x:victim.x,y:victim.y});
 	
 	//Если атака по стратегическим точкам, направляем основную армию
-	if((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE) ) targetRegular(attacker);
+	if(((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE)) && gameTime > eventsRun['targetRegular']){
+		eventsRun['targetRegular'] = gameTime + 5000;
+		targetRegular(attacker);
+	}
 	
 	//Если атака по армии, отводим атакованного
-	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)) orderDroidLoc(victim, DORDER_MOVE, base.x, base.y);
+	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)){
+		
+		if(version == "3.2"){
+			var w = victim.weapons[0].name;
+//			debugMsg("weapon name: "+w+", id="+victim.weapons[0].id, 'triggers');
+			w = getWeaponInfo(w).impactClass;
+//			for ( var prop in w)
+//			debugMsg("Weapon: "+prop,'triggers');
+			debugMsg("weapon class: "+w, 'triggers');
+			if(w == "HEAT") return;
+		}
+		
+		orderDroidLoc_p(victim, DORDER_MOVE, base.x, base.y);
+	}
 	
 	//Если атака по киборгам, ответный огонь ближайшими киборгами
 	if(victim.type == DROID && victim.droidType == DROID_CYBORG && !isFixVTOL(victim) && gameTime > eventsRun['victimCyborgs']) {
@@ -195,13 +241,12 @@ function eventAttacked(victim, attacker) {
 		var cyborgs = enumGroup(armyCyborgs);
 		cyborgs.forEach(function(e){
 			if(distBetweenTwoPoints(e.x,e.y,attacker.x,attacker.y) < 10)
-//			orderDroidLoc(e, DORDER_SCOUT, {x:attacker.x,y:attacker.y});
-			orderDroidObj(e, DORDER_ATTACK, attacker);
+//			orderDroidLoc_p(e, DORDER_SCOUT, {x:attacker.x,y:attacker.y});
+			orderDroidObj_p(e, DORDER_ATTACK, attacker);
 		});
 	}
 	
 }
-
 
 function eventDestroyed(obj){
 	if(obj.type == STRUCTURE && obj.stattype == FACTORY){
@@ -210,4 +255,54 @@ function eventDestroyed(obj){
 			debugMsg('DESTROYED: removed from '+obj.id+' '+rem, 'triggers');
 		}
 	}
+}
+
+function eventChat(sender, to, message) {
+	if(sender != me)
+	if(allianceExistsBetween(me, sender))
+	if(message.substr(0,3) == "bc ")
+	switch (message.substr(3)){
+		case "wgr":
+			setResearchWay("Green");
+			chat(sender, "Goind to Green way");
+			break;
+		case "wor":
+			setResearchWay("Orange");
+			chat(sender, "Goind to Orange way");
+			break;
+		case "wyl":
+			setResearchWay("Yellow");
+			chat(sender, "Goind to Yellow way");
+			break;
+		case "wrd":
+			setResearchWay("Red");
+			chat(sender, "Goind to Red way");
+			break;
+		case "btm":
+			chat(sender, "My position base to you at "+startPositions[sender].x+"x"+startPositions[sender].y);
+			base.x = startPositions[sender].x;
+			base.y = startPositions[sender].y;
+			break;
+		case "gmn":
+			chat(sender, "I have "+playerPower(me));
+			if(playerPower(me)>500){
+				donatePower(Math.floor(playerPower(me)/2), sender);
+				chat(sender, "Remained "+playerPower(me)+" power");
+			}
+			else
+				chat(sender, "My power is to low");
+			break;
+		case "gtn":
+			if(groupSize(buildersMain) == 0)
+				chat(sender, "I do not have free Trucks");
+			else{
+				chat(sender, "Here my new shiny Truck");
+				var truck = enumGroup(buildersMain)[0];
+				donateObject(truck, sender);
+			}
+			break;
+	}
+	else
+	chat(sender, "You say: "+message+", what?");
+	
 }

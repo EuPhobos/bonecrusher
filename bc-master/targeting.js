@@ -1,4 +1,6 @@
 function targetVTOL(){
+	debugMsg("targetVTOL():", 'targeting');
+	
 	var target = [];
 	var scout = [];
 	
@@ -24,30 +26,63 @@ function targetVTOL(){
 		if(target.length != 0){
 			if(group.length <= 8){
 				group.forEach(function(e){
-					var attack = orderDroidObj(e, DORDER_ATTACK, target[0]);
+					var attack = orderDroidObj_p(e, DORDER_ATTACK, target[0]);
 //					debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');
 				});
 			}else if(group.length <= 10){
-				attackObjects(target, group, 2);
+				attackObjects(target, group, 2, false);
 			}else if(group.length <= 15){
-				attackObjects(target, group, 3);
+				attackObjects(target, group, 3, false);
 			}else{
-				attackObjects(target, group, 5);
+				attackObjects(target, group, 5, false);
 			}
 		}else if(scout.length != 0){
-			group.forEach(function(e){
-				var attack = orderDroidLoc(e, DORDER_SCOUT, scout[0].x, scout[0].y);
+			attackObjects(target, group, 5, true);
+//			group.forEach(function(e){
+//				var attack = orderDroidLoc_p(e, DORDER_SCOUT, scout[0].x, scout[0].y);
 //				debugMsg("Scouting: "+scout[0].name+"-"+attack, 'vtol');
-			});
+//			});
 		}
 
-//		group.forEach(function(e){var attack = orderDroidLoc(e, 40, target[0].x, target[0].y); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');}); // 40 - DORDER_CIRCLE
+//		group.forEach(function(e){var attack = orderDroidLoc_p(e, 40, target[0].x, target[0].y); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');}); // 40 - DORDER_CIRCLE
 		
 	}
-	ready.forEach(function(e){orderDroidLoc(e, 40, base.x, base.y);});
+	ready.forEach(function(e){orderDroidLoc_p(e, 40, base.x, base.y);});
+}
+
+function targetJammers(){
+	debugMsg("targetJammers():", 'targeting');
+	
+	
+	var jammers = enumGroup(armyJammers);
+	var partisans = enumGroup(armyPartisans);
+	
+	
+	if(jammers.length == 0 || partisans.length == 0) return;
+	
+	//Армия дохнет? Спасаем задницу бегством!
+	if(partisans.length <= 3){
+		var def = enumStruct(me,DEFENSE);
+		if(def.length == 0){
+			if(distBetweenTwoPoints(base.x, base.y, jammers[0].x, jammers[0].y) > 3) jammers.forEach(function(e){orderDroidLoc_p(e, DORDER_MOVE, base.x, base.y);});
+		}else{
+			def = sortByDistance(def,jammers[0], 1);
+			if(distBetweenTwoPoints(def[0].x, def[0].y, jammers[0].x, jammers[0].y) > 2) jammers.forEach(function(e){orderDroidLoc_p(e, DORDER_MOVE, def[0].x, def[0].y);});
+		}
+		return;
+	}
+	
+	partisans = sortByDistance(partisans, base);
+	jammers.reverse();
+	jammers.forEach(function(f){
+		var target = partisans;
+		orderDroidLoc_p(f, DORDER_MOVE, partisans[Math.round(partisans.length/2)].x, partisans[Math.round(partisans.length/2)].y);
+	});
 }
 
 function targetFixers(){
+	debugMsg("targetFixers():", 'targeting');
+	
 	var fixers = enumGroup(armyFixers);
 	var partisans = enumGroup(armyPartisans);
 	
@@ -58,10 +93,10 @@ function targetFixers(){
 	if(partisans.length <= 3){
 		var def = enumStruct(me,DEFENSE);
 		if(def.length == 0){
-			if(distBetweenTwoPoints(base.x, base.y, fixers[0].x, fixers[0].y) > 3) fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, base.x, base.y);});
+			if(distBetweenTwoPoints(base.x, base.y, fixers[0].x, fixers[0].y) > 3) fixers.forEach(function(e){orderDroidLoc_p(e, DORDER_MOVE, base.x, base.y);});
 		}else{
 			def = sortByDistance(def,fixers[0], 1);
-			if(distBetweenTwoPoints(def[0].x, def[0].y, fixers[0].x, fixers[0].y) > 2) fixers.forEach(function(e){orderDroidLoc(e, DORDER_MOVE, def[0].x, def[0].y);});
+			if(distBetweenTwoPoints(def[0].x, def[0].y, fixers[0].x, fixers[0].y) > 2) fixers.forEach(function(e){orderDroidLoc_p(e, DORDER_MOVE, def[0].x, def[0].y);});
 		}
 		return;
 	}
@@ -80,23 +115,25 @@ function targetFixers(){
 		var target = partisans.filter(function(p){if(p.health < 100 && distBetweenTwoPoints(p.x,p.y,f.x,f.y) < 7)return true; return false;});
 		if(target.length != 0){
 			target = sortByDistance(target, f, 1);
-//			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2) orderDroidLoc(f, 41, f.x, f.y); // 41 - DORDER_HOLD
+//			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2) orderDroidLoc_p(f, 41, f.x, f.y); // 41 - DORDER_HOLD
 			if(distBetweenTwoPoints(f.x,f.y,target[0].x, target[0].y) < 2){
-//				orderDroidObj(f, 26, f); // 26 - DORDER_DROIDREPAIR
+//				orderDroidObj_p(f, 26, f); // 26 - DORDER_DROIDREPAIR
 				return;
 			}
 			else{
-				orderDroidLoc(f, DORDER_MOVE, target[0].x, target[0].y);
+				orderDroidLoc_p(f, DORDER_MOVE, target[0].x, target[0].y);
 				return;
 			}
 		}
-		orderDroidLoc(f, DORDER_MOVE, partisans[Math.round(partisans.length/2)].x, partisans[Math.round(partisans.length/2)].y);
-	})
+		orderDroidLoc_p(f, DORDER_MOVE, partisans[Math.round(partisans.length/2)].x, partisans[Math.round(partisans.length/2)].y);
+	});
 	
 }
 
 function targetPartisan(){
 
+	debugMsg("targetPartisan():", 'targeting');
+	
 	var partisans = enumGroup(armyPartisans);
 	if(partisans.length == 0) return false;
 	var fixers = enumGroup(armyFixers);
@@ -136,7 +173,7 @@ function targetPartisan(){
 //			target = target[Math.floor(Math.random()*target.length)];
 			target = target[0];
 			debugMsg("Мало партизан "+partisans.length+", собираю всех у "+target.name+" недалеко от базы "+distBetweenTwoPoints(base.x,base.y,target.x,target.y), 'targeting');
-			partisans.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, target.x, target.y);});
+			partisans.forEach(function(e){orderDroidLoc_p(e, DORDER_SCOUT, target.x, target.y);});
 		}
 		return false;
 	}
@@ -164,21 +201,21 @@ function targetPartisan(){
 		partisans.forEach(function(e){
 			if(e.health < 50 && fixers.length != 0){
 				if(distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) > 2){
-					orderDroidLoc(e, DORDER_MOVE, fixers[0].x, fixers[0].y);
+					orderDroidLoc_p(e, DORDER_MOVE, fixers[0].x, fixers[0].y);
 					return;
 				}else{
-					orderDroidLoc(e, DORDER_MOVE, e.x, e.y); //STOP
+					orderDroidLoc_p(e, DORDER_MOVE, e.x, e.y); //STOP
 				}
 			}
 			
 			if(e.health < 99 && fixers.length != 0 && distBetweenTwoPoints(e.x,e.y,fixers[0].x,fixers[0].y) < 3) return; //TODO как-то.. переделать чтоль.
 			
 			if( (target[0].type == STRUCTURE && target[0].stattype == WALL) || (target[0].type == DROID && target[0].droidType == DROID_CONSTRUCT) ){
-				orderDroidObj(e, DORDER_ATTACK, target[0]);
+				orderDroidObj_p(e, DORDER_ATTACK, target[0]);
 				debugMsg("ATTACK "+target[0].name, 'targeting');
 			}
 			else{
-				orderDroidLoc(e, DORDER_SCOUT, target[0].x, target[0].y);
+				orderDroidLoc_p(e, DORDER_SCOUT, target[0].x, target[0].y);
 				debugMsg("SCOUT to "+target[0].x+"x"+target[0].y, 'targeting');
 			}
 		});
@@ -187,6 +224,8 @@ function targetPartisan(){
 }
 
 function targetCyborgs(){
+	debugMsg("targetCyborgs():", 'targeting');
+	
 	var _cyborgs = enumGroup(armyCyborgs).filter(function(e){if(e.order == DORDER_ATTACK)return false;return true;});
 	if(_cyborgs.length == 0) return;
 
@@ -236,7 +275,7 @@ function targetCyborgs(){
 			}
 			if(feature == false){
 //				debugMsg("Cyborgs attack "+target[0].name+" at "+target[0].x+"x"+target[0].y, 'targeting');
-				orderDroidLoc(e, DORDER_SCOUT, target[0].x, target[0].y);
+				orderDroidLoc_p(e, DORDER_SCOUT, target[0].x, target[0].y);
 				if(nastyFeatures.length != 0 && enemy.length == 0) target = _target;
 			}
 		});
@@ -246,6 +285,8 @@ function targetCyborgs(){
 }
 
 function targetRegular(target){
+	debugMsg("targetRegular():", 'targeting');
+	
 	var regular = enumGroup(armyRegular);
 	if(regular.length == 0) return false;
 	
@@ -258,7 +299,7 @@ function targetRegular(target){
 	}
 	if(help.length != 0){
 		debugMsg("Helping with our mighty army, targets="+help.length, 'targeting');
-		regular.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, help[0].x, help[0].y);});
+		regular.forEach(function(e){orderDroidLoc_p(e, DORDER_SCOUT, help[0].x, help[0].y);});
 		return;
 	}
 	
@@ -298,10 +339,10 @@ function targetRegular(target){
 		debugMsg("regular: Армия далеко от цели, собрано: "+Math.floor(_reach.length * 100 / regular.length)+"%", 'targeting');
 		if(regular.length > minRegular){
 			debugMsg("regular: Атака "+distBetweenTwoPoints(targRegular.x,targRegular.y,regular[0].x,regular[0].y), 'targeting');
-			regular.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, targRegular.x, targRegular.y);});
+			regular.forEach(function(e){orderDroidLoc_p(e, DORDER_SCOUT, targRegular.x, targRegular.y);});
 		}else{
 			debugMsg("regular: Сбор "+distBetweenTwoPoints(targRegular.x,targRegular.y,regular[0].x,regular[0].y), 'targeting');
-			regular.forEach(function(e){orderDroidLoc(e, DORDER_SCOUT, regular[0].x,regular[0].y);});
+			regular.forEach(function(e){orderDroidLoc_p(e, DORDER_SCOUT, regular[0].x,regular[0].y);});
 		}
 	}
 	

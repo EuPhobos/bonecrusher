@@ -10,6 +10,8 @@ include("multiplay/skirmish/bc-"+vernum+"/targeting.js");
 include("multiplay/skirmish/bc-"+vernum+"/events.js");
 include("multiplay/skirmish/bc-"+vernum+"/names.js");
 include("multiplay/skirmish/bc-"+vernum+"/produce.js");
+include("multiplay/skirmish/bc-"+vernum+"/performance.js");
+
 
 //Master Changes
 //		Новый билдордер
@@ -27,16 +29,24 @@ include("multiplay/skirmish/bc-"+vernum+"/produce.js");
 //		Не помогает в строительстве основной группой строителей, при возведении нефтекачалок
 //		Исправление, теперь строит тяжелого инженера с "краном", минуя лёгкий "паяльник", если исследование идёт таким путём
 //		Вроде исправил баг со строительством мега радара
+//		Группе киборгов реагированние на нападение
+//		Управление глушилками
+//		Оптимизация и мониторинг
+//		Замечено зацикленное поведение гл. строителей, скорее всего они пересекают границу базы и срабатывает возврат на базу
+//		v3.2+ Огнемётные танки не отступают перед атакой
+//		Если мало ресурсов, не застраивать множеством оборонки вражеские нефтекачалки
+//		Работа в комманде, передача лишних денег игроку-союзнику, передача строителей
+//		Исправлена ошибка на поздней стадии игры приводящая к простою строителей
+
 
 
 
 //FIXME/TODO//
+// --- eventDroidIdle глючный, иногда вообще не вызывается, сделать функцию слежки за этим
 // --- Собирать бочки с нефтью и артефакты
-// --- Замечено зацикленное поведение гл. строителей, скорее всего они пересекают границу базы и срабатывает возврат на базу
 // -++ Использовать поздние технологии, лазеры, рельсаганы и т.д.
-// --  Не правильно переносит базу! Переносит на передовую и проигрывает, исправить!
+// --- Не правильно переносит базу! Переносит на передовую и проигрывает, исправить!
 // -++ Создать несоклько путей развития
-// -+  Группе киборгов реагированние на нападение
 // --  хилерам, не собираться слишком далеко от базы, к дальней пушке
 // -+  Если на базе уничтожены главные строители, но есть строитель-охотник, охотника в главные базу на строителя
 // --  Если база под атакой, и нет военных - сменить местоположение базы
@@ -54,7 +64,9 @@ include("multiplay/skirmish/bc-"+vernum+"/produce.js");
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 //var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
-var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'builders', 'research', 'transfer', 'triggers');
+//var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'builders', 'research', 'transfer', 'triggers', 'eventDroidBuilt');
+var debugLevels = new Array('init', 'end', 'research', 'triggers', 'group', 'performance', 'events', 'stats', 'targeting');
+//var debugLevels = new Array('init', 'end', 'error', 'triggers');
 //var debugLevels = new Array('init', 'end', 'error');
 var debugName;
 
@@ -66,7 +78,7 @@ var debugName;
 
 
 //Алгоритм "nastyFeatures" - очистки деревьев, домов и прочего мусора рядом с ресурсами и базой (тяжёлый, не совсем корректный, но пусть будет, т.к. самоотключающийся)
-var nfAlgorithm = true;
+var nfAlgorithm = false;
 
 //Стратегия исследования пути
 //"Strict" - строгая, primary_way исcледуется один за другим
@@ -84,14 +96,15 @@ var minBuilders = 5;
 
 var maxConstructors = 15;
 
-var minPartisans = 5;
-var maxPartisans = 10;
+var minPartisans = 7;
+var maxPartisans = 15;
 var minRegular = 10;
 var maxRegular = 50;
 var maxVTOL = 40;
-var maxCyborgs = 20;
+var maxCyborgs = 30;
 var maxFixers = 5;
 var maxJammers = 2;
+var maxScouts = 2;
 
 var maxExtractors = 40;
 var maxGenerators = 10;
@@ -132,6 +145,8 @@ var armySupport = newGroup();
 var armyCyborgs = newGroup();
 var armyFixers = newGroup();
 var armyJammers = newGroup();
+var armyScouts = newGroup();
+var partJammers = newGroup();
 var VTOLAttacker = newGroup();
 
 var maxFactories, maxFactoriesCyb, maxFactoriesVTOL, maxLabs, maxPads;
@@ -142,6 +157,10 @@ var fixersTrigger = 0;
 
 var eventsRun=[];
 eventsRun['targetCyborgs'] = 0;
+eventsRun['targetArmy'] = 0;
+eventsRun['targetRegular'] = 0;
+eventsRun['targetJammers'] = 0;
+eventsRun['targetFixers'] = 0;
 eventsRun['buildersOrder'] = 0;
 eventsRun['victimCyborgs'] = 0;
 
@@ -470,6 +489,9 @@ function init(){
 	nastyFeatures = []; // Сброс, потому что без проверки по propulsionCanReach, переинициализируется в nastyFeaturesClean();
 	//nastyFeatures.forEach(function(e){debugMsg(e.id+" "+e.x+"x"+e.y+" "+e.name+" "+e.damageable+" "+e.player, 'init');});
 	
+	//Просто дебаг информация
+	var oilDrums = enumFeature(ALL_PLAYERS, "OilDrum");
+	debugMsg("На карте "+oilDrums.length+" бочек с нефтью", 'init');
 	
 	letsRockThisFxxxingWorld(); // <-- Жжём плазмитом сцуко!	
 }
@@ -494,19 +516,23 @@ function letsRockThisFxxxingWorld(){
 
 	queue("prepeareProduce", 3000);
 	queue("produceDroids", 3000);
+	queue("buildersOrder", 2000);
 	
 	running = true;
-	setTimer("buildersOrder", 2000);
-	setTimer("targetPartisan", 5000);
-	setTimer("targetCyborgs", 7000);
-	setTimer("targetFixers", 8000);
-	setTimer("doResearch", 15000);
-	setTimer("defenceQueue", 28000);
-	setTimer("produceDroids", 29000);
-	setTimer("produceVTOL", 30000);
-	setTimer("produceCyborgs", 31000);
-	setTimer("targetRegular", 32000);
-	setTimer("targetVTOL", 61000); //Не раньше 30 сек.
+	setTimer("perfMonitor", 10000);
+//	setTimer("targetPartisan", 5000);
+//	setTimer("targetJammers", 5500);
+//	setTimer("targetCyborgs", 7000);
+//	setTimer("targetFixers", 8000);
+	setTimer("checkEventIdle", 10000);	//т.к. eventDroidIdle глючит, будем дополнительно отслежвать.
+	setTimer("buildersOrder", 120000);
+	setTimer("doResearch", 30000);
+	setTimer("defenceQueue", 60000);
+	setTimer("produceDroids", 7000);
+	setTimer("produceVTOL", 8000);
+	setTimer("produceCyborgs", 9000);
+//	setTimer("targetRegular", 32000);
+	setTimer("targetVTOL", 56000); //Не раньше 30 сек.
 	if(nfAlgorithm)setTimer("nastyFeaturesClean", 35000);
 	setTimer("checkProcess", 40000);
 	if(!release)setTimer("stats", 10000); // Отключить в релизе

@@ -16,7 +16,7 @@ function mainBuilders(rotation){
 			if(playerPower(me) > 100 && policy['build'] == 'standart' || (policy['build'] == 'cyborgs' && cyborg_factory_ready.length > 3)){
 				if(getResearch("R-Struc-Factory-Module").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
 				if(getResearch("R-Struc-Factory-Module").done && iter <=3) { vtol_factory.forEach( function(e){ if(e.modules < 2) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
-				if(getResearch("R-Struc-Factory-Module").done && getResearch("R-Vehicle-Metals02").done && iter <=3) { factory.forEach( function(e){ if(e.modules < 2) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
+				if(getResearch("R-Struc-Factory-Module").done && ( getResearch("R-Vehicle-Metals02").done || playerPower(me) > 1000 ) && iter <=3) { factory.forEach( function(e){ if(e.modules < 2) orderDroidBuild(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);});}
 				if(getResearch("R-Struc-Research-Module").done && iter <= 1) { research_lab.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0ResearchModule1", e.x, e.y);});}
 			}
 			if(getResearch("R-Struc-PowerModuleMk1").done && iter <= 2) { power_gen.forEach( function(e){ if(e.modules < 1) orderDroidBuild(obj, DORDER_BUILD, "A0PowMod1", e.x, e.y);});}
@@ -27,8 +27,8 @@ function mainBuilders(rotation){
 			for ( var b in myBase ){
 				if(distBetweenTwoPoints(base.x,base.y,myBase[b].x,myBase[b].y) > (base_range/2))continue;
 				if(myBase[b].status == BEING_BUILT && myBase[b].stattype == RESOURCE_EXTRACTOR){continue;}
-				if(myBase[b].status == BEING_BUILT) {orderDroidObj(obj, DORDER_HELPBUILD, myBase[b]); helped++; return;}
-				if(myBase[b].health < 100) {orderDroidObj(obj, DORDER_REPAIR, myBase[b]); helped++; return;}
+				if(myBase[b].status == BEING_BUILT) {orderDroidObj_p(obj, DORDER_HELPBUILD, myBase[b]); helped++; return;}
+				if(myBase[b].health < 100) {orderDroidObj_p(obj, DORDER_REPAIR, myBase[b]); helped++; return;}
 			}
 		}
 		
@@ -85,14 +85,14 @@ function mainBuilders(rotation){
 		if(rigDefence(obj)) return;
 
 		//Если свободны, и далеко от базы - отправляем домой
-//		if(distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) > 10 && !builderBusy(obj)) { orderDroidLoc(obj,DORDER_MOVE,base.x,base.y); return; }
+//		if(distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) > 10 && !builderBusy(obj)) { orderDroidLoc_p(obj,DORDER_MOVE,base.x,base.y); return; }
 //		debugMsg("Строители бездельничают "+iter, 'builders');
 		if(iter != 0 && distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) <= 2 && groupSize(buildersHunters) < 5 && getInfoNear(base.x,base.y,'safe',base_range).value 
 			&& ( (policy['build'] == 'cyborgs' && cyborg_factory_ready.length > 3) || policy['build'] != 'cyborgs') ){
 			groupAddDroid(buildersHunters, obj);
 			debugMsg('Builder --> Hunter +1', 'group');
 		}else if(distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) > 2 && unitIdle(obj)){
-			orderDroidLoc(obj,DORDER_MOVE,base.x,base.y);
+			orderDroidLoc_p(obj,DORDER_MOVE,base.x,base.y);
 			return;
 		}
 		

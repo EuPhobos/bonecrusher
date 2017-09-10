@@ -109,23 +109,27 @@ function groupArmy(droid, type){
 		return;
 	}
 	
-	if(droid.droidType == DROID_CYBORG || groupSize(armyCyborgs) == 0){
-		debugMsg("armyCyborgs +1", 'group');
-		groupAddDroid(armyCyborgs, droid);
-		return;
-	}
+
 	
 	//Если армия партизан меньше 7 -ИЛИ- нет среднего Body -ИЛИ- основная армия достигла лимитов
-	if(groupSize(armyPartisans) < 7 || !getResearch("R-Vehicle-Body05").done || groupSize(armyRegular) >= maxRegular ){
+//	if(groupSize(armyPartisans) < 7 || !getResearch("R-Vehicle-Body05").done || groupSize(armyRegular) >= maxRegular ){
+	if(groupSize(armyPartisans) <= maxPartisans || groupSize(armyRegular) >= maxRegular){
 		debugMsg("armyPartisans +1", 'group');
 		groupAddDroid(armyPartisans, droid);
 	}else{
+		
+		if(droid.droidType == DROID_CYBORG || groupSize(armyCyborgs) == 0){
+			debugMsg("armyCyborgs +1", 'group');
+			groupAddDroid(armyCyborgs, droid);
+			return;
+		}
+		
 		debugMsg("armyRegular +1", 'group');
 		groupAddDroid(armyRegular, droid);
 	}
 	
 	//Перегрупировка
-	if(groupSize(armyPartisans) < 3 && groupSize(armyRegular) > 3){
+	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1){
 		var regroup = enumGroup(armyRegular);
 		regroup.forEach(function(e){
 			debugMsg("armyRegular --> armyPartisans +1", 'group');
@@ -140,7 +144,7 @@ function stats(){
 //	if(release) return;
 	debugMsg("Power: "+playerPower(me)+"; rigs="+enumStruct(me,RESOURCE_EXTRACTOR).length+"; free="+enumFeature(me, "OilResource").length+"; enemy="+getEnemyResources().length+"; unknown="+getUnknownResources().length, 'stats');
 	debugMsg("Army: "+enumDroid(me, DROID_WEAPON).length+"; Partisans="+groupSize(armyPartisans)+"; Regular="+groupSize(armyRegular)+"; Borgs="+groupSize(armyCyborgs)+"; VTOL="+groupSize(VTOLAttacker), 'stats');
-	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; targets="+builder_targets.length, 'stats');
+	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; Jammers="+groupSize(armyJammers)+"; targets="+builder_targets.length, 'stats');
 	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length, 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
 	debugMsg("Base: safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length, 'stats');
@@ -403,9 +407,11 @@ function checkProcess(){
 	if(playerLoose(me)){
 		debugMsg("I guess, i'm loose.. Give up", 'end');
 		running = false;
+		removeTimer("perfMonitor");
 		removeTimer("buildersOrder");
 		removeTimer("targetCyborgs");
 		removeTimer("targetPartisan");
+		removeTimer("targetJammers");
 		removeTimer("targetFixers");
 		removeTimer("defenceQueue");
 		removeTimer("doResearch");
@@ -729,7 +735,7 @@ function unitIdle(obj){
 //targets - цель
 //warriors - атакующая группа
 //num - количество целей для распределения от 1 до 10
-function attackObjects(targets, warriors, num){
+function attackObjects(targets, warriors, num, scouting){
 	if ( targets.length == 0 || warriors.length == 0 ) return false;
 	if ( typeof num === "undefined" || num == null || num == 0 ) num = 3;
 	if ( num > 10 ) num = 10;
@@ -746,7 +752,8 @@ function attackObjects(targets, warriors, num){
 
 	if ( targets.length >= warriors.length ) {
 		for ( i = 0, len = warriors.length; i<len; ++i ) {
-			orderDroidObj( warriors[i], DORDER_ATTACK, targets[i] );
+			if(scouting) orderDroidLoc_p(warriors[i], DORDER_SCOUT, targets[i].x, targets[i].y);
+			else orderDroidObj_p( warriors[i], DORDER_ATTACK, targets[i] );
 		}
 		return true;
 	}else{
@@ -759,12 +766,14 @@ function attackObjects(targets, warriors, num){
 			var busy = false;
 			for ( var j in targets ) {
 				if ( distBetweenTwoPoints ( targets[j].x,targets[j].y,warriors[n].x,warriors[n].y ) < 7 ) {
-					orderDroidObj( warriors[n], DORDER_ATTACK, targets[j] );
+					if(scouting) orderDroidLoc_p(warriors[n], DORDER_SCOUT, targets[j].x, targets[j].y);
+					else orderDroidObj_p( warriors[n], DORDER_ATTACK, targets[j] );
 					busy = true;
 				}
 			}
-			if ( busy ) continue;	
-			orderDroidObj( warriors[n], DORDER_ATTACK, targets[i] );
+			if ( busy ) continue;
+			if(scouting) orderDroidLoc_p(warriors[n], DORDER_SCOUT, targets[i].x, targets[i].y);
+			else orderDroidObj_p( warriors[n], DORDER_ATTACK, targets[i] );
 			if ( t >= a ){
 				debugMsg("getTarget: Атака на "+targets.length+" цели по "+a+" юнита ("+targets[i].x+","+targets[i].y+")",4);
 				t=0;
@@ -774,6 +783,10 @@ function attackObjects(targets, warriors, num){
 		return true;
 	}
 	return false;
+	
+}
+
+function checkEventIdle(){
 	
 }
 

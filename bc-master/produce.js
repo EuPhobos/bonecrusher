@@ -129,7 +129,7 @@ function produceDroids(){
 //		return;
 		
 		if(version == '3.2'){
-			debugMsg((version == '3.2')+' '+getResearch('R-Sys-ECM-Upgrade01').done+' '+getInfoNear(base.x,base.y,'safe',base_range).value+' '+(groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers)+' '+inProduce('jammer'), 'triggers');
+			debugMsg('ver3.2='+(version == '3.2')+', R-Sys-ECM-Upgrade01.done='+getResearch('R-Sys-ECM-Upgrade01').done+', base_safe='+getInfoNear(base.x,base.y,'safe',base_range).value+',  need_jam='+(groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers)+', jam_in_prod='+inProduce('jammer'), 'triggers');
 		}
 		if (version == '3.2' && getResearch('R-Sys-ECM-Upgrade01').done && getInfoNear(base.x,base.y,'safe',base_range).value && (groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers) && inProduce('jammer') == 0){
 			var _jammer = "ECM1TurretMk1";
@@ -140,7 +140,9 @@ function produceDroids(){
 
 		//Армия
 		if(light_bodies.length != 0 && avail_guns.length != 0){
-			if( ( (groupSize(armyPartisans) < 7 || playerPower(me) > 250) && groupSize(armyPartisans) < maxPartisans) || !getInfoNear(base.x,base.y,'safe',base_range).value){
+//			if( ( (groupSize(armyPartisans) < 7 || playerPower(me) > 250) && groupSize(armyPartisans) < maxPartisans) || !getInfoNear(base.x,base.y,'safe',base_range).value){
+			if( (groupSize(armyPartisans) < minPartisans || playerPower(me) > (groupSize(armyPartisans)*50) ) || !getInfoNear(base.x,base.y,'safe',base_range).value){
+
 				var _weapon = avail_guns[Math.floor(Math.random()*Math.min(avail_guns.length, 5))]; //Случайная из 5 последних крутых пушек
 				buildDroid(droid_factories[0], "Army", _body, ['HalfTrack','wheeled01'], "", DROID_WEAPON, _weapon);
 			}
@@ -152,7 +154,7 @@ function produceCyborgs(){
 	if(playerPower(me) < 200 && groupSize(armyCyborgs) > 2) return;
 	var cyborg_factories = enumStruct(me,CYBORG_FACTORY).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
 	debugMsg("Cyborg: fact="+cyborg_factories.length+"; cyb="+avail_cyborgs.length, 'production');
-	if( cyborg_factories.length != 0 && avail_cyborgs.length != 0 && (groupSize(armyCyborgs) < 20 || !getInfoNear(base.x,base.y,'safe',base_range).value) ){
+	if( cyborg_factories.length != 0 && avail_cyborgs.length != 0 && (groupSize(armyCyborgs) < maxCyborgs || !getInfoNear(base.x,base.y,'safe',base_range).value) ){
 		var _cyb = avail_cyborgs[Math.floor(Math.random()*Math.min(avail_cyborgs.length, 3))]; //Случайный киборг из 3 полседних крутых
 		var _body = _cyb[0];
 		if(version == '3.2') _body = 'CyborgLightBody'; //For 3.2+ support
