@@ -1,8 +1,8 @@
-const vernum    = "master";
-const verdate   = "xx.xx.2017";
+const vernum    = "v2.1";
+const verdate   = "28.10.2017";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
-const release	= false;
+const release	= true;
 
 include("multiplay/skirmish/bc-"+vernum+"/functions.js");
 include("multiplay/skirmish/bc-"+vernum+"/builders.js");
@@ -39,25 +39,25 @@ include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 //		Исправлена ошибка на поздней стадии игры приводящая к простою строителей
 //		Подсчёт общей армии в статистике был не верен
 //		Отдельная логика для игры на богатых картах "NTW"
+//		Строители стали тупить на базе, не захватывают вышки, разобрался
+//		строители застревают на базе, бьются в здания, исправить
+//		Создать несоклько путей развития
 
 
 
 
 //FIXME/TODO//
 //		Вроде исправил баг со строительством мега радара (проверить)
-// -++ строители застревают на базе, бьются в здания, исправить
-// -++ имеются ошибки в коде, посмотреть лог и исправить.
+// +++ имеются ошибки в коде, посмотреть лог и исправить.
 // --- eventDroidIdle глючный, иногда вообще не вызывается, сделать функцию слежки за этим
 // --- Собирать бочки с нефтью и артефакты
 // -++ Использовать поздние технологии, лазеры, рельсаганы и т.д.
 // --- Не правильно переносит базу! Переносит на передовую и проигрывает, исправить!
-// -++ Создать несоклько путей развития
 // --  хилерам, не собираться слишком далеко от базы, к дальней пушке
 // -+  Если на базе уничтожены главные строители, но есть строитель-охотник, охотника в главные базу на строителя
 // --  Если база под атакой, и нет военных - сменить местоположение базы
 // --  Если нет готовых заводов и все строители уничтожены, создать киборга-строителя
 // --  Переделать функцию переезда базы, на самое крайнее здание от имеющейся базы
-// -+  Строители стали тупить на базе, не захватывают вышки, разобраться
 // --  Если путь к ресурсу заблокирован, строители стоят и тупят
 // -   Определять ближайшего врага и ближайшего союзника, для атаки/подмоги по приоритету
 // -   Отдельный путь развития для игры в команде
@@ -71,7 +71,8 @@ include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 //var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'builders', 'research', 'transfer', 'triggers', 'eventDroidBuilt');
 //var debugLevels = new Array('init', 'end', 'research', 'triggers', 'group', 'performance', 'events', 'stats', 'targeting', 'chat');
 //var debugLevels = new Array('init', 'end', 'error', 'triggers');
-var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'performance', 'buildersbug');
+//var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'performance', 'buildersbug');
+var debugLevels = new Array('error', 'init');
 var debugName;
 
 /*
@@ -506,9 +507,7 @@ function init(){
 		debugMsg(msg,"init");
 	});
 	
-	for ( var p = 0; p < maxPlayers; ++p ) {
-		debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'temp');
-	}
+	if(!release) for ( var p = 0; p < maxPlayers; ++p ) {debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'temp');}
 	
 	var _trash = enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.damageable)return true;return false;});
 	nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
@@ -531,9 +530,7 @@ function init(){
 	var oilDrums = enumFeature(ALL_PLAYERS, "OilDrum");
 	debugMsg("На карте "+oilDrums.length+" бочек с нефтью", 'init');
 	
-	research_way.forEach(function(e){
-		debugMsg(e, 'research');
-	});
+	if(!release)research_way.forEach(function(e){debugMsg(e, 'research');});
 	
 	queue("welcome", 3000+me*(Math.floor(Math.random()*2000)+1500) );
 	
@@ -639,8 +636,10 @@ function letsRockThisFxxxingWorld(init){
 		
 		}
 	
-		if(!release)setTimer("stats", 10000+me*100); // Отключить в релизе
-		setTimer("perfMonitor", 10000+me*100);
+		if(!release){
+			setTimer("stats", 10000+me*100); // Отключить в релизе
+			setTimer("perfMonitor", 10000+me*100);
+		}
 		setTimer("checkProcess", 60000+me*100);
 	}
 }

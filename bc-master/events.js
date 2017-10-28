@@ -164,8 +164,9 @@ function eventStructureBuilt(structure, droid){
 			}
 			
 			if(policy['build'] != 'rich'){
-				base.x = structure.x;
-				base.y = structure.y-1;
+				var _b = enumGroup(buildersMain)[0];
+				base.x = _b.x;
+				base.y = _b.y;
 			}
 			produceDroids();
 		break;

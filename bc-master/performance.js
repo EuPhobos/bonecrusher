@@ -29,7 +29,7 @@ function orderDroidObj_p(who, order, obj){
 		orders++;
 	}
 	
-	perfOrder[type_order] = orders;
+	if(!release)perfOrder[type_order] = orders;
 	var result = orderDroidObj(who, order, obj);
 	return result;
 }
@@ -46,7 +46,7 @@ function orderDroidLoc_p(who, order, x, y){
 		orders++;
 	}
 	
-	perfOrder[type_order] = orders;
+	if(!release)perfOrder[type_order] = orders;
 	var result = orderDroidLoc(who, order, x, y);
 	return result;
 }
@@ -62,7 +62,7 @@ function orderDroidBuild_p(who, order, building, x, y, rotation){
 		orders++;
 	}
 	
-	perfOrder[type_order] = orders;
+	if(!release)perfOrder[type_order] = orders;
 	var result = orderDroidBuild(who, order, building, x, y, rotation);
 	return result;
 
