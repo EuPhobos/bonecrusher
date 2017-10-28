@@ -11,6 +11,7 @@ include("multiplay/skirmish/bc-"+vernum+"/events.js");
 include("multiplay/skirmish/bc-"+vernum+"/names.js");
 include("multiplay/skirmish/bc-"+vernum+"/produce.js");
 include("multiplay/skirmish/bc-"+vernum+"/performance.js");
+include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 
 
 //Master Changes
@@ -28,20 +29,24 @@ include("multiplay/skirmish/bc-"+vernum+"/performance.js");
 //		Если база под атакой, не запускает новые исследования, производит военных (полная хрень, только ухудшает ситуацию, разрешил исследования если денег больше 300 под атакой)
 //		Не помогает в строительстве основной группой строителей, при возведении нефтекачалок
 //		Исправление, теперь строит тяжелого инженера с "краном", минуя лёгкий "паяльник", если исследование идёт таким путём
-//		Вроде исправил баг со строительством мега радара
 //		Группе киборгов реагированние на нападение
 //		Управление глушилками
-//		Оптимизация и мониторинг
+//		Оптимизация и мониторингfunc
 //		Замечено зацикленное поведение гл. строителей, скорее всего они пересекают границу базы и срабатывает возврат на базу
 //		v3.2+ Огнемётные танки не отступают перед атакой
 //		Если мало ресурсов, не застраивать множеством оборонки вражеские нефтекачалки
 //		Работа в комманде, передача лишних денег игроку-союзнику, передача строителей
 //		Исправлена ошибка на поздней стадии игры приводящая к простою строителей
+//		Подсчёт общей армии в статистике был не верен
+//		Отдельная логика для игры на богатых картах "NTW"
 
 
 
 
 //FIXME/TODO//
+//		Вроде исправил баг со строительством мега радара (проверить)
+// -++ строители застревают на базе, бьются в здания, исправить
+// -++ имеются ошибки в коде, посмотреть лог и исправить.
 // --- eventDroidIdle глючный, иногда вообще не вызывается, сделать функцию слежки за этим
 // --- Собирать бочки с нефтью и артефакты
 // -++ Использовать поздние технологии, лазеры, рельсаганы и т.д.
@@ -56,7 +61,6 @@ include("multiplay/skirmish/bc-"+vernum+"/performance.js");
 // --  Если путь к ресурсу заблокирован, строители стоят и тупят
 // -   Определять ближайшего врага и ближайшего союзника, для атаки/подмоги по приоритету
 // -   Отдельный путь развития для игры в команде
-// -   Отдельная логика для игры на богатых картах "NTW"
 // -   Больше использовать getInfoNear() для прироста производительности
 // -   Сделать более подробную статистику, например очки исследований и затраты на них, кол-во произведённых едениц техники и т.д.
 
@@ -65,9 +69,9 @@ include("multiplay/skirmish/bc-"+vernum+"/performance.js");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 //var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
 //var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'builders', 'research', 'transfer', 'triggers', 'eventDroidBuilt');
-var debugLevels = new Array('init', 'end', 'research', 'triggers', 'group', 'performance', 'events', 'stats', 'targeting');
+//var debugLevels = new Array('init', 'end', 'research', 'triggers', 'group', 'performance', 'events', 'stats', 'targeting', 'chat');
 //var debugLevels = new Array('init', 'end', 'error', 'triggers');
-//var debugLevels = new Array('init', 'end', 'error');
+var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'performance', 'buildersbug');
 var debugName;
 
 /*
@@ -93,6 +97,8 @@ var buildersTimer = 25000;		//Триггер для заказа строите�
 var fixersTimer = 50000;		//Триггер для заказа рем.инженеров
 
 var minBuilders = 5;
+
+var builderPts = 750;
 
 var maxConstructors = 15;
 
@@ -166,6 +172,8 @@ eventsRun['victimCyborgs'] = 0;
 
 var produceTrigger=[];
 
+var armyToPlayer = false;	//Передавать всю новую армию игроку №№
+var vtolToPlayer = false;
 
 //Предустановки на исследование
 var research_way = []; //Главный путь развития, компануется далее, в функциях, в зависимости от уровня сложности и др. настроек
@@ -338,8 +346,8 @@ function init(){
 	//инфа
 	debugName = colors[playerData[me].colour];
 	
-	debugMsg("ИИ "+vername+" "+vernum+"("+verdate+") difficulty="+difficulty, "init");
-	debugMsg("WarZone2100 "+version, 'init');
+	debugMsg("ИИ №"+me+" "+vername+" "+vernum+"("+verdate+") difficulty="+difficulty, "init");
+	debugMsg("WarZone2100 "+version, "init");
 	
 	//Определяем мусорщиков
 	scavengerPlayer = (scavengers) ? Math.max(7,maxPlayers) : -1;
@@ -360,15 +368,9 @@ function init(){
 	}
 	debugMsg("На карте "+allResources.length+" всего ресурсов, рядом "+nearResources.length, 'init');
 	
-	if(nearResources.length > 30){
-		//TODO
-		//		debugMsg("Играем по тактике богатых карт.", 'init');
-		//include("multiplay/skirmish/bc-"+vernum+"/build-rich.js");
-		include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
-	}else{
-		include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
-	}
+
 	
+	if(Math.round(Math.random()*5) != 0)
 	researchCustom = true;
 	if(researchCustom){
 		researchStrategy = 'Smudged';
@@ -403,6 +405,36 @@ function init(){
 	}
 	
 	if(!addPrimaryWay()){debugMsg("research_primary не добавлен в research_way!", 'error');}
+	
+	if(nearResources.length > 30){
+		//TODO
+		//		debugMsg("Играем по тактике богатых карт.", 'init');
+		//include("multiplay/skirmish/bc-"+vernum+"/build-rich.js");
+		include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
+		policy['build'] = 'rich';
+	}else{
+		include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
+	}
+	
+	if(policy['build'] == 'rich'){
+
+		research_way.unshift([
+			"R-Sys-Engineering01",
+			"R-Struc-Research-Module",
+			"R-Struc-Factory-Cyborg",
+			"R-Vehicle-Prop-Halftracks",
+			"R-Struc-Factory-Module",
+			"R-Struc-PowerModuleMk1"
+		]);
+		
+		cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);
+		
+		buildersTimer = 7000;
+		minBuilders = 10;
+		minPartisans = 1;
+		maxPartisans = 2;
+		builderPts = 150;
+	}
 	
 //	if(policy['build'] == 'cyborgs') cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);
 	
@@ -447,7 +479,13 @@ function init(){
 		
 		//Производим строителя раз в минуту, не раньше
 		buildersTimer = 60000;
+	}else if(difficulty == MEDIUM){
+		buildersTimer = buildersTimer + Math.floor(Math.random()*5000 - 2000);
+		minBuilders = minBuilders + Math.floor(Math.random() * 5 - 2 );
+		builderPts = builderPts + Math.floor(Math.random() * 200 - 150);
+		minPartisans = minPartisans + Math.floor(Math.random() * 6 - 4);
 	}
+	debugMsg("minPartisans="+minPartisans+", minBuilders="+minBuilders+", builderPts="+builderPts+", buildersTimer="+buildersTimer, "init");
 	debugMsg("Лимиты базы: maxFactories="+maxFactories+"; maxFactoriesCyb="+maxFactoriesCyb+"; maxFactoriesVTOL="+maxFactoriesVTOL+"; maxPads="+maxPads+"; maxLabs="+maxLabs+"; maxGenerators="+maxGenerators+"; maxExtractors="+maxExtractors, 'init');
 	debugMsg("Лимиты юнитов: maxPartisans="+maxPartisans+"; maxRegular="+maxRegular+"; maxCyborgs="+maxCyborgs+"; maxVTOL="+maxVTOL+"; maxFixers="+maxFixers+"; maxConstructors="+maxConstructors, 'init');
 	
@@ -493,17 +531,38 @@ function init(){
 	var oilDrums = enumFeature(ALL_PLAYERS, "OilDrum");
 	debugMsg("На карте "+oilDrums.length+" бочек с нефтью", 'init');
 	
-	letsRockThisFxxxingWorld(); // <-- Жжём плазмитом сцуко!	
+	research_way.forEach(function(e){
+		debugMsg(e, 'research');
+	});
+	
+	queue("welcome", 3000+me*(Math.floor(Math.random()*2000)+1500) );
+	
+	letsRockThisFxxxingWorld(true); // <-- Жжём плазмитом сцуко!	
 }
 
+function welcome(){
+	
+	if(version == "3.2"){
+		
+		playerData.forEach( function(data, player) {
+			chat(player, 'from '+debugName+': '+chatting('welcome'));
+		});
+	}
+	
+}
 
 //Старт
-function letsRockThisFxxxingWorld(){
+function letsRockThisFxxxingWorld(init){
 	debugMsg("Старт/Run", 'init');
 
 	//Первых строителей в группу
 	var _builders = enumDroid(me,DROID_CONSTRUCT);
 	_builders.forEach(function(e){groupBuilders(e);});
+	
+	if(policy['build'] == 'rich' && _builders.length > 4){
+		groupAddDroid(buildersHunters, _builders[0]);
+		debugMsg('Builder --> Hunter +1', 'group');
+	}
 	
 	//Получаем свои координаты
 	if(_builders.length != 0) base = {x:_builders[0].x, y:_builders[0].y};
@@ -514,28 +573,76 @@ function letsRockThisFxxxingWorld(){
 	enumDroid(me,DROID_CYBORG).forEach(function(e){groupAddDroid(armyCyborgs, e);});
 	enumDroid(me,DROID_WEAPON).forEach(function(e){groupAddDroid(armyCyborgs, e);}); // <-- Это не ошибка, первых бесплатных определяем как киборгов (работа у них будет киборгская)
 
-	queue("prepeareProduce", 3000);
+	queue("buildersOrder", 1000);
+	queue("prepeareProduce", 2000);
 	queue("produceDroids", 3000);
-	queue("buildersOrder", 2000);
+	queue("doResearch", 3000);
 	
 	running = true;
-	setTimer("perfMonitor", 10000);
-//	setTimer("targetPartisan", 5000);
-//	setTimer("targetJammers", 5500);
-//	setTimer("targetCyborgs", 7000);
-//	setTimer("targetFixers", 8000);
-	setTimer("checkEventIdle", 10000);	//т.к. eventDroidIdle глючит, будем дополнительно отслежвать.
-	setTimer("buildersOrder", 120000);
-	setTimer("doResearch", 30000);
-	setTimer("defenceQueue", 60000);
-	setTimer("produceDroids", 7000);
-	setTimer("produceVTOL", 8000);
-	setTimer("produceCyborgs", 9000);
-//	setTimer("targetRegular", 32000);
-	setTimer("targetVTOL", 56000); //Не раньше 30 сек.
-	if(nfAlgorithm)setTimer("nastyFeaturesClean", 35000);
-	setTimer("checkProcess", 40000);
-	if(!release)setTimer("stats", 10000); // Отключить в релизе
+	if(init){
+		if(difficulty == EASY){
+	
+			setTimer("produceDroids", 10000+me*100);
+			setTimer("produceVTOL", 12000+me*100);
+			setTimer("checkEventIdle", 60000+me*100);	//т.к. eventDroidIdle глючит, будем дополнительно отслежвать.
+			setTimer("doResearch", 60000+me*100);
+			setTimer("defenceQueue", 60000+me*100);
+			setTimer("produceCyborgs", 25000+me*100);
+			setTimer("buildersOrder", 120000+me*100);
+			setTimer("targetVTOL", 120000+me*100); //Не раньше 30 сек.
+		
+	
+		} else if(difficulty == MEDIUM){
+
+			setTimer("produceDroids", 7000+me*100);
+			setTimer("produceVTOL", 8000+me*100);
+			setTimer("produceCyborgs", 9000+me*100);
+			if(policy['build'] == 'rich') setTimer("buildersOrder", 5000+me*100);
+			else setTimer("buildersOrder", 120000+me*100);
+			setTimer("checkEventIdle", 30000+me*100);	//т.к. eventDroidIdle глючит, будем дополнительно отслежвать.
+			setTimer("doResearch", 30000+me*100);
+			if(nfAlgorithm)setTimer("nastyFeaturesClean", 35000+me*100);
+			setTimer("defenceQueue", 60000+me*100);
+			setTimer("targetVTOL", 56000+me*100); //Не раньше 30 сек.
+	
+		} else if(difficulty == HARD){
+		
+			setTimer("targetPartisan", 5000+me*100);
+			setTimer("buildersOrder", 5000+me*100);
+			setTimer("targetJammers", 5500+me*100);
+			setTimer("targetCyborgs", 7000+me*100);
+			setTimer("produceDroids", 7000+me*100);
+			setTimer("produceVTOL", 8000+me*100);
+			setTimer("targetFixers", 8000+me*100);
+			setTimer("produceCyborgs", 9000+me*100);
+			setTimer("doResearch", 30000+me*100);
+			setTimer("defenceQueue", 60000+me*100);
+			setTimer("targetRegular", 32000+me*100);
+			setTimer("targetVTOL", 56000+me*100); //Не раньше 30 сек.
+			if(nfAlgorithm)setTimer("nastyFeaturesClean", 35000+me*100);
+		
+		} else if(difficulty == INSANE){
+		
+			setTimer("targetPartisan", 5000+me*100);
+			setTimer("buildersOrder", 5000+me*100);
+			setTimer("targetJammers", 5500+me*100);
+			setTimer("produceDroids", 6000+me*100);
+			setTimer("produceVTOL", 6500+me*100);
+			setTimer("produceCyborgs", 7000+me*100);
+			setTimer("targetCyborgs", 7000+me*100);
+			setTimer("targetFixers", 8000+me*100);
+			setTimer("targetRegular", 10000+me*100);
+			setTimer("doResearch", 12000+me*100);
+			setTimer("defenceQueue", 30000+me*100);
+			setTimer("targetVTOL", 56000+me*100); //Не раньше 30 сек.
+			if(nfAlgorithm)setTimer("nastyFeaturesClean", 35000+me*100);
+		
+		}
+	
+		if(!release)setTimer("stats", 10000+me*100); // Отключить в релизе
+		setTimer("perfMonitor", 10000+me*100);
+		setTimer("checkProcess", 60000+me*100);
+	}
 }
 
 function debugMsg(msg,level){

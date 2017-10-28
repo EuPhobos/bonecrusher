@@ -23,7 +23,7 @@ var research_primary = [
 
 
 const research_way_1 = [
-"R-Struc-VTOLFactory",			//Авиазавод(temp)
+//"R-Struc-VTOLFactory",			//Авиазавод(temp)
 "R-Sys-Engineering01",			//Инженерия
 "R-Struc-PowerModuleMk1",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы

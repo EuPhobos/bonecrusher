@@ -5,13 +5,25 @@ const research_test = [
 ];
 
 const research_blue = [
+"R-Sys-Engineering01",
+"R-Defense-Tower01",
+"R-Vehicle-Prop-Halftracks",	//Полугусенецы
+"R-Wpn-MG5",					//Twin Assault Gun
+"R-Defense-WallTower-TwinAGun",
+"R-Vehicle-Body11",		// #101  Heavy Body - Python
+"R-Wpn-Plasmite-Flamer", // plasmite
+"R-Wpn-MG-ROF03",				//Hyper Fire Chaingun Upgrade
+"R-Wpn-MG-Damage08",			//Depleted Uranium MG Bullets
+"R-Vehicle-Metals09",			//Superdense Composite Alloys Mk3 (финал)
+"R-Struc-Research-Upgrade09",
+"R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
+"R-Vehicle-Armor-Heat09",		//Vehicle Superdense Thermal Armor Mk3
 "R-Sys-ECM-Upgrade02",	//Глушилка
+"R-Sys-Sensor-UpLink",
 "R-Cyborg-Hvywpn-A-T",
 "R-Sys-Autorepair-General",             //Автопочинка
 "R-Struc-Power-Upgrade03a",
-"R-Struc-Research-Upgrade09",
 "R-Struc-VTOLPad",
-"R-Wpn-Plasmite-Flamer", // plasmite
 "R-Wpn-Bomb04"
 ];
 
@@ -367,7 +379,12 @@ const research_black = [
 
 var _research = debugName;
 if(typeof forceResearch !== 'undefined') _research = forceResearch;
-setResearchWay(_research);
+//setResearchWay(_research);
+
+var _r=Math.floor(Math.random()*7);
+var _w=["None","Black","Green","Red","Yellow","Orange","Blue"];
+setResearchWay(_w[_r]);
+
 
 function setResearchWay(way){
 	if(way == "Black"){

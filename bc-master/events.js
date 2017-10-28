@@ -8,6 +8,8 @@ function eventResearched(research, structure) {
 // Обязательно использовать
 function eventDroidIdle(droid) {
 	
+	debugMsg('idle '+droidTypes[droid.droidType], 'events');
+	
 	switch (droid.droidType) {
 		case DROID_CYBORG:
 			if(gameTime > eventsRun['targetCyborgs']){
@@ -117,6 +119,13 @@ function eventObjectTransfer(gameObject, from) {
 //Срабатывает при завершении строительства здания
 function eventStructureBuilt(structure, droid){
 	
+	
+	if(policy['build'] == 'rich'){
+		var _b = enumGroup(buildersMain)[0];
+		base.x = _b.x;
+		base.y = _b.y;
+	}
+	
 	buildersOrder();
 	
 	
@@ -133,14 +142,31 @@ function eventStructureBuilt(structure, droid){
 				factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 				research_lab_ready = research_lab.filter(function(e){if(e.status == 1)return true; return false;});
 //				if( (factory_ready.length == 1 && research_lab_ready.length == 1) || power_gen_ready.length == 1)
-				if(factory_ready.length == 2 && research_lab_ready.length == 1) 
-					enumDroid(me, DROID_CONSTRUCT).forEach(function(e,i){if(i!=0){groupAddDroid(buildersHunters, e);debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');}});
+				if(factory_ready.length == 2 && research_lab_ready.length == 1){
+					enumGroup(buildersMain).forEach(function(e,i){if(i!=0){groupAddDroid(buildersHunters, e);debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');}});
+				}
+				else if( (research_lab_ready.length == 2 || research_lab_ready.length == 3) && policy['build'] == 'rich'){
+					var e = enumGroup(buildersMain)[0];
+					groupAddDroid(buildersHunters, e);
+					debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');
+				}
 			}
 			
 		break;
 		case FACTORY:
-			base.x = structure.x;
-			base.y = structure.y;
+			factory = enumStruct(me, FACTORY);
+			factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
+
+			if( factory_ready.length == 2  && policy['build'] == 'rich'){
+				var e = enumGroup(buildersMain)[0];
+				groupAddDroid(buildersHunters, e);
+				debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');
+			}
+			
+			if(policy['build'] != 'rich'){
+				base.x = structure.x;
+				base.y = structure.y-1;
+			}
 			produceDroids();
 		break;
 		case CYBORG_FACTORY:
@@ -179,20 +205,32 @@ function eventDroidBuilt(droid, structure) {
 	
 	switch (structure.stattype) {
 		case FACTORY:
-			if(droid.droidType == DROID_WEAPON) groupArmy(droid);
-			if(droid.droidType == DROID_REPAIR) groupArmy(droid);
+			if(droid.droidType == DROID_WEAPON){
+				if(armyToPlayer){donateObject(droid, armyToPlayer);}
+				else groupArmy(droid);
+			}
+			if(droid.droidType == DROID_REPAIR){
+				if(armyToPlayer){donateObject(droid, armyToPlayer);}
+				else groupArmy(droid);
+			}
 //			if(droid.droidType == DROID_ECM) groupArmy(droid);
 			produceDroids();
 //			targetRegular();
 			break;
 		case CYBORG_FACTORY:
-			if(droid.droidType == DROID_CYBORG) groupArmy(droid);
+			if(droid.droidType == DROID_CYBORG){
+				if(armyToPlayer){donateObject(droid, armyToPlayer);}
+				else groupArmy(droid);
+			}
 			produceCyborgs();
 //			targetCyborgs();
 			break;
 		case VTOL_FACTORY:
-			orderDroidLoc_p(droid, 40, base.x, base.y);
-			groupAddDroid(VTOLAttacker, droid);
+			if(vtolToPlayer){donateObject(droid, armyToPlayer);}
+			else{
+				orderDroidLoc_p(droid, 40, base.x, base.y);
+				groupAddDroid(VTOLAttacker, droid);
+			}
 			produceVTOL();
 //			targetVTOL();
 			break;
@@ -219,8 +257,15 @@ function eventAttacked(victim, attacker) {
 		targetRegular(attacker);
 	}
 	
+	if(policy['build'] == 'rich' && victim.type == DROID && victim.droidType == DROID_CONSTRUCT){
+		orderDroidLoc_p(victim, DORDER_MOVE, base.x, base.y);
+	}
+	
 	//Если атака по армии, отводим атакованного
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)){
+		
+		//т.к. в богатых картах кол-во партизан всего 2, направляем всю армию к атакованным
+		if(policy['build'] == 'rich') targetRegular(attacker);
 		
 		if(version == "3.2"){
 			var w = victim.weapons[0].name;
@@ -231,6 +276,9 @@ function eventAttacked(victim, attacker) {
 			debugMsg("weapon class: "+w, 'triggers');
 			if(w == "HEAT") return;
 		}
+
+
+
 		
 		orderDroidLoc_p(victim, DORDER_MOVE, base.x, base.y);
 	}
@@ -258,6 +306,7 @@ function eventDestroyed(obj){
 }
 
 function eventChat(sender, to, message) {
+	debugMsg('from: '+sender+', to: '+to+', msg: '+message, 'chat')
 	if(sender != me)
 	if(allianceExistsBetween(me, sender))
 	if(message.substr(0,3) == "bc ")
@@ -301,8 +350,24 @@ function eventChat(sender, to, message) {
 				donateObject(truck, sender);
 			}
 			break;
+		case "gaa":
+			armyToPlayer = sender;
+			chat(sender, "All my new shiny army for you.");
+			break;
+		case "caa":
+			armyToPlayer = false;
+			chat(sender, "Army is mine now.");
+			break;
+		case "gav":
+			vtolToPlayer = sender;
+			chat(sender, "All my new shiny VTOLs for you.");
+			break;
+		case "cav":
+			vtolToPlayer = false;
+			chat(sender, "VTOLs is mine now.");
+			break;
 	}
-	else
-	chat(sender, "You say: "+message+", what?");
+//	else
+//	chat(sender, "You say: "+message+", what?");
 	
 }

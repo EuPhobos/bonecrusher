@@ -113,7 +113,7 @@ function groupArmy(droid, type){
 	
 	//Если армия партизан меньше 7 -ИЛИ- нет среднего Body -ИЛИ- основная армия достигла лимитов
 //	if(groupSize(armyPartisans) < 7 || !getResearch("R-Vehicle-Body05").done || groupSize(armyRegular) >= maxRegular ){
-	if(groupSize(armyPartisans) <= maxPartisans || groupSize(armyRegular) >= maxRegular){
+	if(groupSize(armyPartisans) <= minPartisans || groupSize(armyRegular) >= maxRegular){
 		debugMsg("armyPartisans +1", 'group');
 		groupAddDroid(armyPartisans, droid);
 	}else{
@@ -141,9 +141,10 @@ function groupArmy(droid, type){
 
 
 function stats(){
+	if(!running)return;
 //	if(release) return;
 	debugMsg("Power: "+playerPower(me)+"; rigs="+enumStruct(me,RESOURCE_EXTRACTOR).length+"; free="+enumFeature(me, "OilResource").length+"; enemy="+getEnemyResources().length+"; unknown="+getUnknownResources().length, 'stats');
-	debugMsg("Army: "+enumDroid(me, DROID_WEAPON).length+"; Partisans="+groupSize(armyPartisans)+"; Regular="+groupSize(armyRegular)+"; Borgs="+groupSize(armyCyborgs)+"; VTOL="+groupSize(VTOLAttacker), 'stats');
+	debugMsg("Army: "+(groupSize(armyPartisans)+groupSize(armyRegular)+groupSize(armyCyborgs)+groupSize(VTOLAttacker))+"; Partisans="+groupSize(armyPartisans)+"; Regular="+groupSize(armyRegular)+"; Borgs="+groupSize(armyCyborgs)+"; VTOL="+groupSize(VTOLAttacker), 'stats');
 	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; Jammers="+groupSize(armyJammers)+"; targets="+builder_targets.length, 'stats');
 	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length, 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
@@ -160,6 +161,7 @@ function stats(){
 
 
 function nastyFeaturesClean(){
+	if(!running)return;
 	if(nfAlgorithm == false){
 		removeTimer("nastyFeaturesClean");
 		debugMsg("nastyFeaturesClean stop", "end");
@@ -245,6 +247,7 @@ function isBeingRepaired(who){
 //вместо того что сделано сейчас, можно было бы легко использовать filter()
 //В голову не идёт как это исправить своими силами, забил пока..
 function _doResearch(){
+	debugMsg("doResearch()", 'research');
 	avail_research = enumResearch().filter(function(e){if(e.started)return false;return true;});
 	var labs = enumStruct(me,RESEARCH_LAB).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});;
 	var way = false;
@@ -284,10 +287,15 @@ function _doResearch(){
 //2. При постройке лабаротории
 //3. При завершении исследования
 function doResearch(){
-	
+	if(!running)return;
+//	debugMsg("doResearch()", 'research');
+//	debugMsg(getInfoNear(base.x,base.y,'safe',base_range).value+" && "+playerPower(me)+"<300 && "+avail_guns.length+"!=0", 'research');
 	if(!getInfoNear(base.x,base.y,'safe',base_range).value && playerPower(me) < 300 && avail_guns.length != 0) return;
 	
-	avail_research = enumResearch().filter(function(e){if(e.started)return false;return true;});
+	avail_research = enumResearch().filter(function(e){
+//		debugMsg(e.name+' - '+e.started+' - '+e.done, 'research');
+		if(e.started)return false;return true;
+	});
 	
 	if ( research_way.length < 5 ){
 		var _research = avail_research[Math.floor(Math.random()*avail_research.length)].name;
@@ -404,25 +412,73 @@ function sortByHealth(arr){
 }
 
 function checkProcess(){
+	if(!running)return;
 	if(playerLoose(me)){
 		debugMsg("I guess, i'm loose.. Give up", 'end');
+		if(version == "3.2" && running){
+			playerData.forEach( function(data, player) {
+				chat(player, 'from '+debugName+': '+chatting('loose'));
+			});
+		}
 		running = false;
-		removeTimer("perfMonitor");
-		removeTimer("buildersOrder");
-		removeTimer("targetCyborgs");
-		removeTimer("targetPartisan");
-		removeTimer("targetJammers");
-		removeTimer("targetFixers");
-		removeTimer("defenceQueue");
-		removeTimer("doResearch");
-		removeTimer("produceDroids");
-		removeTimer("produceVTOL");
-		removeTimer("produceCyborgs");
-		removeTimer("targetRegular");
-		removeTimer("targetVTOL");
-		if(nfAlgorithm)removeTimer("nastyFeaturesClean");
-		removeTimer("checkProcess");
+	
+		/* Пока есть баг: http://developer.wz2100.net/ticket/4663
+		if(difficulty == EASY){
+			removeTimer("produceDroids");
+			removeTimer("produceVTOL");
+			removeTimer("checkEventIdle");
+			removeTimer("doResearch");
+			removeTimer("defenceQueue");
+			removeTimer("produceCyborgs");
+			removeTimer("buildersOrder");
+			removeTimer("targetVTOL");
+		} else if(difficulty == MEDIUM){
+			removeTimer("produceDroids");
+			removeTimer("produceVTOL");
+			removeTimer("produceCyborgs");
+			removeTimer("buildersOrder");
+			removeTimer("checkEventIdle");
+			removeTimer("doResearch");
+			removeTimer("defenceQueue");
+			removeTimer("targetVTOL");
+			if(nfAlgorithm)removeTimer("nastyFeaturesClean");
+		} else if(difficulty == HARD){
+			removeTimer("targetPartisan");
+			removeTimer("buildersOrder");
+			removeTimer("targetJammers");
+			removeTimer("targetCyborgs");
+			removeTimer("produceDroids");
+			removeTimer("produceVTOL");
+			removeTimer("targetFixers");
+			removeTimer("produceCyborgs");
+			removeTimer("doResearch");
+			removeTimer("defenceQueue");
+			removeTimer("targetRegular");
+			removeTimer("targetVTOL");
+			if(nfAlgorithm)removeTimer("nastyFeaturesClean");
+
+		} else if(difficulty == INSANE){
+			removeTimer("targetPartisan");
+			removeTimer("buildersOrder");
+			removeTimer("targetJammers");
+			removeTimer("targetCyborgs");
+			removeTimer("produceDroids");
+			removeTimer("produceVTOL");
+			removeTimer("targetFixers");
+			removeTimer("produceCyborgs");
+			removeTimer("doResearch");
+			removeTimer("defenceQueue");
+			removeTimer("targetRegular");
+			removeTimer("targetVTOL");
+			if(nfAlgorithm)removeTimer("nastyFeaturesClean");
+		}
+			
+
 		if(!release)removeTimer("stats");
+		removeTimer("perfMonitor");
+		removeTimer("checkProcess");
+		*/
+		
 	}
 }
 
@@ -786,8 +842,12 @@ function attackObjects(targets, warriors, num, scouting){
 	
 }
 
+//Неоптимизированно, нужно доделать.
 function checkEventIdle(){
-	
+	if(!running)return;
+	targetPartisan();
+	queue('targetCyborgs', 200);
+	queue('targetRegular', 400);
 }
 
 

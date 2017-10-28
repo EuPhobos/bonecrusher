@@ -4,7 +4,7 @@
 //войска по исследованным технологиям без HQ, так этой функцией запретим
 //это делать и ИИ
 function prepeareProduce(){
-	
+//	debugMsg('prepeareProduce()', 'production')
 	//Если есть HQ
 	var hq = enumStruct(me, HQ).filter(function (e){if(e.status == BUILT)return true;return false;});
 	if (hq.length != 0){
@@ -42,7 +42,10 @@ function prepeareProduce(){
 		
 		
 		//Сортируем пушки по "крутизне", базируясь на research.points
-		var _guns=guns.filter(function(e){if(getResearch(e[0]).done)return true;return false;}).sort(function (a,b){
+		var _guns=guns.filter(function(e){
+//			debugMsg(e[0]+' - '+getResearch(e[0]).done, 'production');
+			if(getResearch(e[0]).done)return true;return false;
+		}).sort(function (a,b){
 			if(getResearch(a[0]).points < getResearch(b[0]).points ) return -1;
 			if(getResearch(a[0]).points > getResearch(b[0]).points ) return 1;
 			return 0;
@@ -94,6 +97,8 @@ function prepeareProduce(){
 }
 
 function produceDroids(){
+	if(!running)return;
+	debugMsg('produceDroids()', 'production');
 	var droid_factories = enumStruct(me,FACTORY).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
 	
 	//	var builders_limit = getDroidLimit(me, DROID_CONSTRUCT);
@@ -110,9 +115,13 @@ function produceDroids(){
 		//Если строители не в лимите -И- база не подвергается нападению
 		//Если целей для охотников более 7 -И- денег более 750 -ИЛИ- (строитель всего один или ноль охотников), а денег более 150 -ИЛИ- вообще нет строителей
 		//ТО заказуаэм!
-		debugMsg("buildersTrigger="+buildersTrigger+"; fixersTrigger="+fixersTrigger+"; gameTime="+gameTime, 'production');
+//		debugMsg("buildersTrigger="+buildersTrigger+"; fixersTrigger="+fixersTrigger+"; gameTime="+gameTime, 'production');
+		
+//		debugMsg('('+builders.length+'<'+(maxConstructors-3)+' && '+getInfoNear(base.x,base.y,'safe',base_range).value+') && ( ( ('+playerPower(me)+'>'+builderPts+' && '+builder_targets.length+'>7 && '
+//		+buildersTrigger+'<'+gameTime+') || ( ('+groupSize(buildersMain)+'==1 || '+groupSize(buildersHunters)+'==0) && '+playerPower(me)+'>150) || '+builders.length+'==0) ) )', 'production');
+		
 		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range).value)
-			&& ( (playerPower(me) > 750 && builder_targets.length > 7 && buildersTrigger < gameTime) || ( (groupSize(buildersMain) == 1 || groupSize(buildersHunters) == 0) && playerPower(me) > 150) || builders.length == 0 ) ){
+			&& ( ( (playerPower(me) > builderPts && builder_targets.length > 7 && buildersTrigger < gameTime) || ( (groupSize(buildersMain) == 1 || groupSize(buildersHunters) == 0) && playerPower(me) > 150) || builders.length == 0 ) ) ){
 			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
 			buildersTrigger = gameTime + buildersTimer;
 			return;
@@ -150,6 +159,7 @@ function produceDroids(){
 	}
 }
 function produceCyborgs(){
+	if(!running)return;
 	if(groupSize(armyCyborgs) >= maxCyborgs) return;
 	if(playerPower(me) < 200 && groupSize(armyCyborgs) > 2) return;
 	var cyborg_factories = enumStruct(me,CYBORG_FACTORY).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
@@ -165,6 +175,7 @@ function produceCyborgs(){
 }
 
 function produceVTOL(){
+	if(!running)return;
 	if(groupSize(VTOLAttacker) >= maxVTOL) return;
 	if(playerPower(me) < 300 && groupSize(VTOLAttacker) > 3) return;
 	/*

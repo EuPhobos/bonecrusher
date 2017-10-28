@@ -51,7 +51,25 @@ function orderDroidLoc_p(who, order, x, y){
 	return result;
 }
 
+function orderDroidBuild_p(who, order, building, x, y, rotation){
+	var type_order = droidTypes[who.droidType]+'_'+droidOrders[order];
+	var orders = perfOrder[type_order];
+
+	if (typeof orders != 'number'){
+		orders = 1;
+	}
+	else {
+		orders++;
+	}
+	
+	perfOrder[type_order] = orders;
+	var result = orderDroidBuild(who, order, building, x, y, rotation);
+	return result;
+
+}
+
 function perfMonitor(){
+	if(!running)return;
 	if(Object.keys(perfOrder).length != 0){
 		var pout=[];
 		Object.keys(perfOrder).map(function(k, i) {

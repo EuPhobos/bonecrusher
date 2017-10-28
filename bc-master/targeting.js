@@ -1,4 +1,5 @@
 function targetVTOL(){
+	if(!running)return;
 	debugMsg("targetVTOL():", 'targeting');
 	
 	var target = [];
@@ -51,6 +52,7 @@ function targetVTOL(){
 }
 
 function targetJammers(){
+	if(!running)return;
 	debugMsg("targetJammers():", 'targeting');
 	
 	
@@ -132,6 +134,8 @@ function targetFixers(){
 
 function targetPartisan(){
 
+	if(!running)return;
+	
 	debugMsg("targetPartisan():", 'targeting');
 	
 	var partisans = enumGroup(armyPartisans);
@@ -282,9 +286,15 @@ function targetCyborgs(){
 		return;
 	}
 	
+	_cyborgs.forEach(function(e){
+		groupAddDroid(armyRegular, e);
+		debugMsg("Cyborg --> Regular +1", 'group');
+	});
+	
 }
 
 function targetRegular(target){
+	if(!running)return;
 	debugMsg("targetRegular():", 'targeting');
 	
 	var regular = enumGroup(armyRegular);
