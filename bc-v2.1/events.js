@@ -122,8 +122,10 @@ function eventStructureBuilt(structure, droid){
 	
 	if(policy['build'] == 'rich'){
 		var _b = enumGroup(buildersMain)[0];
-		base.x = _b.x;
-		base.y = _b.y;
+		if(typeof _b !== 'undefined'){
+			base.x = _b.x;
+			base.y = _b.y;
+		}
 	}
 	
 	buildersOrder();
@@ -165,8 +167,10 @@ function eventStructureBuilt(structure, droid){
 			
 			if(policy['build'] != 'rich'){
 				var _b = enumGroup(buildersMain)[0];
-				base.x = _b.x;
-				base.y = _b.y;
+				if(typeof _b !== 'undefined'){
+					base.x = _b.x;
+					base.y = _b.y;
+				}
 			}
 			produceDroids();
 		break;
