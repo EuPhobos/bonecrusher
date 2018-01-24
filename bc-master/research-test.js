@@ -378,13 +378,15 @@ const research_black = [
 ];
 
 var _research = debugName;
-if(typeof forceResearch !== 'undefined') _research = forceResearch;
-//setResearchWay(_research);
-
-var _r=Math.floor(Math.random()*7);
-var _w=["None","Black","Green","Red","Yellow","Orange","Blue"];
-setResearchWay(_w[_r]);
-
+if(typeof forceResearch !== 'undefined'){
+	_research = forceResearch;
+	setResearchWay(_research);
+}else{
+	var _w=["None","Black","Green","Red","Yellow","Orange","Blue"];
+	if(difficulty == HARD || difficulty == INSANE) _w=["Green","Red","Yellow","Orange"];
+	var _r=Math.floor(Math.random()*_w.length);
+	setResearchWay(_w[_r]);
+}
 
 function setResearchWay(way){
 	if(way == "Black"){

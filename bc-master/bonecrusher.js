@@ -15,10 +15,29 @@ include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 
 
 
-
+///////\\\\\\\
 //master changes
-
-
+//		Игра на островных картах
+//		v3.2+ замена строителей на ховеры
+//		При нехватке денег, строит 3-й модуль на завод (нашёл и исправил косяк)
+//		При низком приросте доходов не запускать более 3-х лабораторий
+//		На уровне сложности выше среднего, не использовать слабые пути исследований и билдордеры
+//		Исправлено: Не строил нефтевышки, если союзники на карте были очень близко к базе
+//		Переписана главная функция заполнения кэша-переменной
+//		Теперь строитель определяет, если нефтевышка застроена хламом, и не тупит возле неё
+//		Отказаться от тяжёлого огнемёта, он слишком медленен (готово)
+//		Сделал что бы основная армия при сборе половины войск, начинала действовать.
+//		Добивание вражеских строителей
+//		Hunter-ы не помогают в строительстве базы, бездельничают в большом кол-ве внутри базы (исправлено)
+//		Теперь может шарить юнитов с напарником по комманде
+//---
+// На островной карте строит много колёсных строителей (не верно таймер триггера стоял, исправил, проверил)
+// Строит 5 лаб на островной карте (вроде исправил)
+// На островной карте отдаёт строителей в охотники до 1 (перегруженная логика IF, исправил, проверил)
+//---
+// После выноса восстанавливает базу не верно (вроде исправил)
+// На островных картах убрать все исследования связанные с киборгами
+// Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
 
 
 ///////\\\\\\\
@@ -52,8 +71,6 @@ include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 //		Создать несоклько путей развития
 
 
-
-
 //FIXME/TODO//
 //		Вроде исправил баг со строительством мега радара (проверить)
 // +++ имеются ошибки в коде, посмотреть лог и исправить.
@@ -79,8 +96,9 @@ include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 //var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'builders', 'research', 'transfer', 'triggers', 'eventDroidBuilt');
 //var debugLevels = new Array('init', 'end', 'research', 'triggers', 'group', 'performance', 'events', 'stats', 'targeting', 'chat');
 //var debugLevels = new Array('init', 'end', 'error', 'triggers');
-//var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'performance', 'buildersbug');
-var debugLevels = new Array('error', 'init');
+//var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'group', 'production', 'performance', 'donate');
+var debugLevels = new Array('error', 'init', 'stats','performance');
+//var debugLevels = new Array('error', 'init');
 var debugName;
 
 /*
@@ -140,6 +158,12 @@ var allResources;
 //Координаты нашей базы
 var base={x:0,y:0};
 
+//Массив для поддерживаемого союзника
+var ally=[];
+
+//Массив всех приказов юнитам
+var _globalOrders = [];
+
 
 var avail_research = [];	//Массив возможных исследований, заполняется в функции doResearch();
 
@@ -152,6 +176,10 @@ var buildersHunters = newGroup();
 
 var policy = [];
 policy['build'] = 'standart';
+
+//Фитчи, не совместимые с 3.1.5
+var nf = [];
+nf['policy'] = false;
 
 var armyPartisans = newGroup();
 var armyRegular = newGroup();
@@ -285,7 +313,7 @@ var guns=[
 ["R-Wpn-PlasmaCannon", "Laser4-PlasmaCannon"],	//Плазма-пушка
 //	===== Огнемёты
 ["R-Wpn-Flamer01Mk1", "Flame1Mk1"],
-["R-Wpn-Flame2", "Flame2"],
+//["R-Wpn-Flame2", "Flame2"],						//Heavy Flamer - Inferno
 ["R-Wpn-Plasmite-Flamer", "PlasmiteFlamer"],
 //	===== Ракеты прямого наведения
 ["R-Wpn-Rocket05-MiniPod", "Rocket-Pod"],			//Скорострельная лёгкая ракета прямого наведения
@@ -367,8 +395,8 @@ function init(){
 	
 	//Получаем координаты всех ресурсов и занятых и свободных
 	allResources = enumFeature(ALL_PLAYERS, "OilResource");
-	var nearResources = allResources.filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < base_range) return true; return false;});
-	nearResources = nearResources.concat(enumStruct(me, "A0ResourceExtractor").filter(function(e){if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < base_range) return true; return false;}));
+	var nearResources = allResources.filter(function(e){if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) < base_range) return true; return false;});
+	nearResources = nearResources.concat(enumStruct(me, "A0ResourceExtractor").filter(function(e){if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) < base_range) return true; return false;}));
 	debugMsg("На карте "+allResources.length+" свободных ресурсов", 'init');
 	
 	for ( var e = 0; e < maxPlayers; ++e ) allResources = allResources.concat(enumStruct(e,RESOURCE_EXTRACTOR));
@@ -378,7 +406,7 @@ function init(){
 	debugMsg("На карте "+allResources.length+" всего ресурсов, рядом "+nearResources.length, 'init');
 	
 
-	
+	//Research way
 	if(Math.round(Math.random()*5) != 0)
 	researchCustom = true;
 	if(researchCustom){
@@ -498,6 +526,8 @@ function init(){
 	debugMsg("Лимиты базы: maxFactories="+maxFactories+"; maxFactoriesCyb="+maxFactoriesCyb+"; maxFactoriesVTOL="+maxFactoriesVTOL+"; maxPads="+maxPads+"; maxLabs="+maxLabs+"; maxGenerators="+maxGenerators+"; maxExtractors="+maxExtractors, 'init');
 	debugMsg("Лимиты юнитов: maxPartisans="+maxPartisans+"; maxRegular="+maxRegular+"; maxCyborgs="+maxCyborgs+"; maxVTOL="+maxVTOL+"; maxFixers="+maxFixers+"; maxConstructors="+maxConstructors, 'init');
 	
+	_builders = enumDroid(me,DROID_CONSTRUCT);
+	
 	debugMsg("Игроков на карте: "+maxPlayers,2);
 	playerData.forEach( function(data, player) {
 		var msg = "Игрок №"+player+" "+colors[data.colour];
@@ -507,24 +537,62 @@ function init(){
 		}
 		else if(playerLoose(player)){msg+=" отсутствует";}
 		else if(allianceExistsBetween(me,player)){msg+=" мой союзник";}
-		else{msg+=" мой враг";}
+		else{
+			msg+=" мой враг";
+			if(_builders.length != 0){
+				
+				//Знаю, в 3.2 можно тщательнее всё проверить, но у нас совместимость с 3.1.5
+				//поэтому логика аналогична
+				//Надеемся, что строитель №0 не ховер, проверяем может ли он добраться до врага
+				//Если нет, надеемся, что враг недоступен по земле, но доступен по воде
+				if(!droidCanReach(_builders[0], startPositions[player].x, startPositions[player].y)){
+					if(!nf['policy']){nf['policy'] = 'island';}
+					else if(nf['policy'] == 'land'){ nf['policy'] = 'both';}
+				}else{
+					if(!nf['policy']){nf['policy'] = 'land';}
+					else if(nf['policy'] == 'island'){ nf['policy'] = 'both';}
+				}
+			}
+		}
 		
 		msg+=" ["+startPositions[player].x+"x"+startPositions[player].y+"]";
-		msg+=" дист. "+distBetweenTwoPoints(base.x,base.y,startPositions[player].x,startPositions[player].y);
+		msg+=" дист. "+distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y);
 		
 		debugMsg(msg,"init");
 	});
+	
+	delete _builders;
+	
+	if(nf['policy'] == 'island'){
+		debugMsg("Тактика игры: "+nf['policy'], 'init');
+		_msg='Change policy form: '+policy['build'];
+		if(policy['build'] != 'rich') policy['build'] = 'island';
+		debugMsg(_msg+' to '+policy['build'], 'init');
+		debugMsg('Change maxCyborgs='+maxCyborgs+' to 0', 'init');
+		maxCyborgs = 0;
+		debugMsg('Change minBuilders='+minBuilders+' to 3', 'init');
+		minBuilders = 3;
+		buildersTimer = 35000;
+		minPartisans = 2;
+		
+		research_way.unshift(
+			["R-Vehicle-Prop-Hover"],
+			["R-Struc-PowerModuleMk1"],
+			["R-Struc-Research-Module"],
+			["R-Struc-Factory-Module"]
+		);
+	}
 	
 	if(!release) for ( var p = 0; p < maxPlayers; ++p ) {debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'temp');}
 	
 	var _trash = enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.damageable)return true;return false;});
 	nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
-		if(distBetweenTwoPoints(base.x,base.y,e.x,e.y) < (base_range/2))return true;
+		if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) < (base_range/2))return true;
 													   return false;
 	}));
 	allResources.forEach(function(r){
 		nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
-			if(distBetweenTwoPoints(r.x,r.y,e.x,e.y) < 7)return true;
+			if(distBetweenTwoPoints_p(r.x,r.y,e.x,e.y) < 7)return true;
 														   return false;
 		}));
 	});
@@ -541,6 +609,7 @@ function init(){
 	if(!release)research_way.forEach(function(e){debugMsg(e, 'research');});
 	
 	queue("welcome", 3000+me*(Math.floor(Math.random()*2000)+1500) );
+	queue("checkAlly", 2000);
 	
 	letsRockThisFxxxingWorld(true); // <-- Жжём плазмитом сцуко!	
 }
@@ -561,7 +630,7 @@ function letsRockThisFxxxingWorld(init){
 	debugMsg("Старт/Run", 'init');
 
 	//Первых строителей в группу
-	var _builders = enumDroid(me,DROID_CONSTRUCT);
+	_builders = enumDroid(me,DROID_CONSTRUCT);
 	_builders.forEach(function(e){groupBuilders(e);});
 	
 	if(policy['build'] == 'rich' && _builders.length > 4){
@@ -572,7 +641,10 @@ function letsRockThisFxxxingWorld(init){
 	//Получаем свои координаты
 	if(_builders.length != 0) base = {x:_builders[0].x, y:_builders[0].y};
 	
+	delete _builders;
+	
 	debugMsg("Тут будет моя база: ("+base.x+","+base.y+")", 'init');
+	
 	
 	//Первых военных в группу
 	enumDroid(me,DROID_CYBORG).forEach(function(e){groupAddDroid(armyCyborgs, e);});
@@ -645,8 +717,8 @@ function letsRockThisFxxxingWorld(init){
 		}
 	
 		if(!release){
-			setTimer("stats", 10000+me*100); // Отключить в релизе
-			setTimer("perfMonitor", 10000+me*100);
+			setTimer("stats", 10000); // Отключить в релизе
+			setTimer("perfMonitor", 100000);
 		}
 		setTimer("checkProcess", 60000+me*100);
 	}

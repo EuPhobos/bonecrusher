@@ -1,10 +1,44 @@
 
 
 function chatting(type){
-	var chlen = chatting[type].length;
+	var chlen = chatting[type].length;		// Забавно, спустя некотое время я только осознал, что за имя я дал этой переменной xDDD
 	return chatting[type][Math.floor(Math.random()*chlen)];
 	
 }
+
+chatting['army'] = [
+	"If u want, i may support you with my army. Just say \"yes\"",
+	"I can share some units, say \"yes\" if u want.",
+	"I can sometimes give you my warriors, just say \"yes\""
+];
+
+chatting['confirm'] = [
+	"Ok then! Let's kill them all together!!",
+	"Yeah! That's my boy! >:)",
+	"Allright! Got it!",
+	"Well, ok then ;)",
+	"Ok, got it",
+	"Ok"
+]
+
+chatting['tutorial'] = [
+	"By the way, i can ask me for money, just say \"bc give money\"",
+	"If you die, just say \"bc give truck\", and i resurrect u ;)",
+	"Btw, you can ask me, \"bc give money\" or \"bc give truck\" remember that",
+	"If u don't known, team chat binding on Ctrl+Enter keys %)",
+	"btw, u can fast rotate camera by pressing Ctrl+arrows ;)",
+	"Always help the team, or we will all die"
+];
+
+chatting['ally'] = [
+	"Hellow my friend! Let's kill them!",
+];
+
+chatting['threat'] = [
+	'I kill you!!!',
+	'Nice try! But i will destroy you!',
+	'Do not expect mercy'
+];
 
 chatting['welcome'] = [
 	'Hello everyone',
@@ -16,7 +50,6 @@ chatting['welcome'] = [
 	'Hi!! ))',
 	'gl ;)',
 	'gl hf )',
-	'I kill you!!!',
 	'Hello, good luck!',
 	"i'm noob.. :|",
 	'Hi all',

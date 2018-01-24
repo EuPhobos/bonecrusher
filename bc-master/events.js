@@ -3,6 +3,12 @@ function eventResearched(research, structure) {
 	debugMsg("Новая технология \""+research_name[research.name]+"\" ["+research.name+"]", 'research');
 	prepeareProduce();
 	queue("doResearch", 1000);
+	
+	if(research.name == 'R-Vehicle-Prop-Hover'){
+		minBuilders = 7;
+		buildersTimer = 5000;
+		if(version == "3.2") recycleBuilders();
+	}
 }
 
 // Обязательно использовать
@@ -71,7 +77,7 @@ function eventObjectSeen(sensor, gameObject) {
 //			getTarget();
 			if(gameObject.droidType == DROID_WEAPON
 				&& isFixVTOL(gameObject)
-				&& distBetweenTwoPoints(gameObject.x,gameObject.y,base.x,base.y) < base_range)
+				&& distBetweenTwoPoints_p(gameObject.x,gameObject.y,base.x,base.y) < base_range)
 				AA_queue.push({x:gameObject.x,y:gameObject.y});
 		}
 		break;
@@ -190,7 +196,7 @@ function eventStructureBuilt(structure, droid){
 //этот триггер срабатывает при выходе из завода нового свежего юнита.
 function eventDroidBuilt(droid, structure) {
 	
-	debugMsg("eventDroidBuilt: droidType="+droid.droidType+", name="+droid.name, 'eventDroidBuilt');
+//	debugMsg("eventDroidBuilt: droidType="+droid.droidType+", name="+droid.name, 'eventDroidBuilt');
 	
 	if(produceTrigger[structure.id]){
 		var rem = produceTrigger.splice(structure.id, 1);
@@ -211,12 +217,11 @@ function eventDroidBuilt(droid, structure) {
 	switch (structure.stattype) {
 		case FACTORY:
 			if(droid.droidType == DROID_WEAPON){
-				if(armyToPlayer){donateObject(droid, armyToPlayer);}
+				if(checkDonate(droid)){return;}
 				else groupArmy(droid);
 			}
 			if(droid.droidType == DROID_REPAIR){
-				if(armyToPlayer){donateObject(droid, armyToPlayer);}
-				else groupArmy(droid);
+				groupArmy(droid);
 			}
 //			if(droid.droidType == DROID_ECM) groupArmy(droid);
 			produceDroids();
@@ -224,14 +229,14 @@ function eventDroidBuilt(droid, structure) {
 			break;
 		case CYBORG_FACTORY:
 			if(droid.droidType == DROID_CYBORG){
-				if(armyToPlayer){donateObject(droid, armyToPlayer);}
+				if(checkDonate(droid)){return;}
 				else groupArmy(droid);
 			}
 			produceCyborgs();
 //			targetCyborgs();
 			break;
 		case VTOL_FACTORY:
-			if(vtolToPlayer){donateObject(droid, armyToPlayer);}
+			if(version == '3.2' && vtolToPlayer !== false){donateObject(droid, vtolToPlayer);}
 			else{
 				orderDroidLoc_p(droid, 40, base.x, base.y);
 				groupAddDroid(VTOLAttacker, droid);
@@ -254,7 +259,7 @@ function eventAttacked(victim, attacker) {
 	if(allianceExistsBetween(me, attacker.player)) return;
 	
 	//Если атака с самолёта рядом с базой, строим ПВО
-	if(isFixVTOL(attacker) && distBetweenTwoPoints(victim.x,victim.y,base.x,base.y) < base_range) AA_queue.push({x:victim.x,y:victim.y});
+	if(isFixVTOL(attacker) && distBetweenTwoPoints_p(victim.x,victim.y,base.x,base.y) < base_range) AA_queue.push({x:victim.x,y:victim.y});
 	
 	//Если атака по стратегическим точкам, направляем основную армию
 	if(((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE)) && gameTime > eventsRun['targetRegular']){
@@ -293,7 +298,7 @@ function eventAttacked(victim, attacker) {
 		eventsRun['victimCyborgs'] = gameTime + 10000;
 		var cyborgs = enumGroup(armyCyborgs);
 		cyborgs.forEach(function(e){
-			if(distBetweenTwoPoints(e.x,e.y,attacker.x,attacker.y) < 10)
+			if(distBetweenTwoPoints_p(e.x,e.y,attacker.x,attacker.y) < 10)
 //			orderDroidLoc_p(e, DORDER_SCOUT, {x:attacker.x,y:attacker.y});
 			orderDroidObj_p(e, DORDER_ATTACK, attacker);
 		});
@@ -358,6 +363,7 @@ function eventChat(sender, to, message) {
 		case "gaa":
 			armyToPlayer = sender;
 			chat(sender, "All my new shiny army for you.");
+			chat(sender, "Say \"bc caa\" to cancel this");
 			break;
 		case "caa":
 			armyToPlayer = false;
@@ -370,6 +376,17 @@ function eventChat(sender, to, message) {
 		case "cav":
 			vtolToPlayer = false;
 			chat(sender, "VTOLs is mine now.");
+			break;
+		case "dbg":
+			debugMsg("DEBUG: avail_research", 'chat');
+			for(var i in avail_research){
+				debugMsg(avail_research[i].name, 'chat');
+			}
+			debugMsg("<==-==>", 'chat');
+			debugMsg("DEBUG: research_way", 'chat');
+			for(var i in research_way){
+				debugMsg(research_way[i], 'chat');
+			}
 			break;
 	}
 //	else

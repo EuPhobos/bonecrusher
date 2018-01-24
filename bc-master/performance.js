@@ -1,6 +1,25 @@
 
+
+
+//function getOrder(obj, order, loc){
+
+
+
+
+//}
+
+var perfFunc=[];
+function distBetweenTwoPoints_p(x1,y1,x2,y2){
+	if(!perfFunc["distBetweenTwoPoints"])perfFunc["distBetweenTwoPoints"]=1;
+	else perfFunc["distBetweenTwoPoints"]++;
+	return distBetweenTwoPoints(x1,y1,x2,y2);
+}
+
+
+
 var perfOrder=[];
 var perfCommands=0;
+
 /*
 function orderDroidObj_p(who, order, obj){
 	var result = orderDroidObj(who, order, obj);
@@ -17,7 +36,12 @@ function orderDroidObj_p(who, order, obj){
 }
 */
 
+
+
 function orderDroidObj_p(who, order, obj){
+	if(!perfFunc["orderDroidObj"])perfFunc["orderDroidObj"]=1;
+	else perfFunc["orderDroidObj"]++;
+	
 	var type_order = droidTypes[who.droidType]+'_'+droidOrders[order];
 	var orders = perfOrder[type_order];
 	
@@ -35,6 +59,9 @@ function orderDroidObj_p(who, order, obj){
 }
 
 function orderDroidLoc_p(who, order, x, y){
+	if(!perfFunc["orderDroidLoc"])perfFunc["orderDroidLoc"]=1;
+	else perfFunc["orderDroidLoc"]++;
+	
 	var type_order = droidTypes[who.droidType]+'_'+droidOrders[order];
 	var orders = perfOrder[type_order];
 	
@@ -52,6 +79,8 @@ function orderDroidLoc_p(who, order, x, y){
 }
 
 function orderDroidBuild_p(who, order, building, x, y, rotation){
+	if(!perfFunc["orderDroidBuild"])perfFunc["orderDroidBuild"]=1;
+	else perfFunc["orderDroidBuild"]++;
 	var type_order = droidTypes[who.droidType]+'_'+droidOrders[order];
 	var orders = perfOrder[type_order];
 
@@ -76,6 +105,12 @@ function perfMonitor(){
 			pout += "\n"+i+": "+k+"="+perfOrder[k];
 		});
 		debugMsg(pout, 'performance');
-		perfOrder=[];
+//		perfOrder=[];
 	}
+	
+	for(var i in perfFunc){if(perfFunc[i]){
+		debugMsg(i+'='+perfFunc[i], 'performance');
+//		perfFunc[i]=0;
+		
+	}}
 }

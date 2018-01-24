@@ -134,7 +134,7 @@ function mainBuilders(rotation){
 		//Если строители свободны, ищем чего-бы достроить или починить
 		var myBase = enumStruct(me);
 		for ( var b in myBase ){
-			if(distBetweenTwoPoints(base.x,base.y,myBase[b].x,myBase[b].y) > base_range)continue;
+			if(distBetweenTwoPoints_p(base.x,base.y,myBase[b].x,myBase[b].y) > base_range)continue;
 			if(myBase[b].status == BEING_BUILT) {orderDroidObj_p(obj, DORDER_HELPBUILD, myBase[b]); return;}
 			if(myBase[b].health < 100) {orderDroidObj_p(obj, DORDER_REPAIR, myBase[b]); return;}
 		}
@@ -163,7 +163,7 @@ function mainBuilders(rotation){
 		if(rigDefence(obj)) return;
 
 		//Если свободны, и далеко от базы - отправляем домой
-		if(distBetweenTwoPoints(base.x,base.y,obj.x,obj.y) > 10 && !builderBusy(obj)) { orderDroidLoc_p(obj,DORDER_MOVE,base.x,base.y); return; }
+		if(distBetweenTwoPoints_p(base.x,base.y,obj.x,obj.y) > 10 && !builderBusy(obj)) { orderDroidLoc_p(obj,DORDER_MOVE,base.x,base.y); return; }
 		debugMsg("buildersOrder(): Строители бездельничают "+iter, 'builders');
 		
 		

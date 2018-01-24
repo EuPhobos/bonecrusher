@@ -111,19 +111,23 @@ function produceDroids(){
 		if(playerPower(me)>300 && playerPower(me)<500 && medium_bodies.length != 0) _body = medium_bodies;
 		if(playerPower(me)>500 && heavy_bodies.length != 0) _body = heavy_bodies;
 		
+		var _prop = ['tracked01','HalfTrack','wheeled01'];
+		if(nf['policy']=='island') _prop = ['hover01'];
+		else if(nf['policy'] == 'both') _prop = ['hover01', 'tracked01', 'HalfTrack', 'wheeled01'];
 		//Строители
 		//Если строители не в лимите -И- база не подвергается нападению
 		//Если целей для охотников более 7 -И- денег более 750 -ИЛИ- (строитель всего один или ноль охотников), а денег более 150 -ИЛИ- вообще нет строителей
 		//ТО заказуаэм!
 //		debugMsg("buildersTrigger="+buildersTrigger+"; fixersTrigger="+fixersTrigger+"; gameTime="+gameTime, 'production');
 		
-//		debugMsg('('+builders.length+'<'+(maxConstructors-3)+' && '+getInfoNear(base.x,base.y,'safe',base_range).value+') && ( ( ('+playerPower(me)+'>'+builderPts+' && '+builder_targets.length+'>7 && '
-//		+buildersTrigger+'<'+gameTime+') || ( ('+groupSize(buildersMain)+'==1 || '+groupSize(buildersHunters)+'==0) && '+playerPower(me)+'>150) || '+builders.length+'==0) ) )', 'production');
+		debugMsg('('+builders.length+'<'+(maxConstructors-3)+' && '+getInfoNear(base.x,base.y,'safe',base_range).value+') && ( ('+playerPower(me)+'>'+builderPts+' && '+builder_targets.length+'>7) || ( ('+groupSize(buildersMain)+'==1 || '+groupSize(buildersHunters)+'==0) && '+playerPower(me)+'>150) || '+builders.length+'==0) && '+buildersTrigger+'<'+gameTime, 'production');
 		
 		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range).value)
-			&& ( ( (playerPower(me) > builderPts && builder_targets.length > 7 && buildersTrigger < gameTime) || ( (groupSize(buildersMain) == 1 || groupSize(buildersHunters) == 0) && playerPower(me) > 150) || builders.length == 0 ) ) ){
-			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
+			&& ( (playerPower(me) > builderPts && builder_targets.length > 7) || ( (groupSize(buildersMain) == 1 || groupSize(buildersHunters) == 0) && playerPower(me) > 150) || builders.length == 0 )
+			&& buildersTrigger < gameTime){
 			buildersTrigger = gameTime + buildersTimer;
+			debugMsg("buildersTrigger="+buildersTrigger+", gameTime="+gameTime+", buildersTimer="+buildersTimer, 'production');
+			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
 			return;
 		}
 
@@ -132,7 +136,7 @@ function produceDroids(){
 			fixersTrigger = gameTime + fixersTimer;
 			var _repair = "LightRepair1";
 			if(getResearch("R-Sys-MobileRepairTurretHvy").done) _repair = "HeavyRepair";
-			buildDroid(droid_factories[0], "Fixer", _body, ['tracked01','HalfTrack','wheeled01'], "", DROID_REPAIR, _repair);
+			buildDroid(droid_factories[0], "Fixer", _body, _prop, "", DROID_REPAIR, _repair);
 			return;
 		}
 //		return;
@@ -144,7 +148,7 @@ function produceDroids(){
 			var _jammer = "ECM1TurretMk1";
 			produceTrigger[droid_factories[0].id] = 'jammer';
 			debugMsg("ADD jammer "+droid_factories[0].id, 'triggers');
-			buildDroid(droid_factories[0], "Jammer", _body, ['hover01','tracked01','HalfTrack','wheeled01'], "", DROID_ECM, _jammer);
+			buildDroid(droid_factories[0], "Jammer", _body, _prop, "", DROID_ECM, _jammer);
 		}
 
 		//Армия
@@ -153,13 +157,13 @@ function produceDroids(){
 			if( (groupSize(armyPartisans) < minPartisans || playerPower(me) > (groupSize(armyPartisans)*50) ) || !getInfoNear(base.x,base.y,'safe',base_range).value){
 
 				var _weapon = avail_guns[Math.floor(Math.random()*Math.min(avail_guns.length, 5))]; //Случайная из 5 последних крутых пушек
-				buildDroid(droid_factories[0], "Army", _body, ['HalfTrack','wheeled01'], "", DROID_WEAPON, _weapon);
+				buildDroid(droid_factories[0], "Army", _body, _prop, "", DROID_WEAPON, _weapon);
 			}
 		}
 	}
 }
 function produceCyborgs(){
-	if(!running)return;
+	if(!running || nf['policy'] == 'island')return;
 	if(groupSize(armyCyborgs) >= maxCyborgs) return;
 	if(playerPower(me) < 200 && groupSize(armyCyborgs) > 2) return;
 	var cyborg_factories = enumStruct(me,CYBORG_FACTORY).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
