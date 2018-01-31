@@ -156,7 +156,7 @@ function eventStructureBuilt(structure, droid){
 				else if( (research_lab_ready.length == 2 || research_lab_ready.length == 3) && policy['build'] == 'rich'){
 					var e = enumGroup(buildersMain)[0];
 					groupAddDroid(buildersHunters, e);
-					debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');
+					debugMsg("Res Rich FORCE "+i+" Builder --> Hunter +1", 'group');
 				}
 			}
 			
@@ -168,7 +168,7 @@ function eventStructureBuilt(structure, droid){
 			if( factory_ready.length == 2  && policy['build'] == 'rich'){
 				var e = enumGroup(buildersMain)[0];
 				groupAddDroid(buildersHunters, e);
-				debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');
+				debugMsg("Fact Rich FORCE "+i+" Builder --> Hunter +1", 'group');
 			}
 			
 			if(policy['build'] != 'rich'){
@@ -275,7 +275,7 @@ function eventAttacked(victim, attacker) {
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)){
 		
 		//т.к. в богатых картах кол-во партизан всего 2, направляем всю армию к атакованным
-		if(policy['build'] == 'rich') targetRegular(attacker);
+		if(policy['build'] == 'rich') targetRegular(attacker, victim);
 		
 		if(version == "3.2"){
 			var w = victim.weapons[0].name;

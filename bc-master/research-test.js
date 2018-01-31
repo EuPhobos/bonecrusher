@@ -100,7 +100,7 @@ const research_yellow = [
 "R-Wpn-Howitzer-Accuracy03",
 "R-Wpn-Howitzer-Damage06",
 "R-Wpn-Howitzer03-Rot",
-"R-Sys-Sensor-UpLink",
+"R-Sys-Sensor-UpLink"
 ];
 
 //Flamer-cannon-vtols
@@ -118,13 +118,13 @@ const research_orange = [
 "R-Wpn-Plasmite-Flamer", // plasmite
 "R-Struc-Research-Upgrade09",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
+"R-Struc-VTOLPad",
+"R-Wpn-Bomb04",
 "R-Struc-Power-Upgrade03a",
 "R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Vehicle-Body05",				//Средняя начальная броня
 "R-Cyborg-Metals09",
 "R-Wpn-Cannon6TwinAslt",		////Спаренная штурмовая пушка
-"R-Struc-VTOLPad",
-"R-Wpn-Bomb04",
 "R-Sys-MobileRepairTurretHvy",
 "R-Vehicle-Body08",
 "R-Sys-Autorepair-General",		//Автопочинка
@@ -383,7 +383,7 @@ if(typeof forceResearch !== 'undefined'){
 	setResearchWay(_research);
 }else{
 	var _w=["None","Black","Green","Red","Yellow","Orange","Blue"];
-	if(difficulty == HARD || difficulty == INSANE) _w=["Green","Red","Yellow","Orange"];
+	if(difficulty == HARD || difficulty == INSANE) _w=["Green","Yellow","Orange"];
 	var _r=Math.floor(Math.random()*_w.length);
 	setResearchWay(_w[_r]);
 }

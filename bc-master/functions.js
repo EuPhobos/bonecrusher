@@ -208,14 +208,15 @@ function filterInaccessible(obj){
 }
 
 //Проверяем есть ли союзники, не спектаторы ли они
-//Выбираем одного для поддержки
+//Выбираем одного для поддержки 3.2+
 function checkAlly(){
-	return;
+//	return;
 	playerData.forEach( function(data, player) {
-		
+		debugMsg("#"+player+" name="+data.name+", human="+data.isHuman+", ai="+data.isAI
+		+", ally="+allianceExistsBetween(me, player)+", dist="+distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y), "ally");
 		
 	});
-	playerSpectator();
+//	playerSpectator();
 }
 
 function checkDonate(obj){
@@ -247,7 +248,12 @@ function groupArmy(droid, type){
 		return;
 	}
 	
-
+	//Забираем киборгов под общее коммандование
+	if(version == '3.2' && droid.droidType == DROID_CYBORG && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE)){
+		debugMsg("armyRegular +1", 'group');
+		groupAddDroid(armyRegular, droid);
+		return;
+	}
 	
 	//Если армия партизан меньше 7 -ИЛИ- нет среднего Body -ИЛИ- основная армия достигла лимитов
 //	if(groupSize(armyPartisans) < 7 || !getResearch("R-Vehicle-Body05").done || groupSize(armyRegular) >= maxRegular ){
@@ -267,7 +273,7 @@ function groupArmy(droid, type){
 	}
 	
 	//Перегрупировка
-	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1){
+	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1 && !(version == '3.2' && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE))){
 		var regroup = enumGroup(armyRegular);
 		regroup.forEach(function(e){
 			debugMsg("armyRegular --> armyPartisans +1", 'group');
@@ -453,14 +459,13 @@ function _doResearch(){
 //3. При завершении исследования
 function doResearch(){
 	if(!running)return;
-//	debugMsg("doResearch()", 'research');
-//	debugMsg(getInfoNear(base.x,base.y,'safe',base_range).value+" && "+playerPower(me)+"<300 && "+avail_guns.length+"!=0", 'research');
+	debugMsg("doResearch()", 'research_advance');
+	//	debugMsg(getInfoNear(base.x,base.y,'safe',base_range).value+" && "+playerPower(me)+"<300 && "+avail_guns.length+"!=0", 'research_advance');
 	if(!getInfoNear(base.x,base.y,'safe',base_range).value && playerPower(me) < 300 && avail_guns.length != 0) return;
-	
 
 	
 	avail_research = enumResearch().filter(function(e){
-//		debugMsg(e.name+' - '+e.started+' - '+e.done, 'research');
+		//		debugMsg(e.name+' - '+e.started+' - '+e.done, 'research_advance');
 		if(e.started)return false;return true;
 	});
 	
@@ -468,11 +473,11 @@ function doResearch(){
 		var _research = avail_research[Math.floor(Math.random()*avail_research.length)].name;
 //		debugMsg(_research, 'temp');
 		research_way.push([_research]);
-		debugMsg("doResearch: Исследовательские пути ("+research_way.length+") подходят к концу! Добавляем рандом. \""+research_name[_research]+"\" ["+_research+"]", 'research');
+		debugMsg("doResearch: Исследовательские пути ("+research_way.length+") подходят к концу! Добавляем рандом. \""+research_name[_research]+"\" ["+_research+"]", 'research_advance');
 	}
 	
 	if ( research_way.length == 0 ) {
-		debugMsg("doResearch: Исследовательские пути завершены!!! Останов.", 'research');
+		debugMsg("doResearch: Исследовательские пути завершены!!! Останов.", 'research_advance');
 		return;
 	}
 
@@ -484,12 +489,12 @@ function doResearch(){
 	var _way = getResearch(_last_r);
 
 	if ( _way.done == true ) {
-//		debugMsg("doResearch: Путей "+research_way.length+", путь "+_r+" завершён", 'research');
+		//		debugMsg("doResearch: Путей "+research_way.length+", путь "+_r+" завершён", 'research_advance');
 		research_way.splice(_r,1);
-//		debugMsg("doResearch: Осталось путей "+research_way.length, 'research');
+		//		debugMsg("doResearch: Осталось путей "+research_way.length, 'research_advance');
 		_r=0;
 		if ( research_way.length == 0 ) {
-			debugMsg("doResearch: Исследовательские пути завершены! Останов.", 'research');
+			debugMsg("doResearch: Исследовательские пути завершены! Останов.", 'research_advance');
 			return;
 		}
 	}
@@ -501,28 +506,29 @@ function doResearch(){
 	
 	for ( var l in labs ){
 		
-		if(countStruct('A0ResourceExtractor', me) < 8 && playerPower(me) < 1000 && _busy >= 3) break;
-		if(countStruct('A0ResourceExtractor', me) < 5 && playerPower(me) < 500 && _busy >= 2) break;
-		if(countStruct('A0ResourceExtractor', me) < 3 && playerPower(me) < 300 && _busy >= 1) break;
-		
+		if(policy['build'] != 'rich'){
+			if(countStruct('A0ResourceExtractor', me) < 8 && playerPower(me) < 1000 && _busy >= 3) break;
+			if(countStruct('A0ResourceExtractor', me) < 5 && playerPower(me) < 500 && _busy >= 2) break;
+			if(countStruct('A0ResourceExtractor', me) < 3 && playerPower(me) < 300 && _busy >= 1) break;
+		}
 		if( (labs[l].status == BUILT) && structureIdle(labs[l]) ){
-//			debugMsg("Лаборатория("+labs[l].id+")["+l+"] исследует путь "+_r, 'research');
+			debugMsg("Лаборатория("+labs[l].id+")["+l+"] исследует путь "+_r, 'research_advance');
 			pursueResearch(labs[l], research_way[_r]);
 		}else{
-//			debugMsg("Лаборатория("+labs[l].id+")["+l+"] занята", 'research');
+			debugMsg("Лаборатория("+labs[l].id+")["+l+"] занята", 'research_advance');
 			_busy++;
 		}
 	}
 
 	if ( _r == research_way.length-1 ) {
 		_r = 0;
-//		debugMsg("doResearch: Все исследования запущены, останов.", 'research');
+		debugMsg("doResearch: Все исследования запущены, останов.", 'research_advance');
 	} else if (_busy == labs.length ) {
-//		debugMsg("doResearch: Все все лаборатории заняты, останов.", 'research');
+		debugMsg("doResearch: Все все лаборатории заняты, останов.", 'research_advance');
 		_r = 0;
 	} else {
 		_r++;
-//		debugMsg("doResearch: Планировка проверки занятости лабораторий...", 'research');
+		debugMsg("doResearch: Планировка проверки занятости лабораторий...", 'research_advance');
 		queue("doResearch", 1000);
 	}
 }
@@ -824,11 +830,21 @@ function getEnemyBuilders(){
 	for ( var e = 0; e < maxPlayers; ++e ) {
 		if ( allianceExistsBetween(me,e) ) continue;
 		targ = targ.concat(enumDroid(e, DROID_CONSTRUCT, me));
-		targ = targ.concat(enumDroid(e, 10, me)); // Киборг-строитель
+//		targ = targ.concat(enumDroid(e, 10, me)); // Киборг-строитель
 	}
-	return targ.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,base.x,base.y) < base_range)return true; return false;});
+//	return targ.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,base.x,base.y) < base_range)return true; return false;});
+	return targ;
 }
 
+function getEnemyWarriors(){
+	var targ = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		targ = targ.concat(enumDroid(e, DROID_WEAPON, me));
+		targ = targ.concat(enumDroid(e, DROID_CYBORG, me));
+	}
+	return targ;
+}
 
 function getEnemyDefences(){
 	var targ = [];

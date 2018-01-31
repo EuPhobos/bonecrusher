@@ -13,7 +13,7 @@ include("multiplay/skirmish/bc-"+vernum+"/produce.js");
 include("multiplay/skirmish/bc-"+vernum+"/performance.js");
 include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 
-
+//var forceResearch = "Yellow";
 
 ///////\\\\\\\
 //master changes
@@ -38,6 +38,16 @@ include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 // После выноса восстанавливает базу не верно (вроде исправил)
 // На островных картах убрать все исследования связанные с киборгами
 // Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
+//- Работаю над чатом и улучшенной передачей юнитов союзнику
+// Не умеет играть на Т3, строит весь мусор что есть. Как-то исправить эту ситуацию.
+//
+//-- Для 3.2+ на NTW:
+// Кучковать армию, не растягивать
+// При подходе к вражеской базе, атаковать сперва рабочих.
+// На своей базе строить вышки от ближайшей и дальше.
+// Изменить билдордер, найти более оптимальное решение
+// Лишними строителями вдоль пути армии строить защитные заграждения, если есть лишние финансы
+
 
 
 ///////\\\\\\\
@@ -97,7 +107,7 @@ include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 //var debugLevels = new Array('init', 'end', 'research', 'triggers', 'group', 'performance', 'events', 'stats', 'targeting', 'chat');
 //var debugLevels = new Array('init', 'end', 'error', 'triggers');
 //var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'group', 'production', 'performance', 'donate');
-var debugLevels = new Array('error', 'init', 'stats','performance');
+var debugLevels = new Array('error', 'init', 'stats', 'performance', 'ally', 'army', 'group', 'targeting','research');
 //var debugLevels = new Array('error', 'init');
 var debugName;
 
@@ -122,6 +132,9 @@ var base_range = 40; // В каких пределах работают осно
 
 var buildersTimer = 25000;		//Триггер для заказа строителей (что бы не выходили пачкой сразу)
 var fixersTimer = 50000;		//Триггер для заказа рем.инженеров
+var checkRegularArmyTimer = 10000;
+var reactRegularArmyTimer = 10000;
+var reactWarriorsTimer = 5000;
 
 var minBuilders = 5;
 
@@ -156,7 +169,8 @@ var DORDER_RECOVER = 33;
 var allResources;
 
 //Координаты нашей базы
-var base={x:0,y:0};
+var base		= {x:0,y:0};
+var startPos	= {x:0,y:0};
 
 //Массив для поддерживаемого союзника
 var ally=[];
@@ -184,6 +198,8 @@ nf['policy'] = false;
 var armyPartisans = newGroup();
 var armyRegular = newGroup();
 var targRegular={x:0,y:0};
+var pointRegular=false;
+var lastEnemiesSeen = 0;
 var armySupport = newGroup();
 var armyCyborgs = newGroup();
 var armyFixers = newGroup();
@@ -197,6 +213,9 @@ var maxFactories, maxFactoriesCyb, maxFactoriesVTOL, maxLabs, maxPads;
 //Triggers
 var buildersTrigger = 0;
 var fixersTrigger = 0;
+var checkRegularArmyTrigger = 0;
+var reactRegularArmyTrigger = 0;
+var reactWarriorsTrigger = 0;
 
 var eventsRun=[];
 eventsRun['targetCyborgs'] = 0;
@@ -392,6 +411,7 @@ function init(){
 	else debugMsg("На карте отсутствуют гопники", "init");
 	
 	base = startPositions[me];
+	startPos = base;
 	
 	//Получаем координаты всех ресурсов и занятых и свободных
 	allResources = enumFeature(ALL_PLAYERS, "OilResource");
@@ -455,14 +475,16 @@ function init(){
 	
 	if(policy['build'] == 'rich'){
 
-		research_way.unshift([
-			"R-Sys-Engineering01",
-			"R-Struc-Research-Module",
-			"R-Struc-Factory-Cyborg",
-			"R-Vehicle-Prop-Halftracks",
-			"R-Struc-Factory-Module",
-			"R-Struc-PowerModuleMk1"
-		]);
+		research_way.unshift(
+			["R-Sys-Engineering01"],
+			["R-Struc-Research-Module"],
+			["R-Struc-Factory-Cyborg"],
+			["R-Vehicle-Prop-Halftracks"],
+			["R-Struc-Factory-Module"],
+			["R-Struc-PowerModuleMk1"],
+			["R-Vehicle-Body11"],
+			["R-Vehicle-Prop-Tracks"]
+		);
 		
 		cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);
 		
@@ -471,6 +493,7 @@ function init(){
 		minPartisans = 1;
 		maxPartisans = 2;
 		builderPts = 150;
+		maxRegular = 100;
 	}
 	
 //	if(policy['build'] == 'cyborgs') cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);
@@ -547,10 +570,10 @@ function init(){
 				//Если нет, надеемся, что враг недоступен по земле, но доступен по воде
 				if(!droidCanReach(_builders[0], startPositions[player].x, startPositions[player].y)){
 					if(!nf['policy']){nf['policy'] = 'island';}
-					else if(nf['policy'] == 'land'){ nf['policy'] = 'both';}
+					else if(nf['policy'] == 'land'){ nf['policy'] = 'land';}
 				}else{
 					if(!nf['policy']){nf['policy'] = 'land';}
-					else if(nf['policy'] == 'island'){ nf['policy'] = 'both';}
+					else if(nf['policy'] == 'island'){ nf['policy'] = 'land';}
 				}
 			}
 		}
@@ -609,7 +632,7 @@ function init(){
 	if(!release)research_way.forEach(function(e){debugMsg(e, 'research');});
 	
 	queue("welcome", 3000+me*(Math.floor(Math.random()*2000)+1500) );
-	queue("checkAlly", 2000);
+	if(version == "3.2") queue("checkAlly", 2000);
 	
 	letsRockThisFxxxingWorld(true); // <-- Жжём плазмитом сцуко!	
 }
