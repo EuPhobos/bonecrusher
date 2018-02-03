@@ -75,6 +75,7 @@ function orderDroidLoc_p(who, order, x, y){
 	
 	if(!release)perfOrder[type_order] = orders;
 	var result = orderDroidLoc(who, order, x, y);
+//	debugMsg('orderDroidLoc: '+droidTypes[who.droidType]+'; '+droidOrders[order]+'; '+x+'x'+y+'; '+result, 'performance');
 	return result;
 }
 

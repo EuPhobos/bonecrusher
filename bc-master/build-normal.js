@@ -1,7 +1,7 @@
 
 
 function mainBuilders(rotation){
-	debugMsg('mainBuilders()', 'builders');
+	debugMsg('mainBuilders()', 'builders_advanced');
 	
 	var helped=0;
 	var module=0;
@@ -82,6 +82,7 @@ function mainBuilders(rotation){
 			if( (power_gen.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
 			if(factory.length < 5) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(isStructureAvailable("A0CyborgFactory") && cyborg_factory.length < 5) { if(builderBuild(obj, "A0CyborgFactory", rotation)){build++; continue;} }
+			if(power_gen.length < 10) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;} }
 		}else if(policy['build'] == 'island'){
 			if(research_lab_ready.length < 3 && !getResearch("R-Vehicle-Prop-Hover").done) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			if(power_gen.length == 0) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;} }
@@ -138,9 +139,14 @@ function mainBuilders(rotation){
 		
 //		debugMsg("Строителям нечего строить "+iter, 'builders');
 		
-		
 //		debugMsg('2 rigDefence', 'buildersbug');
-		if(policy['build'] != 'rich' && rigDefence(obj)) continue;
+		if((policy['build'] != 'rich' || isFullBase(me)) && rigDefence(obj)){
+			debugMsg('Главные стоят защиту', 'builders');
+			continue;
+		}
+//		else{
+//			debugMsg('Главные не строят защиту: '+(policy['build'] != 'rich')+' '+isFullBase(me)+' '+rigDef, 'builders');
+//		}
 		
 //		debugMsg('oilHunt', 'buildersbug');
 		if(oilHunt(obj, true)) continue;
@@ -156,7 +162,7 @@ function mainBuilders(rotation){
 				|| ( (policy['build'] == 'island' && getResearch("R-Vehicle-Prop-Hover").done) || groupSize(buildersHunters) == 0) ) ){
 			groupAddDroid(buildersHunters, obj);
 			debugMsg('Builder --> Hunter +1', 'group');
-		}else if(distBetweenTwoPoints_p(base.x,base.y,obj.x,obj.y) > 2 && unitIdle(obj)){
+		}else if(policy['build'] != 'rich' &&  distBetweenTwoPoints_p(base.x,base.y,obj.x,obj.y) > 2 && unitIdle(obj)){
 			orderDroidLoc_p(obj,DORDER_MOVE,base.x,base.y);
 			continue;
 		}

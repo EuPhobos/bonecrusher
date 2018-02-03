@@ -34,6 +34,7 @@ const research_green = [
 "R-Struc-PowerModuleMk1",
 "R-Vehicle-Prop-Halftracks",    //Полугусенецы
 "R-Defense-WallTower02", //защита лёгкая пушка
+"R-Struc-Power-Upgrade03a",
 "R-Struc-Research-Upgrade09",
 "R-Sys-MobileRepairTurretHvy",
 "R-Sys-Autorepair-General",             //Автопочинка
@@ -49,7 +50,6 @@ const research_green = [
 'R-Defense-Emplacement-HPVcannon',
 "R-Wpn-Cannon6TwinAslt",		////Спаренная штурмовая пушка
 "R-Cyborg-Hvywpn-Acannon",		// #46  Super Auto-Cannon Cyborg
-"R-Struc-Power-Upgrade03a",
 "R-Wpn-Plasmite-Flamer", // plasmite
 "R-Wpn-Cannon-ROF06",			//Cannon Rapid Loader Mk3
 "R-Wpn-Cannon-Accuracy02",		//Cannon Laser Designator
@@ -73,6 +73,7 @@ const research_yellow = [
 "R-Struc-Research-Module",
 "R-Wpn-Flamer01Mk1",
 "R-Struc-PowerModuleMk1",
+"R-Struc-Power-Upgrade03a",
 "R-Defense-Tower01",
 "R-Struc-Factory-Cyborg",
 "R-Wpn-Flamer-ROF03",
@@ -109,6 +110,7 @@ const research_orange = [
 "R-Sys-Engineering01",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
 "R-Struc-PowerModuleMk1",
+"R-Struc-Power-Upgrade03a",
 "R-Wpn-Cannon1Mk1",		// #6  Light Cannon
 "R-Wpn-Flamer01Mk1",
 "R-Struc-Factory-Cyborg",

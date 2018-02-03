@@ -211,7 +211,23 @@ function filterInaccessible(obj){
 //Выбираем одного для поддержки 3.2+
 function checkAlly(){
 //	return;
+	debugMsg('me='+me, 'ally');
 	playerData.forEach( function(data, player) {
+		if(playerSpectator(player)){
+			debugMsg("#"+player+" name="+data.name+", human="+data.isHuman+", ai="+data.isAI
+			+", ally=spectator, dist="+distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y), "ally");
+			return;
+		}
+		if(playerLoose()){
+			debugMsg("#"+player+" name=\"Empty Slot\""
+			+", ally=empty, dist="+distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y), "ally");
+			return;
+		}
+		if(player == me){
+			debugMsg("#"+player+" name="+vername+", ai=ofcource"
+			+", ally=me, dist=0", "ally");
+			return;
+		}
 		debugMsg("#"+player+" name="+data.name+", human="+data.isHuman+", ai="+data.isAI
 		+", ally="+allianceExistsBetween(me, player)+", dist="+distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y), "ally");
 		
@@ -293,11 +309,12 @@ function stats(){
 	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; Jammers="+groupSize(armyJammers)+"; targets="+builder_targets.length, 'stats');
 	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length, 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
-	debugMsg("Base: safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length, 'stats');
+	debugMsg("Base: safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length+", full="+isFullBase(me), 'stats');
 	debugMsg("Bodies: light="+light_bodies.length+"; medium="+medium_bodies.length+"; heavy="+heavy_bodies.length, 'stats');
 	debugMsg("Misc: nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen+"; barrels="+enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.player == 99)return true;return false;}).length
 		+"; known defence="+defence.length+"; known AA="+AA_defence.length+"; AA_queue="+AA_queue.length, 'stats');
 	debugMsg("Produce: "+produceTrigger.length, 'stats');
+	debugMsg('defQueue: '+defQueue.length, 'stats');
 
 	debugMsg("_globalInfoNear level1 = "+Object.keys(_globalInfoNear).length, 'stats');
 	
@@ -823,6 +840,66 @@ function getEnemyCloseBase(){
 		targ = targ.concat(enumStruct(scavengerPlayer, DROID_ANY, me));
 	}
 	return targ.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,base.x,base.y) < (base_range/2) && !isFixVTOL(e))return true; return false;});
+}
+
+//Возвращает булево, если база игрока имеет:
+//10 Генераторов с модулями
+// 5 Лаб с модулями
+// 5 Заводов с двумя модулями
+// 5 Киборг заводов
+// остальные знадние не важны, так же как и не учитывается 5 авиазаводов
+// Для учёта авиа заводов, использовать isCompleteBase(player);
+function isFullBase(player){
+	if(fullBaseTrigger > gameTime){
+		debugMsg('fast return: '+fullBase, 'base');
+		return fullBase;
+	}
+	fullBaseTrigger = gameTime + fullBaseTimer;
+	debugMsg("checkFullBase", 'base');
+	var obj = enumStruct(player, POWER_GEN, me);
+	if(obj.length < 10) {fullBase = false; return false;}
+	debugMsg("powergen check", 'base');
+	obj = obj.filter(function(o){if(o.status == BUILT && o.modules == 1)return true;return false;});
+	if(obj.length < 10) {fullBase = false; return false;}
+	debugMsg("powergen double check", 'base');
+	obj = enumStruct(player, RESEARCH_LAB, me);
+	if(obj.length < 5) {fullBase = false; return false;}
+	debugMsg("labs check", 'base');
+	obj = obj.filter(function(o){if(o.status == BUILT && o.modules == 1)return true;return false;});
+	if(obj.length < 5) {fullBase = false; return false;}
+	debugMsg("labs double check", 'base');
+	obj = enumStruct(player, CYBORG_FACTORY, me);
+	if(obj.length < 5) {fullBase = false; return false;}
+	debugMsg("cyb check", 'base');
+	obj = obj.filter(function(o){if(o.status == BUILT)return true;return false;});
+	if(obj.length < 5) {fullBase = false; return false;}
+	debugMsg("cyb double check", 'base');
+	obj = enumStruct(player, FACTORY, me);
+	if(obj.length < 5) {fullBase = false; return false;}
+	debugMsg("fact check", 'base');
+	obj = obj.filter(function(o){if(o.status == BUILT && o.modules == 2)return true;return false;});
+	if(obj.length < 5) {fullBase = false; return false;}
+	debugMsg("FULLBASE check", 'base');
+	fullBase = true;
+	return true;
+}
+
+function mark(x,y){
+	removeBeacon(0);
+	addBeacon(x, y, 0);
+	hackMarkTiles();
+	debugMsg(x+'x'+y, 'mark');
+}
+
+function getEnemyStartPos(){
+	var targ = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		if ( playerSpectator(e) ) continue;
+		if ( playerLoose(e) ) continue;
+		targ = targ.concat(startPositions[e]);
+	}
+	return targ;
 }
 
 function getEnemyBuilders(){

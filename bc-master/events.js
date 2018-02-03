@@ -125,7 +125,7 @@ function eventObjectTransfer(gameObject, from) {
 //Срабатывает при завершении строительства здания
 function eventStructureBuilt(structure, droid){
 	
-	
+	/*
 	if(policy['build'] == 'rich'){
 		var _b = enumGroup(buildersMain)[0];
 		if(typeof _b !== 'undefined'){
@@ -133,7 +133,7 @@ function eventStructureBuilt(structure, droid){
 			base.y = _b.y;
 		}
 	}
-	
+	*/
 	buildersOrder();
 	
 	
@@ -171,13 +171,13 @@ function eventStructureBuilt(structure, droid){
 				debugMsg("Fact Rich FORCE "+i+" Builder --> Hunter +1", 'group');
 			}
 			
-			if(policy['build'] != 'rich'){
+//			if(policy['build'] != 'rich'){
 				var _b = enumGroup(buildersMain)[0];
 				if(typeof _b !== 'undefined'){
 					base.x = _b.x;
 					base.y = _b.y;
 				}
-			}
+//			}
 			produceDroids();
 		break;
 		case CYBORG_FACTORY:
@@ -264,16 +264,18 @@ function eventAttacked(victim, attacker) {
 	//Если атака по стратегическим точкам, направляем основную армию
 	if(((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE)) && gameTime > eventsRun['targetRegular']){
 		eventsRun['targetRegular'] = gameTime + 5000;
-		targetRegular(attacker);
+		lastImpact = {x:victim.x,y:victim.y};
+		targetRegular(attacker, victim);
 	}
 	
 	if(policy['build'] == 'rich' && victim.type == DROID && victim.droidType == DROID_CONSTRUCT){
+		lastImpact = {x:victim.x,y:victim.y};
 		orderDroidLoc_p(victim, DORDER_MOVE, base.x, base.y);
 	}
 	
 	//Если атака по армии, отводим атакованного
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)){
-		
+		lastImpact = {x:victim.x,y:victim.y};
 		//т.к. в богатых картах кол-во партизан всего 2, направляем всю армию к атакованным
 		if(policy['build'] == 'rich') targetRegular(attacker, victim);
 		
