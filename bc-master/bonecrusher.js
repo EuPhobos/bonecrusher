@@ -45,9 +45,11 @@ const release	= false;
 //			Не сразу отстраивал заводы, при битве на своей базе и потере заводов.
 
 
-// NTW Глушилки к основной группе
-// NTW Ремонтники - отключить
-// NTW Убрать гусеницы
+// NTW Глушилки к основной группе (готово)
+// NTW Ремонтники - отключить (готово)
+// NTW Убрать принудительное исследование гусениц (готово)
+// NTW Сделать что б армия видела угрозу во вражеских защитных башнях (готово)
+// 3.1.5 починить ошибки, добиться совместимости (готово)
 
 
 // после релиза:
@@ -520,8 +522,8 @@ function init(){
 			["R-Vehicle-Prop-Halftracks"],
 			["R-Struc-Factory-Module"],
 			["R-Struc-PowerModuleMk1"],
-			["R-Vehicle-Body11"],
-			["R-Vehicle-Prop-Tracks"]
+			["R-Vehicle-Body11"]
+//			["R-Vehicle-Prop-Tracks"]
 		);
 		
 		cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);

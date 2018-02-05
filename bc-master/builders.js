@@ -499,7 +499,7 @@ function builderBusy(builder) {
 		return true;
 	if (builder.order == DORDER_DEMOLISH)
 		return true;
-	if (builder.order == DORDER_RECYCLE)
+	if (builder.order == 21) // DORDER_RECYCLE for 3.1.5 compatible
 		return true;
 	//	if (builder.order == DORDER_MOVE && getDistance(builder) > 3 ) return true;
 	return false;

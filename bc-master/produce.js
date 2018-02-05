@@ -131,7 +131,7 @@ function produceDroids(){
 			return;
 		}
 
-		if (getInfoNear(base.x,base.y,'safe',base_range).value && groupSize(armyFixers) < maxFixers && groupSize(armyPartisans) > 5 && fixersTrigger < gameTime 
+		if (policy['build'] != 'rich' && getInfoNear(base.x,base.y,'safe',base_range).value && groupSize(armyFixers) < maxFixers && groupSize(armyPartisans) > 5 && fixersTrigger < gameTime 
 			&& ( getResearch("R-Sys-MobileRepairTurret01").done || getResearch("R-Sys-MobileRepairTurretHvy").done) && (playerPower(me) > 300 || groupSize(armyFixers) == 0)){
 			fixersTrigger = gameTime + fixersTimer;
 			var _repair = "LightRepair1";

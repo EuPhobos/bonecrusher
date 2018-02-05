@@ -57,7 +57,9 @@ function targetJammers(){
 	
 	
 	var jammers = enumGroup(armyJammers);
-	var partisans = enumGroup(armyPartisans);
+	
+	if(policy['build'] == 'rich')var partisans = enumGroup(armyRegular);
+	else var partisans = enumGroup(armyPartisans);
 	
 	
 	if(jammers.length == 0 || partisans.length == 0) return;
@@ -86,11 +88,13 @@ function targetFixers(){
 //	debugMsg("targetFixers():", 'targeting');
 	
 	var fixers = enumGroup(armyFixers);
+	
 	var partisans = enumGroup(armyPartisans);
 	
-	
 	if(fixers.length == 0 || partisans.length == 0) return;
+
 	
+		
 	//Армия дохнет? Спасаем задницу бегством!
 	if(partisans.length <= 3){
 		var def = enumStruct(me,DEFENSE);
@@ -319,7 +323,7 @@ function pointRegularArmy(army){
 		var near = enumRange(pointRegular.x, pointRegular.y, 20, ALLIES).filter(function(obj){if(obj.group == army[0].group)return true;return false;});
 		
 		//Вражеские войска на нашей точке сбора
-		var enemy = enumRange(pointRegular.x, pointRegular.y, 40, ENEMIES, true).filter(function(obj){if(obj.type==DROID)return true; return false;});
+		var enemy = enumRange(pointRegular.x, pointRegular.y, 40, ENEMIES, true).filter(function(obj){if(obj.type==DROID || (obj.type == STRUCTURE && obj.stattype == DEFENSE))return true; return false;});
 		
 		//Если точка сбора уже оккупирована, сбрасываем её
 		if(enemy.length > 0) pointRegular = false;
@@ -333,7 +337,7 @@ function pointRegularArmy(army){
 		var near = enumRange(army[0].x, army[0].y, 20, ALLIES).filter(function(obj){if(obj.group == army[0].group)return true;return false;});
 		
 		//Ближайшие враги к передовой армии
-		var enemy = enumRange(army[0].x, army[0].y, 40, ENEMIES, true).filter(function(obj){if(obj.type==DROID)return true; return false;});
+		var enemy = enumRange(army[0].x, army[0].y, 40, ENEMIES, true).filter(function(obj){if(obj.type==DROID || (obj.type == STRUCTURE && obj.stattype == DEFENSE))return true; return false;});
 		if(enemy.length != 0) lastEnemiesSeen = enemy.length;
 		
 		var pointDist = false;
@@ -468,7 +472,7 @@ function targetRegularRich(target, victim){
 		}
 		else{
 			debugMsg("regular: Атака/Разведка "+distBetweenTwoPoints_p(endPoint.x,endPoint.y,base.x,base.y), 'targeting');
-			mark(endPoint.x,endPoint.y);
+			if(!release)mark(endPoint.x,endPoint.y);
 			regular.forEach(function(e){orderDroidLoc_p(e, DORDER_SCOUT, endPoint.x, endPoint.y);});
 		}
 		return true;
