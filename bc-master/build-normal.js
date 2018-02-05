@@ -54,7 +54,7 @@ function mainBuilders(rotation){
 		}
 		
 //		debugMsg('1 rigDefence', 'buildersbug');
-		if(!safe)if(rigDefence(obj))continue;
+		if(!safe && policy['build'] != 'rich')if(rigDefence(obj))continue;
 		
 //		debugMsg('policy build', 'buildersbug');
 		if(policy['build'] == 'cyborgs'){
@@ -70,6 +70,7 @@ function mainBuilders(rotation){
 			if(factory_ready.length < 2 && playerPower(me) > 400) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			
 		}else if(policy['build'] == 'rich'){
+			if(gameTime > 500000 && factory.length < 5) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(research_lab.length < 2) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			if(factory.length < 1) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(research_lab.length < 3) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }

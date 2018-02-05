@@ -4,15 +4,6 @@ const vername   = "BoneCrusher!";
 const shortname = "bc";
 const release	= false;
 
-include("multiplay/skirmish/bc-"+vernum+"/functions.js");
-include("multiplay/skirmish/bc-"+vernum+"/builders.js");
-include("multiplay/skirmish/bc-"+vernum+"/targeting.js");
-include("multiplay/skirmish/bc-"+vernum+"/events.js");
-include("multiplay/skirmish/bc-"+vernum+"/names.js");
-include("multiplay/skirmish/bc-"+vernum+"/produce.js");
-include("multiplay/skirmish/bc-"+vernum+"/performance.js");
-include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
-
 //var forceResearch = "Yellow";
 
 ///////\\\\\\\
@@ -25,38 +16,52 @@ include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 //		Отказаться от тяжёлого огнемёта, он слишком медленен (готово)
 //		Сделал что бы основная армия при сборе половины войск, начинала действовать.
 //		Добивание вражеских строителей
+//		Новый buildorder для NTW-типа карт
 //		Hunter-ы не помогают в строительстве базы, бездельничают в большом кол-ве внутри базы (исправлено)
-// 		После выноса восстанавливает базу не верно (вроде исправил)
+//		После выноса восстанавливает базу не верно (вроде исправил)
+//		Новая функция, убирающие одномерный массив исследований из многомерного массива исследований excludeTech()
+//		Исправлена редкая ошибка в events.js, попытка переместить в группу hunters из пустой группы buildersMain
+//		Исправлена редкая ошибка в builders.js, попытка отсортировать незанятые нефтевышки, при полностью захваченной карты
 //		На уровне сложности выше среднего:
-//			не использовать слабые пути исследований
-//			не использовать медленные билдордеры
-//			дополнительная логика и микроконтроль для армии и строителей
+//			HARD+ не использовать слабые пути исследований
+//			HARD+ не использовать медленные билдордеры
+//			HARD+ дополнительная логика и микроконтроль для армии и строителей
+//			HARD+ строители строят больше защитных башен
 //		Игра на островных картах:
-// 			На островной карте не строит много колёсных строителей
-// 			Не строит много лабораторий, если под контролем мало нефтевышек
-// 			На островной карте другая логика перерспределения групп строителей
+//			Армия компонуется из ховеров.
+//			На островной карте не строит много колёсных строителей
+//			Не строит много лабораторий, если под контролем мало нефтевышек
+//			На островной карте другая логика перерспределения групп строителей
+//			Убираем все исследования связанные с киборгами через excludeTech()
 //		Особенности только для версии 3.2+
 //			v3.2+ замена строителей на ховеры
 //			v3.2+ Теперь может шарить юнитов с напарником по комманде
 //			v3.2+ Собирает бочки строителями, если их видно
 //		Особенности только для карт типа NTW
 //			Группа партизан имеет другую логику атаки и разведки
-// 			HARD+ Оптимизированная логика строительства нефтевышек
+//			HARD+ Оптимизированная логика строительства нефтевышек
 //			v3.2+ HARD+ Новая экспериментальная функция управления основной армией (кучкует, отступает, ожидает)
+//			Строители строят защитные башни в местах стычек армий
+//			Не сразу отстраивал заводы, при битве на своей базе и потере заводов.
 
-//---
-// На островных картах убрать все исследования связанные с киборгами
-// 3.2+ Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
-//- 3.2+ Работаю над чатом и улучшенной передачей юнитов союзнику
-//- NTW Лишними строителями вдоль пути армии строить защитные заграждения, если есть лишние финансы
-// В командной игре армии кучкует по отдельности, сделать что бы сообща играли
-// Не нарываться на тюрельки за забором.
+
+// NTW Глушилки к основной группе
+// NTW Ремонтники - отключить
+// NTW Убрать гусеницы
+
 
 // после релиза:
 // Не умеет играть на Т3, строит весь мусор что есть. Как-то исправить эту ситуацию.
+// Разложить оружия по категориям, что б не строил весь мусор который есть.
+// Ставить в приоритет категории оружий по кол-ву их улучшений.
 // Динамические альянсы
 // Очередной раз переписать функцию строителей, или оптимизировать.
 // Отстраивать базу киборгом-строителем
+// Не нарываться на тюрельки за забором.
+// 3.2+ Поработать над чатом
+// 3.2+ Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
+// 3.2+ поработать над улучшенной передачей юнитов союзнику
+// NTW В командной игре армии кучкует по отдельности, сделать что бы сообща играли
 
 ///////\\\\\\\
 //v2.1 Changes
@@ -118,6 +123,27 @@ include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 var debugLevels = new Array('error', 'init', 'stats', 'performance', 'ally', 'army', 'research', 'mark', 'defence');
 //var debugLevels = new Array('error', 'init');
 var debugName;
+
+
+
+
+
+
+
+
+//Массив конкретных технологий (tech.js)
+var tech = [];
+
+include("multiplay/skirmish/bc-"+vernum+"/functions.js");
+include("multiplay/skirmish/bc-"+vernum+"/builders.js");
+include("multiplay/skirmish/bc-"+vernum+"/targeting.js");
+include("multiplay/skirmish/bc-"+vernum+"/events.js");
+include("multiplay/skirmish/bc-"+vernum+"/names.js");
+include("multiplay/skirmish/bc-"+vernum+"/produce.js");
+include("multiplay/skirmish/bc-"+vernum+"/performance.js");
+include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
+include("multiplay/skirmish/bc-"+vernum+"/tech.js");
+
 
 /*
  * 
@@ -598,6 +624,9 @@ function init(){
 	
 	delete _builders;
 	
+	if(!release)research_way.forEach(function(e){debugMsg(e, 'research');});
+	
+	
 	if(nf['policy'] == 'island'){
 		debugMsg("Тактика игры: "+nf['policy'], 'init');
 		_msg='Change policy form: '+policy['build'];
@@ -616,6 +645,13 @@ function init(){
 			["R-Struc-Research-Module"],
 			["R-Struc-Factory-Module"]
 		);
+		
+		debugMsg("Убираем все исследования связанные с киборгами", 'init');
+		
+		research_way = excludeTech(research_way, tech['cyborgs']);
+		
+		if(!release)research_way.forEach(function(e){debugMsg(e, 'research');});
+		
 	}
 	
 	if(!release) for ( var p = 0; p < maxPlayers; ++p ) {debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'temp');}
@@ -640,8 +676,6 @@ function init(){
 	//Просто дебаг информация
 	var oilDrums = enumFeature(ALL_PLAYERS, "OilDrum");
 	debugMsg("На карте "+oilDrums.length+" бочек с нефтью", 'init');
-	
-	if(!release)research_way.forEach(function(e){debugMsg(e, 'research');});
 	
 	queue("welcome", 3000+me*(Math.floor(Math.random()*2000)+1500) );
 	if(version == "3.2") queue("checkAlly", 2000);

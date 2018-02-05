@@ -238,6 +238,7 @@ function checkAlly(){
 function checkDonate(obj){
 	if(version != '3.2') return false;
 	if(!getInfoNear(base.x,base.y,'safe',base_range).value) return false;
+	if(groupSize(armyPartisans) < (minPartisans/2)) return false;
 //	if()
 	debugMsg(obj.name+" to "+armyToPlayer, 'donate');
 	if(obj.droidType == DROID_WEAPON && armyToPlayer !== false){
@@ -1132,6 +1133,28 @@ function attackObjects(targets, warriors, num, scouting){
 	}
 	return false;
 	
+}
+
+//Исключает из двумерных масивов tech, массив excludes
+function excludeTech(tech, excludes){
+	var ex = [];
+	tech = tech.filter(function(o){
+		if(o.isArray) return true;
+		if(excludes.indexOf(o) != -1)return false;
+		return true;
+	});
+	tech.forEach(function(e){
+		if (!(e instanceof Array)){
+			ex.push(e);
+			return;
+		}
+		var check = e.filter(function(o){
+			if(excludes.indexOf(o) != -1)return false;
+			return true;
+		});
+		if (check.length) ex.push(check);
+	});
+	return ex;
 }
 
 //Неоптимизированно, нужно доделать.

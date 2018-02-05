@@ -165,19 +165,21 @@ function eventStructureBuilt(structure, droid){
 			factory = enumStruct(me, FACTORY);
 			factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 
-			if( factory_ready.length == 2  && policy['build'] == 'rich'){
-				var e = enumGroup(buildersMain)[0];
-				groupAddDroid(buildersHunters, e);
-				debugMsg("Fact Rich FORCE "+i+" Builder --> Hunter +1", 'group');
-			}
-			
-//			if(policy['build'] != 'rich'){
-				var _b = enumGroup(buildersMain)[0];
-				if(typeof _b !== 'undefined'){
-					base.x = _b.x;
-					base.y = _b.y;
+			if(groupSize(buildersMain) != 0){
+				if( factory_ready.length == 2  && policy['build'] == 'rich'){
+					var e = enumGroup(buildersMain)[0];
+					groupAddDroid(buildersHunters, e);
+					debugMsg("Fact Rich FORCE "+i+" Builder --> Hunter +1", 'group');
 				}
-//			}
+				
+	//			if(policy['build'] != 'rich'){
+					var _b = enumGroup(buildersMain)[0];
+					if(typeof _b !== 'undefined'){
+						base.x = _b.x;
+						base.y = _b.y;
+					}
+	//			}
+			}
 			produceDroids();
 		break;
 		case CYBORG_FACTORY:
