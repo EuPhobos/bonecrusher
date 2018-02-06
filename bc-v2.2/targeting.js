@@ -21,9 +21,9 @@ function targetVTOL(){
 		return true;
 	});
 	var group = enumGroup(VTOLAttacker).filter(function(e){if(e.action == 41 || e.action == 1 || distBetweenTwoPoints_p(e.x,e.y,base.x,base.y) > base_range)return true;return false});
-	debugMsg("VTOLs: "+groupSize(VTOLAttacker)+"; patrol: "+ready.length+"; ready: "+group.length+"; targets: "+target.length, "vtol");
+//	debugMsg("VTOLs: "+groupSize(VTOLAttacker)+"; patrol: "+ready.length+"; ready: "+group.length+"; targets: "+target.length, "vtol");
 	if(group.length >= 3 && (target.length != 0 || scout.length != 0) ) {
-		debugMsg("Attack!", "vtol");
+//		debugMsg("Attack!", "vtol");
 		if(target.length != 0){
 			if(group.length <= 8){
 				group.forEach(function(e){
@@ -305,7 +305,7 @@ function targetCyborgs(){
 	
 	_cyborgs.forEach(function(e){
 		groupAddDroid(armyRegular, e);
-		debugMsg("Cyborg --> Regular +1", 'group');
+//		debugMsg("Cyborg --> Regular +1", 'group');
 	});
 	
 }
@@ -346,11 +346,11 @@ function pointRegularArmy(army){
 	//Процент передовой армии от всей
 	var percent = Math.round(near.length*100/army.length);
 	
-	debugMsg('army='+near.length+'/'+army.length+', '+percent+'%, point='+pointDist, 'army');
-	debugMsg('enemies='+enemy.length+', lastSeen='+lastEnemiesSeen, 'army');
+//	debugMsg('army='+near.length+'/'+army.length+', '+percent+'%, point='+pointDist, 'army');
+//	debugMsg('enemies='+enemy.length+', lastSeen='+lastEnemiesSeen, 'army');
 	
 	if(pointRegular && percent < 80){
-		debugMsg('Сбор у точки', 'army');
+//		debugMsg('Сбор у точки', 'army');
 		return pointRegular;
 	}else{
 		pointRegular = false;
@@ -363,7 +363,7 @@ function pointRegularArmy(army){
 	
 	//Если врагов больше чем кусок передовой армии - отступаем
 	if(enemy.length > near.length){
-		debugMsg('Бежать!', 'army');
+//		debugMsg('Бежать!', 'army');
 		//Отходим к началу тянущегося хвоста армии, указываем точку для необходимого сбора армии
 		pointRegular = army[army.length-Math.ceil((army.length-near.length)/2+(army.length-near.length)/(near.length/2))];
 		return pointRegular;
@@ -372,12 +372,12 @@ function pointRegularArmy(army){
 	//Если процент передовой армии меньше 65% или видимые враги привышают передовую армию и вся армия не достигла предела, то ждём хвосты
 //	if((percent < 65 || lastEnemiesSeen > near.length ) && army.length < maxRegular){
 	if(percent < 65 && army.length < maxRegular){
-		debugMsg('Ждать хвосты', 'army');
+//		debugMsg('Ждать хвосты', 'army');
 //		return army[Math.floor(army.length/4)];
 		return army[0];
 	}
 //	lastEnemiesSeen = 0;
-	debugMsg('go', 'army');
+//	debugMsg('go', 'army');
 	return false;
 }
 
@@ -397,10 +397,10 @@ function targetRegularRich(target, victim){
 	if(typeof victim === 'undefined') victim = false;
 	if(target && !pointRegular){
 		if(!droidCanReach(regular[0],target.x,target.y)){
-			debugMsg("regular: event не достежим", 'targeting');
+//			debugMsg("regular: event не достежим", 'targeting');
 			target = false;
 		}else{
-			debugMsg("regular: event от армии "+distBetweenTwoPoints_p(target.x,target.y,regular[0].x,regular[0].y), 'targeting');
+//			debugMsg("regular: event от армии "+distBetweenTwoPoints_p(target.x,target.y,regular[0].x,regular[0].y), 'targeting');
 			
 			//Если атакованный дроид дальше от базы, чем армия, идём туда.
 			if(distBetweenTwoPoints_p(base.x, base.y, victim.x, victim.y) > distBetweenTwoPoints_p(base.x, base.y, regular[0].x,regular[0].y)) targRegular = target;
@@ -408,7 +408,7 @@ function targetRegularRich(target, victim){
 			if(reactWarriorsTrigger < gameTime && victim.type == DROID && victim.group == regular[0].group){
 				reactWarriorsTrigger = gameTime + reactWarriorsTimer;
 				var near = enumRange(victim.x, victim.y, 20, ALLIES).filter(function(obj){if(obj.group == regular[0].group)return true;return false;});
-				debugMsg('Ответный огонь '+near.length, 'targeting');
+//				debugMsg('Ответный огонь '+near.length, 'targeting');
 				near.forEach(function(e){orderDroidLoc_p(e, DORDER_SCOUT, target.x, target.y);});
 			}else{
 				if( (victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || victim.type == STRUCTURE) targRegular = target;
@@ -417,7 +417,7 @@ function targetRegularRich(target, victim){
 	}
 	
 	if(reactRegularArmyTrigger > gameTime){
-		debugMsg('targetRegularRich(force exit)', 'targeting');
+//		debugMsg('targetRegularRich(force exit)', 'targeting');
 		return false;
 	}
 	reactRegularArmyTrigger = gameTime + reactRegularArmyTimer;
@@ -448,18 +448,18 @@ function targetRegularRich(target, victim){
 	}
 	
 	if(targRegular.x == 0 && targRegular.y == 0 && !target){
-		debugMsg("regular: Стандартный сбор у базы", 'targeting');
+//		debugMsg("regular: Стандартный сбор у базы", 'targeting');
 		targRegular = base;
 	}
 	
 	//Армия у места назначения
 	if(distBetweenTwoPoints_p(endPoint.x,endPoint.y,regular[0].x,regular[0].y) <= 7){
-		debugMsg('Армия на месте бездельничает', 'targeting');
+//		debugMsg('Армия на месте бездельничает', 'targeting');
 		target = sortByDistance(getEnemyFactories(), regular[0], 1);
 		if(target.length == 0) target = sortByDistance(getEnemyProduction(), regular[0], 1);
 //		if(target.length == 0) target = sortByDistance(getEnemyStartPos(), regular[0], 1);
 		if(target.length > 0){
-			debugMsg('Дополнительные цели: '+target.length, 'targeting');
+//			debugMsg('Дополнительные цели: '+target.length, 'targeting');
 			targRegular = {x:target[0].x,y:target[0].y};
 		}
 	}
@@ -467,18 +467,18 @@ function targetRegularRich(target, victim){
 
 	if(regular.length > minRegular){
 		if(stopPoint){
-			debugMsg("regular: Регрупировка "+distBetweenTwoPoints_p(endPoint.x,endPoint.y,base.x,base.y), 'targeting');
+//			debugMsg("regular: Регрупировка "+distBetweenTwoPoints_p(endPoint.x,endPoint.y,base.x,base.y), 'targeting');
 			regular.forEach(function(e){orderDroidLoc_p(e, DORDER_MOVE, endPoint.x, endPoint.y);});
 		}
 		else{
-			debugMsg("regular: Атака/Разведка "+distBetweenTwoPoints_p(endPoint.x,endPoint.y,base.x,base.y), 'targeting');
+//			debugMsg("regular: Атака/Разведка "+distBetweenTwoPoints_p(endPoint.x,endPoint.y,base.x,base.y), 'targeting');
 			if(!release)mark(endPoint.x,endPoint.y);
 			regular.forEach(function(e){orderDroidLoc_p(e, DORDER_SCOUT, endPoint.x, endPoint.y);});
 		}
 		return true;
 	}
 	
-	debugMsg('targetRegularRich(exit)', 'targeting');
+//	debugMsg('targetRegularRich(exit)', 'targeting');
 	return false;
 }
 
@@ -493,7 +493,7 @@ function targetRegular(target, victim){
 		return false;
 	}
 	
-	debugMsg("targetRegular():", 'targeting');
+//	debugMsg("targetRegular():", 'targeting');
 	
 	var regular = enumGroup(armyRegular);
 	if(regular.length == 0) return false;

@@ -87,7 +87,7 @@ function builderBuild(droid, structure, rotation){
 	if (isStructureAvailable(structure, me)){
 		var pos = pickStructLocation(droid,structure,base.x+1,base.y+1);
 		if (!!pos && distBetweenTwoPoints_p(pos.x,pos.y,base.x,base.y) < (base_range/2)) {
-			debugMsg("Строю: ("+pos.x+","+pos.y+") ["+structure+"]",3);
+//			debugMsg("Строю: ("+pos.x+","+pos.y+") ["+structure+"]",3);
 			orderDroidBuild_p(droid, DORDER_BUILD, structure, pos.x, pos.y, rotation);
 			return true;
 		}else{
@@ -95,15 +95,15 @@ function builderBuild(droid, structure, rotation){
 				if(distBetweenTwoPoints_p(e.x,e.y,base.x,base.y) > base_range && droidCanReach(droid, e.x,e.y) )return true;return false;
 			});
 			if(_base.length != 0){
-				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", меняем позицию базы с "+base.x+"x"+base.y+" на "+_base[0].x+"x"+_base[0].y, 'builders');
+//				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", меняем позицию базы с "+base.x+"x"+base.y+" на "+_base[0].x+"x"+_base[0].y, 'builders');
 				base = {x:_base[0].x,y:_base[0].y};
 			}else{
-				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", останов.", 'builders');
+//				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", останов.", 'builders');
 			}
 			return false;
 		}
 	}else{
-			debugMsg("WARNING: ["+structure+"] - строение не доступно",1);
+//			debugMsg("WARNING: ["+structure+"] - строение не доступно",1);
 			return false;
 	}
 }
@@ -133,7 +133,7 @@ const mr_lab			= "R-Struc-Research-Module";
 var builder_targets;
 function buildersOrder(order,target) {
 	if(!running)return;
-	debugMsg('buildersOrder()', 'builders_advanced');
+//	debugMsg('buildersOrder()', 'builders_advanced');
 
 	if ( typeof order === "undefined" ) order = false;
 	if ( typeof target === "undefined" ) target = false;
@@ -204,18 +204,18 @@ function buildersOrder(order,target) {
 	
 	//назначаем задания основным строителям/строим базу
 	if(buildersMainLen != 0){mainBuilders(rotation);}else{
-		debugMsg("Нет строителей в группе buildersMain", 'builders');
+//		debugMsg("Нет строителей в группе buildersMain", 'builders');
 		
 		//Если нет основных строителей -И- база под атакой -И- заводы уничтожены или не достроены
 		if(!getInfoNear(base.x,base.y,'safe',base_range).value && factory_ready.length == 0){
 			enumDroid(me, DROID_CONSTRUCT).forEach(function(e){groupBuilders(e);}); //Изыскиваем резервы
 			if(groupSize(buildersHunters) == 0){
-				debugMsg("Нет строителей вообще! Каюк!", 'builders');
+//				debugMsg("Нет строителей вообще! Каюк!", 'builders');
 				//TODO доработать, найти завод киборгов, построить киборга-строителя или попросить помощи у союзника
 			}else{
 				var _builders = enumGroup(buildersHunters);
 				base = {x:_builders[0].x,y:_builders[0].y}; //Меняем место базы на первого строителя (Возможно повезёт)
-				debugMsg("Дислокация базы! "+base.x+"x"+base.y, 'builders');
+//				debugMsg("Дислокация базы! "+base.x+"x"+base.y, 'builders');
 				queue("buildersOrder", 1000);
 			}
 		}else{
@@ -223,7 +223,7 @@ function buildersOrder(order,target) {
 			if(_hunters.length > 2){
 				_hunters = sortByDistance(_hunters, base, 1);
 				groupAddDroid(buildersMain, _hunters[0]);
-				debugMsg('Hunter --> Builder +1', 'group');
+//				debugMsg('Hunter --> Builder +1', 'group');
 			}
 		}
 	}
@@ -243,14 +243,21 @@ function buildersOrder(order,target) {
 		var problemBuildings = sortByDistance(getProblemBuildings(), base);
 		for ( var h in hunters) {
 			var huntOnDuty = oilHunt(hunters[h]);
-			if(huntOnDuty){debugMsg(hunters[h].id+' oilHunt', 'hunters');continue;}
+			if(huntOnDuty){
+//				debugMsg(hunters[h].id+' oilHunt', 'hunters');
+				continue;
+			}
 //			debugMsg("buildersOrder: Строитель-охотник №"+hunters[h].id+" на службе? "+huntOnDuty, 'builders');
 			if(huntOnDuty === false && !builderBusy(hunters[h])) huntOnDuty = rigDefence(hunters[h]);
-			if(huntOnDuty){debugMsg(hunters[h].id+' rigDefence', 'hunters');continue;}
+			if(huntOnDuty){
+//				debugMsg(hunters[h].id+' rigDefence', 'hunters');
+				continue;
+				
+			}
 //			if(huntOnDuty === false) if(distBetweenTwoPoints_p(hunters[h].x,hunters[h].y,base.x,base.y) > 10 && !builderBusy(hunters[h])){
 			if(huntOnDuty === false && !builderBusy(hunters[h])){
 				if(problemBuildings.length != 0){
-					debugMsg(hunters[h].id+"Help with "+problemBuildings[0].name, 'hunters');
+//					debugMsg(hunters[h].id+"Help with "+problemBuildings[0].name, 'hunters');
 					if(problemBuildings[0].status == BEING_BUILT) {orderDroidObj_p(hunters[h], DORDER_HELPBUILD, problemBuildings[0]);continue;}
 					if(problemBuildings[0].health < 99) {orderDroidObj_p(hunters[h], DORDER_REPAIR, problemBuildings[0]);continue;}
 					if(problemBuildings.length != 1)problemBuildings.shift();
@@ -259,7 +266,7 @@ function buildersOrder(order,target) {
 				if(distBetweenTwoPoints_p(hunters[h].x,hunters[h].y,base.x,base.y) > 10) orderDroidLoc_p(hunters[h],DORDER_MOVE,base.x,base.y);
 				continue;
 			}
-			debugMsg(hunters[h].id+' WARNING: IDLE HUNTERS!!!', 'hunters');
+//			debugMsg(hunters[h].id+' WARNING: IDLE HUNTERS!!!', 'hunters');
 		}
 	}
 }
@@ -366,7 +373,7 @@ function defenceQueue(){
 		//Тут можно ещё накидать
 		//if(enQueue.length != 0) Object.assign(defQueue,enQueue); //Похоже Object.assign не работает тут.
 	}
-	debugMsg("defenceQueue(): Защитных башен="+myDefence.length+", отдалённых качалок="+myRigs.length+", типы башен="+defence.length+", к постройке="+defQueue.length, 'builders');
+//	debugMsg("defenceQueue(): Защитных башен="+myDefence.length+", отдалённых качалок="+myRigs.length+", типы башен="+defence.length+", к постройке="+defQueue.length, 'builders');
 //	defQueue=defQueue.concat(enQueue);
 //	debugMsg("defenceQueue(): вражеских="+enQueue.length+", итого="+defQueue.length);
 }
@@ -378,7 +385,7 @@ function AA_build(obj, nearbase){
 	if(AA_defence.length != 0 && AA_queue.length != 0){
 		var _def = AA_defence[Math.floor(Math.random()*Math.min(AA_defence.length, 3))]; //Случайная из 3 последних
 		var target = AA_queue.shift();
-		debugMsg("Строим ПВО "+_def+" "+target.x+"x"+target.y, 'builders');
+//		debugMsg("Строим ПВО "+_def+" "+target.x+"x"+target.y, 'builders');
 		var pos = pickStructLocation(obj,_def,target.x,target.y);
 		
 		if(!!pos){
@@ -474,7 +481,7 @@ function oilHunt(obj, nearbase){
 	
 	if(policy['build'] == 'rich') if ( distBetweenTwoPoints_p(base.x,base.y,builder_targets[0].x,builder_targets[0].y) > base_range ){
 		groupAddDroid(buildersMain, obj);
-		debugMsg('Hunter --> Builder +1', 'group');
+//		debugMsg('Hunter --> Builder +1', 'group');
 		return false;
 	}
 	

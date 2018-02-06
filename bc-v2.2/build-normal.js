@@ -48,7 +48,7 @@ function mainBuilders(rotation){
 
 //		if( policy['build'] == 'rich' && (i-helped-module) > (_b.length/2)) {
 		if( policy['build'] == 'rich' && build > 1 && groupSize(buildersMain) > Math.ceil(minBuilders/2)) {
-			debugMsg('break iter='+i+', i-h-m='+(i-helped-module)+', l/2='+(_b.length/2)+', gs='+groupSize(buildersMain)+', minB='+Math.ceil(minBuilders/2), 'builders');
+//			debugMsg('break iter='+i+', i-h-m='+(i-helped-module)+', l/2='+(_b.length/2)+', gs='+groupSize(buildersMain)+', minB='+Math.ceil(minBuilders/2), 'builders');
 //			queue("buildersOrder", 1000);
 			break;
 		}
@@ -142,7 +142,7 @@ function mainBuilders(rotation){
 		
 //		debugMsg('2 rigDefence', 'buildersbug');
 		if((policy['build'] != 'rich' || isFullBase(me)) && rigDefence(obj)){
-			debugMsg('Главные стоят защиту', 'builders');
+//			debugMsg('Главные стоят защиту', 'builders');
 			continue;
 		}
 //		else{
@@ -162,7 +162,7 @@ function mainBuilders(rotation){
 			( ( (policy['build'] == 'cyborgs' && cyborg_factory_ready.length > 2) || policy['build'] != 'cyborgs') && policy['build'] != 'rich' && policy['build'] != 'island' )
 				|| ( (policy['build'] == 'island' && getResearch("R-Vehicle-Prop-Hover").done) || groupSize(buildersHunters) == 0) ) ){
 			groupAddDroid(buildersHunters, obj);
-			debugMsg('Builder --> Hunter +1', 'group');
+//			debugMsg('Builder --> Hunter +1', 'group');
 		}else if(policy['build'] != 'rich' &&  distBetweenTwoPoints_p(base.x,base.y,obj.x,obj.y) > 2 && unitIdle(obj)){
 			orderDroidLoc_p(obj,DORDER_MOVE,base.x,base.y);
 			continue;

@@ -5,7 +5,7 @@ BoneCrusher! bot for warzone2100 v3.1.5 and 3.2+
 This bot plays without cheating, was originally developed for the competition among the AI,
 but it is not bad has shown itself to be among the living players.
 
-Forum, discuss and download as mod: http://forums.wz2100.net/viewtopic.php?f=49&t=12139
+Forum, discuss and download as mod: http://forums.wz2100.net/viewtopic.php?f=49&t=12758
 
 Manual installation and integration for linux version wz 3.1.5:
 Go to ~/.warzone2100-3.1/3.1.5/multiplay/skirmish/ location
