@@ -84,3 +84,5 @@ chatting['loose'] = [
 	'nice cheat man.. bye'
 
 ];
+
+chatting['dev'] = ['This is dev version, dont use it! Данная версия бота не является релизом и может содержать баги! Не используйте её!']

@@ -41,23 +41,28 @@ function prepeareProduce(){
 		});
 		
 		
+		
 		//Сортируем пушки по "крутизне", базируясь на research.points
 		var _guns=guns.filter(function(e){
-//			debugMsg(e[0]+' - '+getResearch(e[0]).done, 'production');
+			debugMsg(e[0]+' - '+getResearch(e[0]).done, 'weap');
 			if(getResearch(e[0]).done)return true;return false;
 		}).sort(function (a,b){
 			if(getResearch(a[0]).points < getResearch(b[0]).points ) return -1;
 			if(getResearch(a[0]).points > getResearch(b[0]).points ) return 1;
 			return 0;
 		});
+		
 		avail_guns=[];
 		for (var i in _guns){
 			avail_guns.push(_guns[i][1]);
-//			debugMsg(getResearch(_guns[i][0]).points+" "+_guns[i][0]+"->"+_guns[i][1], 'production');
+//			debugMsg(getResearch(_guns[i][0]).points+" "+_guns[i][0]+"->"+_guns[i][1], 'weap');
+			debugMsg(getResearch(_guns[i][0]).points+" - "+research_name[_guns[i][0]], 'weap');
 		}
 		if(avail_guns.length > 2) avail_guns.shift(); //Выкидываем первый пулемётик
 		if(avail_guns.length > 2) avail_guns.shift(); //Выкидываем спаренный пулемётик
 		avail_guns.reverse();
+		
+//		avail_guns = _weaponsGetGuns();
 		
 		//Сайборги заполонили!
 		avail_cyborgs=[];
@@ -108,8 +113,8 @@ function produceDroids(){
 	if(droid_factories.length != 0){
 		
 		var _body=light_bodies;
-		if(playerPower(me)>300 && playerPower(me)<500 && medium_bodies.length != 0) _body = medium_bodies;
-		if(playerPower(me)>500 && heavy_bodies.length != 0) _body = heavy_bodies;
+		if(droid_factories[0].modules >= 1 && playerPower(me)>300 && playerPower(me)<500 && medium_bodies.length != 0) _body = medium_bodies;
+		if(droid_factories[0].modules == 2 && playerPower(me)>500 && heavy_bodies.length != 0) _body = heavy_bodies;
 		
 		var _prop = ['tracked01','HalfTrack','wheeled01'];
 		if(nf['policy']=='island') _prop = ['hover01'];
@@ -141,10 +146,10 @@ function produceDroids(){
 		}
 //		return;
 		
-		if(version == '3.2'){
-			debugMsg('ver3.2='+(version == '3.2')+', R-Sys-ECM-Upgrade01.done='+getResearch('R-Sys-ECM-Upgrade01').done+', base_safe='+getInfoNear(base.x,base.y,'safe',base_range).value+',  need_jam='+(groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers)+', jam_in_prod='+inProduce('jammer'), 'triggers');
+		if(version != '3.1'){
+			debugMsg('ver3.2='+(version == '3.1')+', R-Sys-ECM-Upgrade01.done='+getResearch('R-Sys-ECM-Upgrade01').done+', base_safe='+getInfoNear(base.x,base.y,'safe',base_range).value+',  need_jam='+(groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers)+', jam_in_prod='+inProduce('jammer'), 'triggers');
 		}
-		if (version == '3.2' && getResearch('R-Sys-ECM-Upgrade01').done && getInfoNear(base.x,base.y,'safe',base_range).value && (groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers) && inProduce('jammer') == 0){
+		if (version != '3.1' && getResearch('R-Sys-ECM-Upgrade01').done && getInfoNear(base.x,base.y,'safe',base_range).value && (groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers) && inProduce('jammer') == 0){
 			var _jammer = "ECM1TurretMk1";
 			produceTrigger[droid_factories[0].id] = 'jammer';
 			debugMsg("ADD jammer "+droid_factories[0].id, 'triggers');
@@ -171,7 +176,7 @@ function produceCyborgs(){
 	if( cyborg_factories.length != 0 && avail_cyborgs.length != 0 && (groupSize(armyCyborgs) < maxCyborgs || !getInfoNear(base.x,base.y,'safe',base_range).value) ){
 		var _cyb = avail_cyborgs[Math.floor(Math.random()*Math.min(avail_cyborgs.length, 3))]; //Случайный киборг из 3 полседних крутых
 		var _body = _cyb[0];
-		if(version == '3.2') _body = 'CyborgLightBody'; //For 3.2+ support
+		if(version != '3.1') _body = 'CyborgLightBody'; //For 3.2+ support
 		var _weapon = _cyb[1];
 		debugMsg("Cyborg: body="+_body+"; weapon="+_weapon ,'production');
 		buildDroid(cyborg_factories[0], "Terminator", _body, "CyborgLegs", "", DROID_CYBORG, _weapon);

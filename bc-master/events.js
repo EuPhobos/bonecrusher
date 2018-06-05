@@ -1,5 +1,7 @@
 function eventResearched(research, structure) {
 	
+	if (gameTime < 1000) return;
+	
 	debugMsg("Новая технология \""+research_name[research.name]+"\" ["+research.name+"]", 'research');
 	prepeareProduce();
 	queue("doResearch", 1000);
@@ -7,7 +9,7 @@ function eventResearched(research, structure) {
 	if(research.name == 'R-Vehicle-Prop-Hover'){
 		minBuilders = 7;
 		buildersTimer = 5000;
-		if(version == "3.2") recycleBuilders();
+		if(version != "3.1") recycleBuilders();
 	}
 }
 
@@ -101,9 +103,23 @@ function eventObjectTransfer(gameObject, from) {
 					groupArmy(gameObject);
 					break;
 				case DROID_CONSTRUCT:
-					groupBuilders(gameObject);
+					
+					if(groupSize(buildersMain) >= 2) groupAddDroid(buildersHunters, gameObject);
+					else { groupBuilders(gameObject); }
+					
+					if(!getInfoNear(base.x,base.y,'safe',base_range).value){
+						base.x = gameObject.x;
+						base.y = gameObject.y;
+					}
+
 					buildersOrder();
-					if(running == false) queue("letsRockThisFxxxingWorld", 1000);
+					
+					if(running == false){
+						base.x = gameObject.x;
+						base.y = gameObject.y;
+						queue("letsRockThisFxxxingWorld", 1000);
+					}
+					
 					break;
 				case DROID_CYBORG:
 					groupArmy(gameObject);
@@ -238,7 +254,7 @@ function eventDroidBuilt(droid, structure) {
 //			targetCyborgs();
 			break;
 		case VTOL_FACTORY:
-			if(version == '3.2' && vtolToPlayer !== false){donateObject(droid, vtolToPlayer);}
+			if(version != '3.1' && vtolToPlayer !== false){donateObject(droid, vtolToPlayer);}
 			else{
 				orderDroidLoc_p(droid, 40, base.x, base.y);
 				groupAddDroid(VTOLAttacker, droid);
@@ -281,7 +297,7 @@ function eventAttacked(victim, attacker) {
 		//т.к. в богатых картах кол-во партизан всего 2, направляем всю армию к атакованным
 		if(policy['build'] == 'rich') targetRegular(attacker, victim);
 		
-		if(version == "3.2"){
+		if(version != "3.1"){
 			var w = victim.weapons[0].name;
 //			debugMsg("weapon name: "+w+", id="+victim.weapons[0].id, 'triggers');
 			w = getWeaponInfo(w).impactClass;

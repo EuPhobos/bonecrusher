@@ -75,6 +75,7 @@ const research_yellow = [
 "R-Struc-PowerModuleMk1",
 "R-Struc-Power-Upgrade03a",
 "R-Defense-Tower01",
+"R-Defense-MortarPit-Incenediary",
 "R-Struc-Factory-Cyborg",
 "R-Wpn-Flamer-ROF03",
 "R-Struc-Research-Upgrade09",
@@ -88,7 +89,6 @@ const research_yellow = [
 "R-Vehicle-Body08",
 "R-Sys-Autorepair-General",             //Автопочинка
 "R-Wpn-Flamer-Damage09",
-"R-Defense-MortarPit-Incenediary",
 "R-Wpn-Mortar-ROF04",
 "R-Wpn-Mortar-Damage06",
 "R-Wpn-Mortar-Acc03",
@@ -379,16 +379,28 @@ const research_black = [
 */
 ];
 
-var _research = debugName;
-if(typeof forceResearch !== 'undefined'){
-	_research = forceResearch;
-	setResearchWay(_research);
-}else{
-	var _w=["None","Black","Green","Red","Yellow","Orange","Blue"];
-	if(difficulty == HARD || difficulty == INSANE) _w=["Green","Yellow","Orange"];
-	var _r=Math.floor(Math.random()*_w.length);
-	setResearchWay(_w[_r]);
+function chooseResearch(){
+	var _research = debugName;
+	if(typeof forceResearch !== 'undefined'){
+		_research = forceResearch;
+		setResearchWay(_research);
+	}else{
+		var _w=["None","Black","Green","Red","Yellow","Orange","Blue"];
+	//	if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange"];
+		if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange","Yellow"];
+		
+		var _r = 0;
+		debugMsg("bc_ally="+bc_ally.length, 'research');
+		if(bc_ally.length > 1){
+			_r=bc_ally.indexOf(me)%_w.length;
+			debugMsg("way="+_r, 'research_way');	
+		}else{
+			_r=Math.floor(Math.random()*_w.length);
+		}
+		setResearchWay(_w[_r]);
+	}
 }
+
 
 function setResearchWay(way){
 	if(way == "Black"){

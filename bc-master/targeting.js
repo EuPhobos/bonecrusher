@@ -232,7 +232,7 @@ function targetPartisan(){
 				orderDroidObj_p(e, DORDER_ATTACK, target[0]);
 //				debugMsg("ATTACK "+target[0].name, 'targeting');
 			}
-			else if(version == '3.2' && policy['build'] == 'rich' && target[0].type == FEATURE && target[0].stattype == OIL_RESOURCE){
+			else if(version != '3.1' && policy['build'] == 'rich' && target[0].type == FEATURE && target[0].stattype == OIL_RESOURCE){
 				orderDroidLoc_p(e, DORDER_MOVE, target[0].x, target[0].y);
 			}
 			else{
@@ -488,7 +488,7 @@ function targetRegular(target, victim){
 	if(typeof victim === 'undefined') victim = false;
 	
 	//	Перенаправляем функцию
-	if(version == '3.2' && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE)){
+	if(version != '3.1' && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE)){
 		if(targetRegularRich(target, victim)) return true;
 		return false;
 	}

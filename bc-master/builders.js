@@ -190,7 +190,7 @@ function buildersOrder(order,target) {
 	builder_targets = builder_targets.concat(oil_unknown);
 	
 
-	if(version == "3.2"){
+	if(version != "3.1"){
 		var oil_barrels = enumFeature(me, "OilDrum");
 		builder_targets = builder_targets.concat(oil_barrels);
 	}
@@ -430,7 +430,7 @@ function oilHunt(obj, nearbase){
 //				debugMsg(getInfoNear(builder_targets[i].x,builder_targets[i].y,'buildRig',0,300000,obj,false,true).value, 'temp');
 				if(builder_targets[i].type == FEATURE && getInfoNear(builder_targets[i].x,builder_targets[i].y,'buildRig',0,300000,false,false,true).value < 3){
 					
-					if(version == '3.2'){
+					if(version != '3.1'){
 						if(builder_targets[i].stattype == OIL_DRUM){
 							orderDroidObj_p(obj, DORDER_RECOVER, builder_targets[i]);
 							builder_targets.splice(i,1);

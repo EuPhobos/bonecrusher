@@ -240,7 +240,7 @@ function checkAlly(){
 }
 
 function checkDonate(obj){
-	if(version != '3.2') return false;
+	if(version == '3.1') return false;
 	if(!getInfoNear(base.x,base.y,'safe',base_range).value) return false;
 	if(groupSize(armyPartisans) < (minPartisans/2)) return false;
 //	if()
@@ -270,7 +270,7 @@ function groupArmy(droid, type){
 	}
 	
 	//Забираем киборгов под общее коммандование
-	if(version == '3.2' && droid.droidType == DROID_CYBORG && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE)){
+	if(version != '3.1' && droid.droidType == DROID_CYBORG && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE)){
 //		debugMsg("armyRegular +1", 'group');
 		groupAddDroid(armyRegular, droid);
 		return;
@@ -294,7 +294,7 @@ function groupArmy(droid, type){
 	}
 	
 	//Перегрупировка
-	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1 && !(version == '3.2' && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE))){
+	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1 && !(version != '3.1' && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE))){
 		var regroup = enumGroup(armyRegular);
 		regroup.forEach(function(e){
 //			debugMsg("armyRegular --> armyPartisans +1", 'group');
@@ -308,8 +308,13 @@ function groupArmy(droid, type){
 function stats(){
 	if(!running)return;
 //	if(release) return;
+	
+	var _rigs = enumStruct(me, "A0ResourceExtractor").filter(function(e){if(e.status==BUILT)return true;return false;}).length;
+	var _gens = enumStruct(me, "A0PowerGenerator").filter(function(e){if(e.status==BUILT)return true;return false;}).length*4;
+	if(_gens > _rigs) _gens = _rigs;
+	
 	debugMsg("---===---", 'stats');
-	debugMsg("Power: "+playerPower(me)+"; rigs="+enumStruct(me,RESOURCE_EXTRACTOR).length+"; free="+enumFeature(me, "OilResource").length+"; enemy="+getEnemyResources().length+"; unknown="+getUnknownResources().length, 'stats');
+	debugMsg("Power: "+playerPower(me)+"; rigs="+_gens+"/"+_rigs+"; free="+enumFeature(me, "OilResource").length+"; enemy="+getEnemyResources().length+"; unknown="+getUnknownResources().length, 'stats');
 	debugMsg("Army: "+(groupSize(armyPartisans)+groupSize(armyRegular)+groupSize(armyCyborgs)+groupSize(VTOLAttacker))+"; Partisans="+groupSize(armyPartisans)+"; Regular="+groupSize(armyRegular)+"; Borgs="+groupSize(armyCyborgs)+"; VTOL="+groupSize(VTOLAttacker), 'stats');
 	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; Jammers="+groupSize(armyJammers)+"; targets="+builder_targets.length, 'stats');
 	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length, 'stats');
@@ -618,9 +623,37 @@ function sortByHealth(arr){
 
 function checkProcess(){
 	if(!running)return;
+	if(Math.floor(gameTime / 1000) < 300) return;
+	
+	bc_ally.forEach(function(plally){
+		if(plally == me) return;
+
+		if(getInfoNear(base.x,base.y,'safe',base_range).value){
+					
+			if(enumDroid(plally, DROID_CONSTRUCT).length < 3){
+				if(groupSize(buildersMain) >= 2){
+					var truck = enumGroup(buildersMain)[0];
+					donateObject(truck, plally);
+					debugMsg("Send builder to "+plally, 'ally');
+				}
+				if(groupSize(buildersHunters) > 1){
+					var truck = enumGroup(buildersHunters)[0];
+					donateObject(truck, plally);
+					debugMsg("Send builder to "+plally, 'ally');
+				}
+			}
+			if(playerPower(plally) < 400 && playerPower(me) > 1000){
+				var _pow = Math.floor(playerPower(me)/2);
+				donatePower(_pow, plally);
+				debugMsg("Send "+_pow+" power to "+plally, 'ally');
+			}
+		}
+	});
+	
+
 	if(playerLoose(me)){
 		debugMsg("I guess, i'm loose.. Give up", 'end');
-		if(version == "3.2" && running){
+		if(version != "3.1" && running){
 			playerData.forEach( function(data, player) {
 				chat(player, 'from '+debugName+': '+chatting('loose'));
 			});

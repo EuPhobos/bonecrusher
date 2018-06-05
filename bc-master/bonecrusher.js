@@ -1,15 +1,15 @@
-const vernum    = "v2.2";
-const verdate   = "05.02.2018";
+const vernum    = "master";
+const verdate   = "xx.02.2018";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
-const release	= true;
+const release	= false;
 
 //var forceResearch = "Yellow";
 
 ///////\\\\\\\
 
 // после релиза:
-// Не умеет играть на Т3, строит весь мусор что есть. Как-то исправить эту ситуацию.
+// Не умеет играть на Т3 старт с базой+исследования, строит весь мусор что есть. Как-то исправить эту ситуацию.
 // Разложить оружия по категориям, что б не строил весь мусор который есть.
 // Ставить в приоритет категории оружий по кол-ву их улучшений.
 // Динамические альянсы
@@ -20,8 +20,27 @@ const release	= true;
 // 3.2+ Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
 // 3.2+ поработать над улучшенной передачей юнитов союзнику
 // NTW В командной игре армии кучкует по отдельности, сделать что бы сообща играли
+// !!! ПОЧИСТИТЬ КОД ОТ ГОВНА !!!
+
+
+
+
+
 
 ///////\\\\\\\
+// master Changes
+//		Исправлены ошибки с производством киборгов в версиях игры выше чем 3.2.3 (master)
+//		Теперь знает о том, есть ли среди союзников ИИ BoneCrusher, и если есть, включаются дополнительные алгоритмы
+//		Если союзник ИИ BoneCrusher, помогать строителями и ресурсами по возможности
+//		Если союзники ИИ BoneCrusher на сложности выше среднего, распределять между всеми ИИ разные пути исследований
+//		master-ветка бота предупреждает о том, что это не релиз
+//		Определяет как близко стартовая база враза, и меняет алгоритм обороны/нападения
+//		Испрпалено: Не производит юнитов, если иследование более лучшего корпуса совершилось раньше строительства модулей на заводы
+//		Исправлен долгий лаг инициализация бота при старте игры на Т2/Т3 с полной базой
+
+
+
+
 //v2.2 Changes
 //		При нехватке денег, строит 3-й модуль на завод (нашёл и исправил косяк)
 //		При низком приросте доходов не запускать более 3-х лабораторий
@@ -31,7 +50,6 @@ const release	= true;
 //		Отказаться от тяжёлого огнемёта, он слишком медленен (готово)
 //		Сделал что бы основная армия при сборе половины войск, начинала действовать.
 //		Добивание вражеских строителей
-//		Новый buildorder для NTW-типа карт
 //		Hunter-ы не помогают в строительстве базы, бездельничают в большом кол-ве внутри базы (исправлено)
 //		После выноса восстанавливает базу не верно (вроде исправил)
 //		Новая функция, убирающие одномерный массив исследований из многомерного массива исследований excludeTech()
@@ -53,6 +71,7 @@ const release	= true;
 //			v3.2+ Теперь может шарить юнитов с напарником по комманде
 //			v3.2+ Собирает бочки строителями, если их видно
 //		Особенности только для карт типа NTW
+//			Новый buildorder для NTW-типа карт
 //			Группа партизан имеет другую логику атаки и разведки
 //			HARD+ Оптимизированная логика строительства нефтевышек
 //			v3.2+ HARD+ Новая экспериментальная функция управления основной армией (кучкует, отступает, ожидает)
@@ -117,7 +136,7 @@ const release	= true;
 //var debugLevels = new Array('init', 'end', 'error', 'triggers');
 //var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'group', 'production', 'performance', 'donate');
 //var debugLevels = new Array('error', 'init', 'stats', 'performance', 'ally', 'army', 'research', 'mark', 'defence');
-var debugLevels = new Array('error', 'init');
+var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap');
 var debugName;
 
 
@@ -139,6 +158,7 @@ include("multiplay/skirmish/bc-"+vernum+"/produce.js");
 include("multiplay/skirmish/bc-"+vernum+"/performance.js");
 include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 include("multiplay/skirmish/bc-"+vernum+"/tech.js");
+include("multiplay/skirmish/bc-"+vernum+"/weapons.js");
 
 
 /*
@@ -210,6 +230,8 @@ var ally=[];
 //Массив всех приказов юнитам
 var _globalOrders = [];
 
+
+var bc_ally=[]; //Союзные ИИ BoneCrusher-ы
 
 var avail_research = [];	//Массив возможных исследований, заполняется в функции doResearch();
 
@@ -349,56 +371,7 @@ var vtols=[
 ];
 
 var avail_guns=[];
-var guns=[
-//	===== Пулемёты
-["R-Wpn-MG1Mk1", "MG1Mk1"],						//Лёгкий пулемёт
-["R-Wpn-MG2Mk1", "MG2Mk1"],						//Лёгкий спаренный пулемёт
-["R-Wpn-MG3Mk1", "MG3Mk1"],						//Тяжёлый пулемёт
-["R-Wpn-MG4", "MG4ROTARYMk1"],					//Штурмовой пулемёт
-["R-Wpn-MG5", "MG5TWINROTARY"],					//Спаренный штурмовой пулемёт
-//	===== Пушки
-["R-Wpn-Cannon1Mk1", "Cannon1Mk1"],				//Лёгкая пушка
-["R-Wpn-Cannon2Mk1", "Cannon2A-TMk1"],			//Средняя пушка
-["R-Wpn-Cannon5", "Cannon5VulcanMk1"],			//Штурмовая пушка
-["R-Wpn-Cannon4AMk1", "Cannon4AUTOMk1"],		//Гипер скоростная штурмовая пушка
-["R-Wpn-Cannon3Mk1", "Cannon375mmMk1"],			//Тяжёлая пушка
-["R-Wpn-Cannon6TwinAslt", "Cannon6TwinAslt"],	//Спаренная штурмовая пушка
-["R-Wpn-PlasmaCannon", "Laser4-PlasmaCannon"],	//Плазма-пушка
-//	===== Огнемёты
-["R-Wpn-Flamer01Mk1", "Flame1Mk1"],
-//["R-Wpn-Flame2", "Flame2"],						//Heavy Flamer - Inferno
-["R-Wpn-Plasmite-Flamer", "PlasmiteFlamer"],
-//	===== Ракеты прямого наведения
-["R-Wpn-Rocket05-MiniPod", "Rocket-Pod"],			//Скорострельная лёгкая ракета прямого наведения
-["R-Wpn-Rocket03-HvAT", "Rocket-BB"],				//Медленная ракета против строений и танков (в общей армии не очень, только если против укреплений)
-["R-Wpn-Rocket01-LtAT", "Rocket-LtA-T"],			//Противотанковая пара ракет прямого наведения "Лансер"
-["R-Wpn-Rocket07-Tank-Killer", "Rocket-HvyA-T"],	//Улучшенная противотанковая пара ракет прямого наведения
-["R-Wpn-Missile2A-T", "Missile-A-T"],				//Тяжолая противотанковая пара ракет прямого наведения "scourge"
-//	===== Ракеты артиллерии
-["R-Wpn-Rocket02-MRL", "Rocket-MRL"],				//Лёгкая артиллерийская ракетная баттарея
-["R-Wpn-Rocket06-IDF", "Rocket-IDF"],				//Дальнобойная артиллерийская ракетная баттарея Ripple
-["R-Wpn-MdArtMissile", "Missile-MdArt"],			//Улучшенная артиллерийская ракетная баттарея Seraph
-["R-Wpn-HvArtMissile", "Missile-HvyArt"],			//Улучшенная дальнобойная артиллерийская ракетная баттарея Archangel
-//	===== Мортиры
-["R-Wpn-Mortar01Lt", "Mortar1Mk1"],					//Mortar
-["R-Wpn-Mortar-Incenediary", "Mortar-Incenediary"],	//Incendiary Mortar
-["R-Wpn-Mortar02Hvy", "Mortar2Mk1"],				//Heavy Mortar - Bombard
-["R-Wpn-Mortar3", "Mortar3ROTARYMk1"],				//Rotary Mortar - Pepperpot
-//	===== Гаубицы
-["R-Wpn-HowitzerMk1", "Howitzer105Mk1"],				//Howitzer
-["R-Wpn-HvyHowitzer", "Howitzer150Mk1"],				//Heavy Howitzer - Ground Shaker
-["R-Wpn-Howitzer03-Rot", "Howitzer03-Rot"],				//Rotary Howitzer - Hellstorm
-["R-Wpn-Howitzer-Incenediary", "Howitzer-Incenediary"],	//Incendiary Howitzer
-//	===== Лазеры
-["R-Wpn-HvyLaser", "HeavyLaser"],					//Heavy Laser
-["R-Wpn-Laser02", "Laser2PULSEMk1"],				//Pulse Laser
-["R-Wpn-Laser01", "Laser3BEAMMk1"],					//Laser - Flashlight
-//	===== Rails
-["R-Wpn-RailGun01", "RailGun1Mk1"],					//Needle Gun
-["R-Wpn-RailGun02", "RailGun2Mk1"],					//Rail Gun
-["R-Wpn-RailGun03", "RailGun3Mk1"],					//Gauss Cannon
 
-];
 
 var defence = [];
 var towers=[
@@ -437,7 +410,7 @@ function init(){
 	debugName = colors[playerData[me].colour];
 	
 	debugMsg("ИИ №"+me+" "+vername+" "+vernum+"("+verdate+") difficulty="+difficulty, "init");
-	debugMsg("WarZone2100 "+version, "init");
+	debugMsg("Warzone2100 "+version, "init");
 	
 	//Определяем мусорщиков
 	scavengerPlayer = (scavengers) ? Math.max(7,maxPlayers) : -1;
@@ -459,7 +432,58 @@ function init(){
 	}
 	debugMsg("На карте "+allResources.length+" всего ресурсов, рядом "+nearResources.length, 'init');
 	
+	_builders = enumDroid(me,DROID_CONSTRUCT);
+	
+	debugMsg("Игроков на карте: "+maxPlayers,2);
+	playerData.forEach( function(data, player) {
+		var msg = "Игрок №"+player+" "+colors[data.colour];
+		var dist = distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y);
+		
+		if (player == me) {
+			msg+=" я сам ИИ";
+			bc_ally.push(player);
+//			debugMsg("TEST: "+bc_ally.length, 'research');
+			//			debugName = colors[data.colour];
+		}
+		else if(playerLoose(player)){msg+=" отсутствует";}
+		else if(allianceExistsBetween(me,player)){
+			msg+=" мой союзник ";
+			if(data.name == 'bc-master' || data.name.substr(0,11) == "BoneCrusher"){ msg+="BC!"; bc_ally.push(player);}
+			else{msg+=data.name;}
+		}
+		else{
+			msg+=" мой враг";
+			if(_builders.length != 0){
+				
+				//Знаю, в 3.2 можно тщательнее всё проверить, но у нас совместимость с 3.1.5
+				//поэтому логика аналогична
+				//Надеемся, что строитель №0 не ховер, проверяем может ли он добраться до врага
+				//Если нет, надеемся, что враг недоступен по земле, но доступен по воде
+				if(!droidCanReach(_builders[0], startPositions[player].x, startPositions[player].y)){
+					if(!nf['policy']){nf['policy'] = 'island';}
+					else if(nf['policy'] == 'land'){ nf['policy'] = 'land';}
+				}else{
+					
+					if(Math.floor(dist/2) < base_range){
+						debugMsg('base_range снижено: '+base_range+'->'+Math.floor(dist/2), 'init');
+						base_range = Math.floor(dist/2);
+					}
+					
+					if(!nf['policy']){nf['policy'] = 'land';}
+					else if(nf['policy'] == 'island'){ nf['policy'] = 'land';}
+				}
+			}
+		}
+		
+		msg+=" ["+startPositions[player].x+"x"+startPositions[player].y+"]";
+		msg+=" дист. "+dist;
+		debugMsg(msg,"init");
+	});
+	
+	delete _builders;
 
+	
+	
 	//Research way
 	if(Math.round(Math.random()*5) != 0)
 	researchCustom = true;
@@ -467,7 +491,7 @@ function init(){
 		researchStrategy = 'Smudged';
 		debugMsg("initializing custom research_primary", 'init');
 		include("multiplay/skirmish/bc-"+vernum+"/research-test.js");
-	
+		chooseResearch();
 		//fixResearchWay(research_rocket_mg);
 		//fixResearchWay(research_vtol_laser_flamer);
 		//fixResearchWay(research_cannon_mg);
@@ -494,7 +518,6 @@ function init(){
 		debugMsg("initializing standart research_primary", 'init');
 		include("multiplay/skirmish/bc-"+vernum+"/research-normal.js");
 	}
-	
 	if(!addPrimaryWay()){debugMsg("research_primary не добавлен в research_way!", 'error');}
 	
 	if(nearResources.length > 30){
@@ -583,44 +606,8 @@ function init(){
 	debugMsg("Лимиты базы: maxFactories="+maxFactories+"; maxFactoriesCyb="+maxFactoriesCyb+"; maxFactoriesVTOL="+maxFactoriesVTOL+"; maxPads="+maxPads+"; maxLabs="+maxLabs+"; maxGenerators="+maxGenerators+"; maxExtractors="+maxExtractors, 'init');
 	debugMsg("Лимиты юнитов: maxPartisans="+maxPartisans+"; maxRegular="+maxRegular+"; maxCyborgs="+maxCyborgs+"; maxVTOL="+maxVTOL+"; maxFixers="+maxFixers+"; maxConstructors="+maxConstructors, 'init');
 	
-	_builders = enumDroid(me,DROID_CONSTRUCT);
 	
-	debugMsg("Игроков на карте: "+maxPlayers,2);
-	playerData.forEach( function(data, player) {
-		var msg = "Игрок №"+player+" "+colors[data.colour];
-		if (player == me) {
-			msg+=" я сам ИИ";
-			//			debugName = colors[data.colour];
-		}
-		else if(playerLoose(player)){msg+=" отсутствует";}
-		else if(allianceExistsBetween(me,player)){msg+=" мой союзник";}
-		else{
-			msg+=" мой враг";
-			if(_builders.length != 0){
-				
-				//Знаю, в 3.2 можно тщательнее всё проверить, но у нас совместимость с 3.1.5
-				//поэтому логика аналогична
-				//Надеемся, что строитель №0 не ховер, проверяем может ли он добраться до врага
-				//Если нет, надеемся, что враг недоступен по земле, но доступен по воде
-				if(!droidCanReach(_builders[0], startPositions[player].x, startPositions[player].y)){
-					if(!nf['policy']){nf['policy'] = 'island';}
-					else if(nf['policy'] == 'land'){ nf['policy'] = 'land';}
-				}else{
-					if(!nf['policy']){nf['policy'] = 'land';}
-					else if(nf['policy'] == 'island'){ nf['policy'] = 'land';}
-				}
-			}
-		}
-		
-		msg+=" ["+startPositions[player].x+"x"+startPositions[player].y+"]";
-		msg+=" дист. "+distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y);
-		
-		debugMsg(msg,"init");
-	});
-	
-	delete _builders;
-	
-	if(!release)research_way.forEach(function(e){debugMsg(e, 'research');});
+	if(!release)research_way.forEach(function(e){debugMsg(e, 'research_way');});
 	
 	
 	if(nf['policy'] == 'island'){
@@ -646,7 +633,7 @@ function init(){
 		
 		research_way = excludeTech(research_way, tech['cyborgs']);
 		
-		if(!release)research_way.forEach(function(e){debugMsg(e, 'research');});
+		if(!release)research_way.forEach(function(e){debugMsg(e, 'research_way');});
 		
 	}
 	
@@ -674,18 +661,25 @@ function init(){
 	debugMsg("На карте "+oilDrums.length+" бочек с нефтью", 'init');
 	
 	queue("welcome", 3000+me*(Math.floor(Math.random()*2000)+1500) );
-	if(version == "3.2") queue("checkAlly", 2000);
+	if(version != "3.1") queue("checkAlly", 2000);
 	
 	letsRockThisFxxxingWorld(true); // <-- Жжём плазмитом сцуко!	
 }
 
 function welcome(){
 	
-	if(version == "3.2"){
+	if(version != "3.1"){
 		
-		playerData.forEach( function(data, player) {
-			chat(player, 'from '+debugName+': '+chatting('welcome'));
-		});
+		if(vernum == 'master'){
+			playerData.forEach( function(data, player) {
+				chat(player, 'from '+debugName+': '+chatting('dev'));
+			});
+		}
+		else{
+			playerData.forEach( function(data, player) {
+				chat(player, 'from '+debugName+': '+chatting('welcome'));
+			});
+		}
 	}
 	
 }
