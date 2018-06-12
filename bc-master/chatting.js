@@ -21,6 +21,13 @@ chatting['confirm'] = [
 	"Ok"
 ]
 
+chatting['kick'] = [
+	"I was kicked out, for what?",
+	"Lol, just kicked..",
+	"Well, bye, i leave.",
+	"Loosers, you're just afraid of me."
+];
+
 chatting['tutorial'] = [
 	"By the way, i can ask me for money, just say \"bc give money\"",
 	"If you die, just say \"bc give truck\", and i resurrect u ;)",

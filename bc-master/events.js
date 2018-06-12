@@ -13,6 +13,13 @@ function eventResearched(research, structure) {
 	}
 }
 
+//3.2+
+function eventPlayerLeft(player) {
+	bc_ally = bc_ally.filter(function(p){if(p==player) return false; return true;});
+	ally = ally.filter(function(p){if(p==player) return false; return true;});
+	enemy = enemy.filter(function(p){if(p==player) return false; return true;});
+	if(player == me) gameStop('kick');
+}
 // Обязательно использовать
 function eventDroidIdle(droid) {
 	
@@ -294,17 +301,18 @@ function eventAttacked(victim, attacker) {
 	//Если атака по армии, отводим атакованного
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)){
 		lastImpact = {x:victim.x,y:victim.y};
+
 		//т.к. в богатых картах кол-во партизан всего 2, направляем всю армию к атакованным
-		if(policy['build'] == 'rich') targetRegular(attacker, victim);
+		if(policy['build'] == 'rich'){ targetRegular(attacker, victim);return;}
 		
-		if(version != "3.1"){
-			var w = victim.weapons[0].name;
-//			debugMsg("weapon name: "+w+", id="+victim.weapons[0].id, 'triggers');
-			w = getWeaponInfo(w).impactClass;
-//			for ( var prop in w)
-//			debugMsg("Weapon: "+prop,'triggers');
-			debugMsg("weapon class: "+w, 'triggers');
-			if(w == "HEAT") return;
+		//TODO
+		//Если атакуют огнемётные войска, атакуем ими ближайшего врага
+		if(version != "3.1" && getWeaponInfo(victim.weapons[0].name).impactClass == "HEAT"){
+			var enemies = enumRange(victim.x, victim.y, 3, ENEMIES).filter(function(e){if(e.type == DROID)return true; return false;});
+			if(enemies.length != 0){
+				enemies = sortByDistance(enemies, victim, 1);
+				orderDroidObj_p(victim, DORDER_ATTACK, enemies[0]);
+			}
 		}
 
 

@@ -6,8 +6,55 @@
 
 */
 
-function _weaponsGetGuns(){
+function _weaponsGetGuns(num){
 	
+	var _weapons = [];
+	var _weapon, _points, _dbg;
+	
+	//Цикл по всем типам стволов
+	for ( t in guns_type ) {
+		
+		_weapon = false;
+		_points = 0;
+		_dbg = '';
+		
+//		debugMsg("Check typ: "+t, 'weap');
+		
+		//Цикл по стволам одного типа
+		for ( g in guns_type[t] ) {
+//			debugMsg("Check wpn: "+guns_type[t][g][0]+" - "+getResearch(guns_type[t][g][0]), 'weap');
+			if (getResearch(guns_type[t][g][0]).done){ _weapon = guns_type[t][g][1]; _dbg = research_name[guns_type[t][g][0]]; break; }
+		}
+		
+		//Цикл по исследованиям одного типа
+		for ( r in guns_pts[t] ) {
+//			debugMsg("Check pts: "+guns_pts[t][r]+" - "+getResearch(guns_pts[t][r]), 'weap');
+			if(getResearch(guns_pts[t][r]).done) _points++;
+		}
+		if(_weapon){
+			var precent = Math.round((_points+1)*100/(guns_pts[t].length+1));
+			_weapons.push([_weapon, _points+1]);
+			debugMsg(_dbg+" - "+precent+"%", 'weap');
+		}
+	}
+	
+	if(_weapons.length != 0){
+		_weapons.sort(function (a,b){
+			if(a[1] < b[1]) return -1;
+			if(a[1] > b[1]) return 1;
+			return 0;
+		});
+		_weapons.reverse();
+		_weapons=_weapons.slice(0, num);
+		
+		var _out = [];
+		
+		for ( w in _weapons ){
+			debugMsg(_weapons[w][0]+", "+_weapons[w][1], 'weap');
+			for(var i=0;i<_weapons[w][1];i++) _out.push(_weapons[w][0]);
+		}
+		return _out;
+	}else return [];
 }
 
 var guns=[
@@ -89,8 +136,8 @@ guns_type['cn'] = [
 //Огнемёты
 guns_type['fl'] = [
 ["R-Wpn-Plasmite-Flamer", "PlasmiteFlamer"],
-["R-Wpn-Flamer01Mk1", "Flame1Mk1"],
 ["R-Wpn-Flame2", "Flame2"],						//Heavy Flamer - Inferno
+["R-Wpn-Flamer01Mk1", "Flame1Mk1"],
 ];
 
 //Рокеты
@@ -142,6 +189,9 @@ guns_type['rl'] = [
 
 var guns_pts = [];
 guns_pts['mg'] = [
+'R-Wpn-MG3Mk1',
+'R-Wpn-MG4',
+'R-Wpn-MG5',
 'R-Wpn-MG-Damage01',
 'R-Wpn-MG-Damage02',
 'R-Wpn-MG-Damage03',
@@ -150,13 +200,16 @@ guns_pts['mg'] = [
 'R-Wpn-MG-Damage06',
 'R-Wpn-MG-Damage07',
 'R-Wpn-MG-Damage08',
-'R-Wpn-MG-Damage09',
+//'R-Wpn-MG-Damage09',
 'R-Wpn-MG-ROF01',
 'R-Wpn-MG-ROF02',
 'R-Wpn-MG-ROF03'
 ];
 
 guns_pts['cn'] = [
+'R-Wpn-Cannon1Mk1',
+'R-Wpn-Cannon5',
+'R-Wpn-Cannon6TwinAslt',
 'R-Wpn-Cannon-Damage01',
 'R-Wpn-Cannon-Damage02',
 'R-Wpn-Cannon-Damage03',
@@ -177,6 +230,8 @@ guns_pts['cn'] = [
 ];
 
 guns_pts['fl'] = [
+'R-Wpn-Flame2',
+'R-Wpn-Plasmite-Flamer',
 'R-Wpn-Flamer-Damage01',
 'R-Wpn-Flamer-Damage02',
 'R-Wpn-Flamer-Damage03',
@@ -204,9 +259,9 @@ guns_pts['rk'] = [
 'R-Wpn-Rocket-ROF01',
 'R-Wpn-Rocket-ROF02',
 'R-Wpn-Rocket-ROF03',
-'R-Wpn-Rocket-ROF04',
-'R-Wpn-Rocket-ROF05',
-'R-Wpn-Rocket-ROF06',
+//'R-Wpn-Rocket-ROF04',
+//'R-Wpn-Rocket-ROF05',
+//'R-Wpn-Rocket-ROF06',
 'R-Wpn-Rocket-Accuracy01',
 'R-Wpn-Rocket-Accuracy02',
 'R-Wpn-RocketSlow-Accuracy01',
@@ -249,7 +304,7 @@ guns_pts['hw'] = [
 
 guns_pts['ls'] = guns_pts['fl'];
 
-guns_type['rl'] = [
+guns_pts['rl'] = [
 'R-Wpn-Rail-Damage01',
 'R-Wpn-Rail-Damage02',
 'R-Wpn-Rail-Damage03',

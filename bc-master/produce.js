@@ -41,7 +41,7 @@ function prepeareProduce(){
 		});
 		
 		
-		
+		/*
 		//Сортируем пушки по "крутизне", базируясь на research.points
 		var _guns=guns.filter(function(e){
 			debugMsg(e[0]+' - '+getResearch(e[0]).done, 'weap');
@@ -61,8 +61,12 @@ function prepeareProduce(){
 		if(avail_guns.length > 2) avail_guns.shift(); //Выкидываем первый пулемётик
 		if(avail_guns.length > 2) avail_guns.shift(); //Выкидываем спаренный пулемётик
 		avail_guns.reverse();
+		*/
+
+		//Дай мне три типа лучших пушек на данный момент
+		avail_guns = _weaponsGetGuns(3);
 		
-//		avail_guns = _weaponsGetGuns();
+//		for(i in avail_guns) debugMsg(avail_guns[i], 'weap');
 		
 		//Сайборги заполонили!
 		avail_cyborgs=[];
@@ -113,8 +117,8 @@ function produceDroids(){
 	if(droid_factories.length != 0){
 		
 		var _body=light_bodies;
-		if(droid_factories[0].modules >= 1 && playerPower(me)>300 && playerPower(me)<500 && medium_bodies.length != 0) _body = medium_bodies;
-		if(droid_factories[0].modules == 2 && playerPower(me)>500 && heavy_bodies.length != 0) _body = heavy_bodies;
+		if(droid_factories[0].modules >= 1 && playerPower(me)>500 && medium_bodies.length != 0) _body = medium_bodies;
+		if(droid_factories[0].modules == 2 && playerPower(me)>1500 && heavy_bodies.length != 0) _body = heavy_bodies;
 		
 		var _prop = ['tracked01','HalfTrack','wheeled01'];
 		if(nf['policy']=='island') _prop = ['hover01'];
@@ -127,9 +131,9 @@ function produceDroids(){
 		
 		debugMsg('('+builders.length+'<'+(maxConstructors-3)+' && '+getInfoNear(base.x,base.y,'safe',base_range).value+') && ( ('+playerPower(me)+'>'+builderPts+' && '+builder_targets.length+'>7) || ( ('+groupSize(buildersMain)+'==1 || '+groupSize(buildersHunters)+'==0) && '+playerPower(me)+'>150) || '+builders.length+'==0) && '+buildersTrigger+'<'+gameTime, 'production');
 		
-		if( (builders.length < (maxConstructors-3) && getInfoNear(base.x,base.y,'safe',base_range).value)
+		if( (builders.length < (maxConstructors-3) && (getInfoNear(base.x,base.y,'safe',base_range).value || policy['build'] == 'rich'))
 			&& ( (playerPower(me) > builderPts && builder_targets.length > 7) || ( (groupSize(buildersMain) == 1 || groupSize(buildersHunters) == 0) && playerPower(me) > 150) || builders.length == 0 )
-			&& buildersTrigger < gameTime){
+			&& buildersTrigger < gameTime && (policy['build'] != 'rich' || !isFullBase(me))){
 			buildersTrigger = gameTime + buildersTimer;
 			debugMsg("buildersTrigger="+buildersTrigger+", gameTime="+gameTime+", buildersTimer="+buildersTimer, 'production');
 			buildDroid(droid_factories[0], "Truck", ['Body2SUP','Body4ABT','Body1REC'], ['hover01','wheeled01'], "", DROID_CONSTRUCT, "Spade1Mk1");
@@ -161,7 +165,9 @@ function produceDroids(){
 //			if( ( (groupSize(armyPartisans) < 7 || playerPower(me) > 250) && groupSize(armyPartisans) < maxPartisans) || !getInfoNear(base.x,base.y,'safe',base_range).value){
 			if( (groupSize(armyPartisans) < minPartisans || playerPower(me) > (groupSize(armyPartisans)*50) ) || !getInfoNear(base.x,base.y,'safe',base_range).value){
 
-				var _weapon = avail_guns[Math.floor(Math.random()*Math.min(avail_guns.length, 5))]; //Случайная из 5 последних крутых пушек
+//				var _weapon = avail_guns[Math.floor(Math.random()*Math.min(avail_guns.length, 5))]; //Случайная из 5 последних крутых пушек
+				var _weapon = avail_guns[Math.floor(Math.random()*avail_guns.length)];
+				debugMsg(_body+" "+_prop+" "+_weapon, 'template');
 				buildDroid(droid_factories[0], "Army", _body, _prop, "", DROID_WEAPON, _weapon);
 			}
 		}

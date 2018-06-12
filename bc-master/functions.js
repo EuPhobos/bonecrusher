@@ -203,13 +203,7 @@ function _getInfoNear(x,y,command,range,time,obj,cheat,inc){
 	}
 }
 
-//функция отфильтровывает недостежимые объекты
-function filterInaccessible(obj){
-	return obj.filter(function(e){
-		//Если попыток постройки больше 3, отфильтровываем их
-		if(getInfoNear(e.x,e.y,'buildRig',0,300000,false,false,false).value > 3)return false;return true;
-	});
-}
+
 
 //Проверяем есть ли союзники, не спектаторы ли они
 //Выбираем одного для поддержки 3.2+
@@ -217,14 +211,17 @@ function checkAlly(){
 //	return;
 	debugMsg('me='+me, 'ally');
 	playerData.forEach( function(data, player) {
+		var dist = distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y);
+		var ally = allianceExistsBetween(me, player);
+		
 		if(playerSpectator(player)){
 			debugMsg("#"+player+" name="+data.name+", human="+data.isHuman+", ai="+data.isAI
-			+", ally=spectator, dist="+distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y), "ally");
+			+", ally=spectator, dist="+dist, "ally");
 			return;
 		}
-		if(playerLoose()){
+		if(playerLoose(player)){
 			debugMsg("#"+player+" name=\"Empty Slot\""
-			+", ally=empty, dist="+distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y), "ally");
+			+", ally=empty, dist="+dist, "ally");
 			return;
 		}
 		if(player == me){
@@ -233,7 +230,16 @@ function checkAlly(){
 			return;
 		}
 		debugMsg("#"+player+" name="+data.name+", human="+data.isHuman+", ai="+data.isAI
-		+", ally="+allianceExistsBetween(me, player)+", dist="+distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y), "ally");
+		+", ally="+ally+", dist="+dist, "ally");
+		
+		//Если враг
+		if(!ally){
+			if(Math.floor(dist/2) < base_range){
+				debugMsg('base_range снижено: '+base_range+'->'+Math.floor(dist/2), 'init');
+				base_range = Math.floor(dist/2);
+			}
+			if(!enemyDist || enemyDist > dist) enemyDist = dist;
+		}
 		
 	});
 //	playerSpectator();
@@ -314,20 +320,22 @@ function stats(){
 	if(_gens > _rigs) _gens = _rigs;
 	
 	debugMsg("---===---", 'stats');
-	debugMsg("Power: "+playerPower(me)+"; rigs="+_gens+"/"+_rigs+"; free="+enumFeature(me, "OilResource").length+"; enemy="+getEnemyResources().length+"; unknown="+getUnknownResources().length, 'stats');
+	debugMsg("Power: "+playerPower(me)+"; rigs="+_gens+"/"+_rigs+"; free="+enumFeature(me, "OilResource").length+"/"+allResources.length+"; unknown="+getUnknownResources().length+"; enemy="+getEnemyResources().length, 'stats');
+	debugMsg("Hold: me="+Math.round(_rigs*100/allResources.length)+"%; enemy~="+Math.round((getEnemyResources().length+getUnknownResources().length)*100/allResources.length)+"%", 'stats');
 	debugMsg("Army: "+(groupSize(armyPartisans)+groupSize(armyRegular)+groupSize(armyCyborgs)+groupSize(VTOLAttacker))+"; Partisans="+groupSize(armyPartisans)+"; Regular="+groupSize(armyRegular)+"; Borgs="+groupSize(armyCyborgs)+"; VTOL="+groupSize(VTOLAttacker), 'stats');
 	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; Jammers="+groupSize(armyJammers)+"; targets="+builder_targets.length, 'stats');
-	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length, 'stats');
+	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length+"; way="+rWay, 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
-	debugMsg("Base: safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length+", full="+isFullBase(me), 'stats');
+	debugMsg("Base: "+base.x+"x"+base.y+", safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length+", full="+isFullBase(me), 'stats');
 	debugMsg("Bodies: light="+light_bodies.length+"; medium="+medium_bodies.length+"; heavy="+heavy_bodies.length, 'stats');
-	debugMsg("Misc: nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen+"; barrels="+enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.player == 99)return true;return false;}).length
+	debugMsg("Misc: enemyDist="+enemyDist+"; nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen+"; barrels="+enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.player == 99)return true;return false;}).length
 		+"; known defence="+defence.length+"; known AA="+AA_defence.length+"; AA_queue="+AA_queue.length, 'stats');
+	debugMsg("Ally="+ally.length+"; enemy="+enemy.length, 'stats');
 	debugMsg("Produce: "+produceTrigger.length, 'stats');
 	debugMsg('defQueue: '+defQueue.length, 'stats');
 
 	debugMsg("_globalInfoNear level1 = "+Object.keys(_globalInfoNear).length, 'stats');
-	
+
 // 	var level1=_globalInfoNear.length;
 // 	var level2=0;
 // 	var level3=0;
@@ -625,39 +633,63 @@ function checkProcess(){
 	if(!running)return;
 	if(Math.floor(gameTime / 1000) < 300) return;
 	
-	bc_ally.forEach(function(plally){
-		if(plally == me) return;
+	for ( plally in bc_ally ){
+		if(bc_ally[plally] == me) return;
 
 		if(getInfoNear(base.x,base.y,'safe',base_range).value){
-					
-			if(enumDroid(plally, DROID_CONSTRUCT).length < 3){
-				if(groupSize(buildersMain) >= 2){
-					var truck = enumGroup(buildersMain)[0];
-					donateObject(truck, plally);
-					debugMsg("Send builder to "+plally, 'ally');
-				}
-				if(groupSize(buildersHunters) > 1){
-					var truck = enumGroup(buildersHunters)[0];
-					donateObject(truck, plally);
-					debugMsg("Send builder to "+plally, 'ally');
-				}
-			}
-			if(playerPower(plally) < 400 && playerPower(me) > 1000){
+			
+			if(playerPower(bc_ally[plally]) < 100 && playerPower(me) > 100){
 				var _pow = Math.floor(playerPower(me)/2);
-				donatePower(_pow, plally);
-				debugMsg("Send "+_pow+" power to "+plally, 'ally');
+				donatePower(_pow, bc_ally[plally]);
+				debugMsg("Send "+_pow+" power to "+bc_ally[plally], 'ally');
+			}
+
+			if(enumDroid(bc_ally[plally], DROID_CONSTRUCT).length < 3){
+				if(groupSize(buildersMain) >= 2){
+					var truck = enumGroup(buildersMain);
+					if(truck.length != 0){
+						donateObject(truck[0], bc_ally[plally]);
+						debugMsg("Send builder["+truck[0].id+"] from "+me+" to "+bc_ally[plally], 'ally');
+						break;
+					} else { debugMsg("No more builders from "+me+" to "+bc_ally[plally], 'ally');}
+				}
+
+				if(groupSize(buildersHunters) > 1){
+					var truck = enumGroup(buildersHunters);
+					if(truck.length != 0){
+						donateObject(truck[0], bc_ally[plally]);
+						debugMsg("Send hunter["+truck[0].id+"] from "+me+" to "+bc_ally[plally], 'ally');
+						break;
+					} else { debugMsg("No more hunters from "+me+" to "+bc_ally[plally], 'ally');}
+				}
 			}
 		}
-	});
+	}
 	
-
 	if(playerLoose(me)){
+		gameStop("loose");
+	}
+}
+
+function gameStop(condition){
+	
+	
+	if(condition == 'loose'){
 		debugMsg("I guess, i'm loose.. Give up", 'end');
 		if(version != "3.1" && running){
 			playerData.forEach( function(data, player) {
-				chat(player, 'from '+debugName+': '+chatting('loose'));
+				chat(player, ' from '+debugName+': '+chatting('loose'));
 			});
 		}
+		
+	}else if(condition == 'kick'){
+		debugMsg("KICKED", 'end');
+		if(version != "3.1" && running){
+			playerData.forEach( function(data, player) {
+				chat(player, ' from '+debugName+': '+chatting('kick'));
+			});
+		}
+	}
 		running = false;
 	
 		/* Пока есть баг: http://developer.wz2100.net/ticket/4663
@@ -694,7 +726,6 @@ function checkProcess(){
 			removeTimer("targetRegular");
 			removeTimer("targetVTOL");
 			if(nfAlgorithm)removeTimer("nastyFeaturesClean");
-
 		} else if(difficulty == INSANE){
 			removeTimer("targetPartisan");
 			removeTimer("buildersOrder");
@@ -716,8 +747,7 @@ function checkProcess(){
 		removeTimer("perfMonitor");
 		removeTimer("checkProcess");
 		*/
-		
-	}
+	
 }
 
 function playerLoose(player){
@@ -731,7 +761,8 @@ function playerLoose(player){
 
 function playerSpectator(player){
 	var loose = false;
-	if(enumStruct(player,"A0LightFactory").length == 0
+	if( ( enumStruct(player, "A0Sat-linkCentre").length == 1 || enumStruct(player, "A0CommandCentre").length == 1 )
+		&& enumStruct(player,"A0LightFactory").length == 0
 		&& enumStruct(player,"A0CyborgFactory").length == 0
 		&& enumDroid(player, 10).length == 0) loose = true;
 	return loose;
@@ -751,6 +782,20 @@ function filterNearAlly(obj){
 	return obj;
 }
 
+//Функция отфильтровывает объекты внутри радиуса базы
+function filterNearBase(obj){
+	return obj.filter(function(e){
+		if( distBetweenTwoPoints_p(base.x,base.y, e.x, e.y) > base_range) return true; return false;
+	});
+}
+
+//функция отфильтровывает недостежимые объекты
+function filterInaccessible(obj){
+	return obj.filter(function(e){
+		//Если попыток постройки больше 3, отфильтровываем их
+		if(getInfoNear(e.x,e.y,'buildRig',0,300000,false,false,false).value > 3)return false;return true;
+	});
+}
 
 //TODO need to fix logic, sometimes it's buggy
 //it's triggered in middle of battlefield,
@@ -772,7 +817,8 @@ function getEnemyNearAlly(){
 		if ( !allianceExistsBetween(me,p) ) continue;
 //		if ( playerLoose(p) ) continue; //Пропускаем проигравших
 		if ( playerSpectator(p) ) continue;
-		enemy = enemy.concat(targ.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) ){
+//		enemy = enemy.concat(targ.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) ){
+		enemy = enemy.concat(targ.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,startPositions[p].x,startPositions[p].y) < base_range ){
 //			debugMsg("TRUE name="+e.name+"; id="+e.id+"; dist="+distBetweenTwoPoints_p(e.x,e.y,startPositions[p].x,startPositions[p].y)+"<"+(base_range/2)+"; player="+p,'temp');
 			return true;
 		}
@@ -1151,7 +1197,7 @@ function attackObjects(targets, warriors, num, scouting){
 			if ( i == targets.length ) return true;
 			var busy = false;
 			for ( var j in targets ) {
-				if ( distBetweenTwoPoints ( targets[j].x,targets[j].y,warriors[n].x,warriors[n].y ) < 7 ) {
+				if ( distBetweenTwoPoints_p ( targets[j].x,targets[j].y,warriors[n].x,warriors[n].y ) < 7 ) {
 					if(scouting) orderDroidLoc_p(warriors[n], DORDER_SCOUT, targets[j].x, targets[j].y);
 					else orderDroidObj_p( warriors[n], DORDER_ATTACK, targets[j] );
 					busy = true;
@@ -1234,4 +1280,15 @@ function shuffle(a) {
 		a[i - 1] = a[j];
 		a[j] = x;
 	}
+}
+
+function posRnd(pos, axis){
+	p=pos+Math.round(Math.random()*2-1);
+	if(p<1 || (axis=='x' && p >= mapWidth)) return pos;
+	if(p<1 || (axis=='y' && p >= mapHeight)) return pos;
+	
+}
+
+function secondTick(){
+	if(earlyGame && gameTime/1000 > 130) earlyGame = false;
 }

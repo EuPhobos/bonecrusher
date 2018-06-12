@@ -162,7 +162,7 @@ function targetPartisan(){
 	//		debugMsg("partisans TARGET near base", 'targeting');
 		}
 		
-		if(target.length == 0){
+		if(target.length == 0 && ally.length != 0){
 			target = target.concat(getEnemyNearAlly());
 	//		debugMsg("partisans TARGET near ally", 'targeting');
 		}
@@ -170,7 +170,7 @@ function targetPartisan(){
 		target = sortByDistance(getEnemyBuilders(), partisans[0], 1, true);
 	}
 	//Если слишком мало партизан -И- нет срочной нужны в подмоге, то кучкуем армию у ближайших ресурсов за пределами базы
-	if(partisans.length < minPartisans && target.length==0){
+	if(partisans.length < minPartisans && target.length==0 && !( gameTime/1000 < 280 && enemyDist > 80 ) ){
 		if(fixers.length == 0){
 			target = target.concat(getUnknownResources());
 			target = target.concat(getSeeResources());
@@ -259,7 +259,7 @@ function targetCyborgs(){
 		target = target.concat(getEnemyFactories());
 	}
 	var enemy = getEnemyNearBase();
-	if(enemy.length == 0)enemy = getEnemyNearAlly();
+	if(enemy.length == 0 && ally.length != 0)enemy = getEnemyNearAlly();
 	
 	if(enemy.length != 0) target = enemy; //Заменяем
 	
@@ -310,6 +310,9 @@ function targetCyborgs(){
 	
 }
 
+
+var brave = 7;
+
 //Направляем армию
 function pointRegularArmy(army){
 
@@ -320,7 +323,8 @@ function pointRegularArmy(army){
 	//Если есть точка сбора для армии
 	if(pointRegular){
 		//Ближайшие войска к точке сбора
-		var near = enumRange(pointRegular.x, pointRegular.y, 20, ALLIES).filter(function(obj){if(obj.group == army[0].group)return true;return false;});
+		var near = enumRange(pointRegular.x, pointRegular.y, 20, ALLIES).filter(function(obj){if(obj.type == DROID && (obj.droidType == DROID_WEAPON || obj.droidType == DROID_CYBORG))return true;return false;});
+//		var near = enumRange(pointRegular.x, pointRegular.y, 20, ALLIES).filter(function(obj){if(obj.group == army[0].group)return true;return false;});
 		
 		//Вражеские войска на нашей точке сбора
 		var enemy = enumRange(pointRegular.x, pointRegular.y, 40, ENEMIES, true).filter(function(obj){if(obj.type==DROID || (obj.type == STRUCTURE && obj.stattype == DEFENSE))return true; return false;});
@@ -362,7 +366,7 @@ function pointRegularArmy(army){
 	
 	
 	//Если врагов больше чем кусок передовой армии - отступаем
-	if(enemy.length > near.length){
+	if(enemy.length > near.length+brave){
 //		debugMsg('Бежать!', 'army');
 		//Отходим к началу тянущегося хвоста армии, указываем точку для необходимого сбора армии
 		pointRegular = army[army.length-Math.ceil((army.length-near.length)/2+(army.length-near.length)/(near.length/2))];
@@ -383,18 +387,30 @@ function pointRegularArmy(army){
 
 function targetRegularRich(target, victim){
 //	debugMsg("targetRegularRich():", 'targeting');
+	if(typeof target === 'undefined') target = false;
+	if(typeof victim === 'undefined') victim = false;
+	
 	
 	var regular = enumGroup(armyRegular);
 	if(regular.length == 0) return false;
+
+	//Если из армии атакован огненный боец, берём всех огненных рядом и в партизаны
+	if(victim != false && victim.droidType == DROID_WEAPON && version != "3.1"){
+//		debugMsg("Check weapon for "+victim.name, "army");
+		var w = victim.weapons[0].name;
+		w = getWeaponInfo(w).impactClass;
+		if(w == "HEAT") {
+			enumRange(victim.x, victim.y, 7, ALLIES).filter(function(obj){if(obj.type == DROID && obj.droidType == DROID_WEAPON && getWeaponInfo(obj.weapons[0].name).impactClass == "HEAT")return true;return false;})
+			.forEach(function(d){groupAddDroid(armyPartisans, d);});
+		}
+	}
 	
 	//Сортируем армию от стартовой позиции
 	regular = sortByDistance(regular, startPos);
 	
 	//Сначало самые дальние юниты
 	regular.reverse();
-	
-	if(typeof target === 'undefined') target = false;
-	if(typeof victim === 'undefined') victim = false;
+
 	if(target && !pointRegular){
 		if(!droidCanReach(regular[0],target.x,target.y)){
 //			debugMsg("regular: event не достежим", 'targeting');
@@ -423,7 +439,7 @@ function targetRegularRich(target, victim){
 	reactRegularArmyTrigger = gameTime + reactRegularArmyTimer;
 	
 	var help = [];
-	help = getEnemyNearAlly();
+	if(ally.length != 0) help = getEnemyNearAlly();
 	if(help.length == 0){
 		help = getEnemyCloseBase();
 	}
@@ -498,8 +514,9 @@ function targetRegular(target, victim){
 	var regular = enumGroup(armyRegular);
 	if(regular.length == 0) return false;
 	
+	
 	var help = [];
-	help = getEnemyNearAlly();
+	if(ally.length != 0) help = getEnemyNearAlly();
 //	debugMsg("Enemy near ally "+help.length, 'targeting');
 	if(help.length == 0){
 		help = getEnemyCloseBase();
@@ -535,7 +552,8 @@ function targetRegular(target, victim){
 		}
 		else{
 			target = getEnemyFactories();
-			if(target.length == 0 && regular.length >= maxRegular/2){	//Если армии больше половины собрано, а целей всё ещё нет
+//			if(target.length == 0 && regular.length >= maxRegular/2){	//Если армии больше половины собрано, а целей всё ещё нет
+			if(target.length == 0){	//Если целей всё ещё нет
 				target = sortByDistance(getEnemyProduction(), regular[0], 1);
 			}
 			if(target.length != 0){
