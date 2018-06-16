@@ -29,3 +29,8 @@ tech['cyborgs'] = [
 "R-Struc-Factory-Cyborg"
 
 ];
+
+tech['tracks'] = [
+"R-Vehicle-Prop-Halftracks",
+"R-Vehicle-Prop-Tracks"
+];

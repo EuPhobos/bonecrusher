@@ -1,8 +1,8 @@
-const vernum    = "master";
-const verdate   = "xx.02.2018";
+const vernum    = "v2.3";
+const verdate   = "12.06.2018";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
-const release	= false;
+const release	= true;
 
 //var forceResearch = "Yellow";
 
@@ -16,6 +16,7 @@ const release	= false;
 //		3.2+ Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
 //		NTW Авиация исследует кластерные бомбы и применяет их на вражескую армию
 //		Применять киборгов-строителей
+//		Исправить переезд базы
 //-----
 //	От части завершено или не надо:
 //		Динамические альянсы (пока невозможно, только с версией игры 3.3.0+)
@@ -36,8 +37,9 @@ const release	= false;
 
 
 
+
 ///////\\\\\\\
-// master Changes
+//v2.3 Changes
 //		Исправлены ошибки с производством киборгов в версиях игры выше чем 3.2.3 (master)
 //		Теперь знает о том, есть ли среди союзников ИИ BoneCrusher, и если есть, включаются дополнительные алгоритмы
 //		Если союзник ИИ BoneCrusher, помогать строителями и ресурсами по возможности
@@ -55,8 +57,8 @@ const release	= false;
 //		Исправил очень редкую ошибку при выборе постройки обороны, если база находится на самом краю карты
 //		Улучшен модуль строителей
 //		улучшено строительство базы на островных картах
+//		Теперь верно строит базу на нестандартных картах, где стартовые рабочии разделены и разнесены по карте, таких как Jungle
 
-// Исправить переезд базы
 
 // Странная ошибка (вроде исправил):
 /*
@@ -141,6 +143,7 @@ info    |05:26:57: [callFunction:198] Assert in Warzone: qtscript.cpp:198 (false
 
 
 //DEBUG: количество вывода, закоментить перед релизом
+var debugLevels = new Array('dbg', 'error', 'init', 'end');
 //var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 //var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
@@ -150,7 +153,8 @@ info    |05:26:57: [callFunction:198] Assert in Warzone: qtscript.cpp:198 (false
 //var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'group', 'production', 'performance', 'donate');
 //var debugLevels = new Array('error', 'init', 'stats', 'performance', 'ally', 'army', 'research', 'mark', 'defence');
 //var debugLevels = new Array('error', 'init', 'stats', 'builders');
-var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap', 'group', 'template', 'performance', 'army', 'builders');
+//var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap', 'group', 'template', 'performance', 'army', 'builders');
+
 
 var debugName;
 
@@ -439,7 +443,8 @@ function init(){
 	if(scavengers)debugMsg("На карте присудствуют гопники! {"+scavengerPlayer+"}", "init");
 	else debugMsg("На карте отсутствуют гопники", "init");
 	
-	base = startPositions[me];
+//	base = startPositions[me];
+	initBase();
 	startPos = base;
 	
 	//Получаем координаты всех ресурсов и занятых и свободных
@@ -472,7 +477,7 @@ function init(){
 		else if(allianceExistsBetween(me,player)){
 			msg+=" мой союзник ";
 			ally.push(player);
-			if(data.name == 'bc-master' || data.name.substr(0,11) == "BoneCrusher"){ msg+="BC!"; bc_ally.push(player);}
+			if(version != "3.1" && (data.name == 'bc-master' || data.name.substr(0,11) == "BoneCrusher")){ msg+="BC!"; bc_ally.push(player);}
 			else{msg+=data.name;}
 		}
 		else{
@@ -516,6 +521,7 @@ function init(){
 		//include("multiplay/skirmish/bc-"+vernum+"/build-rich.js");
 		include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
 		policy['build'] = 'rich';
+		initBase();
 	}else{
 		include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
 	}
@@ -663,6 +669,8 @@ function init(){
 		
 		research_way = excludeTech(research_way, tech['cyborgs']);
 		
+		research_way = excludeTech(research_way, tech['tracks']);
+		
 		if(!release)research_way.forEach(function(e){debugMsg(e, 'research_way');});
 		
 	}
@@ -717,24 +725,6 @@ function welcome(){
 //Старт
 function letsRockThisFxxxingWorld(init){
 	debugMsg("Старт/Run", 'init');
-
-	//Первых строителей в группу
-	checkBase();
-	_builders = enumDroid(me,DROID_CONSTRUCT);
-	_builders.forEach(function(e){groupBuilders(e);});
-	
-	if(policy['build'] == 'rich' && _builders.length > 4){
-		groupAddDroid(buildersHunters, _builders[0]);
-		debugMsg('Builder --> Hunter +1', 'group');
-	}
-	
-	//Получаем свои координаты
-	if(_builders.length != 0) base = {x:_builders[0].x, y:_builders[0].y};
-	
-	delete _builders;
-	
-	debugMsg("Тут будет моя база: ("+base.x+","+base.y+")", 'init');
-	
 	
 	//Первых военных в группу
 	enumDroid(me,DROID_CYBORG).forEach(function(e){groupAddDroid(armyCyborgs, e);});
@@ -813,6 +803,28 @@ function letsRockThisFxxxingWorld(init){
 		}
 		setTimer("checkProcess", 60000+me*100);
 	}
+}
+
+function initBase(){
+	//Первых строителей в группу
+	checkBase();
+	_builders = enumDroid(me,DROID_CONSTRUCT);
+	
+	//Получаем свои координаты
+	var _r = Math.floor(Math.random()*_builders.length);
+	if(_builders.length != 0) base = {x:_builders[_r].x, y:_builders[_r].y};
+	
+	_builders.forEach(function(e){groupBuilders(e);});
+
+	if(policy['build'] == 'rich' && _builders.length > 4){
+		groupAddDroid(buildersHunters, _builders[0]);
+		debugMsg('Builder --> Hunter +1', 'group');
+	}
+
+
+	delete _builders;
+	debugMsg("Тут будет моя база: ("+base.x+","+base.y+")", 'init');
+	if(!release)mark(base.x,base.y);
 }
 
 function debugMsg(msg,level){

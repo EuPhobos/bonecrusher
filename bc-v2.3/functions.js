@@ -542,7 +542,7 @@ function doResearch(){
 	for ( var l in labs ){
 		
 		if(policy['build'] != 'rich'){
-			if(countStruct('A0ResourceExtractor', me) < 8 && playerPower(me) < 1000 && _busy >= 3) break;
+			if(countStruct('A0ResourceExtractor', me) < 8 && playerPower(me) < 700 && _busy >= 3) break;
 			if(countStruct('A0ResourceExtractor', me) < 5 && playerPower(me) < 500 && _busy >= 2) break;
 			if(countStruct('A0ResourceExtractor', me) < 3 && playerPower(me) < 300 && _busy >= 1) break;
 		}
@@ -969,6 +969,7 @@ function isFullBase(player){
 }
 
 function mark(x,y){
+	if(version == "3.1") return;
 	removeBeacon(0);
 	addBeacon(x, y, 0);
 	hackMarkTiles();
@@ -1283,10 +1284,10 @@ function shuffle(a) {
 }
 
 function posRnd(pos, axis){
-	p=pos+Math.round(Math.random()*2-1);
+	var p=pos+Math.round(Math.random()*2-1);
 	if(p<1 || (axis=='x' && p >= mapWidth)) return pos;
 	if(p<1 || (axis=='y' && p >= mapHeight)) return pos;
-	
+	return p;
 }
 
 function secondTick(){

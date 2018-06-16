@@ -124,6 +124,7 @@ function eventObjectTransfer(gameObject, from) {
 					if(running == false){
 						base.x = gameObject.x;
 						base.y = gameObject.y;
+						queue("initBase", 500);
 						queue("letsRockThisFxxxingWorld", 1000);
 					}
 					
@@ -176,7 +177,7 @@ function eventStructureBuilt(structure, droid){
 				if(factory_ready.length == 2 && research_lab_ready.length == 1){
 					enumGroup(buildersMain).forEach(function(e,i){if(i!=0){groupAddDroid(buildersHunters, e);debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');}});
 				}
-				else if( (research_lab_ready.length == 2 || research_lab_ready.length == 3) && policy['build'] == 'rich'){
+				else if( ( ( factory_ready.length == 1 && research_lab_ready.length == 3) || research_lab_ready.length == 4 ) && policy['build'] == 'rich'){
 					var e = enumGroup(buildersMain)[0];
 					groupAddDroid(buildersHunters, e);
 					debugMsg("Res Rich FORCE "+i+" Builder --> Hunter +1", 'group');
@@ -189,7 +190,7 @@ function eventStructureBuilt(structure, droid){
 			factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 
 			if(groupSize(buildersMain) != 0){
-				if( factory_ready.length == 2  && policy['build'] == 'rich'){
+				if( ( factory_ready.length == 2 || factory_ready.length == 3) && policy['build'] == 'rich'){
 					var e = enumGroup(buildersMain)[0];
 					groupAddDroid(buildersHunters, e);
 					debugMsg("Fact Rich FORCE "+i+" Builder --> Hunter +1", 'group');
@@ -305,14 +306,15 @@ function eventAttacked(victim, attacker) {
 		//т.к. в богатых картах кол-во партизан всего 2, направляем всю армию к атакованным
 		if(policy['build'] == 'rich'){ targetRegular(attacker, victim);return;}
 		
-		//TODO
 		//Если атакуют огнемётные войска, атакуем ими ближайшего врага
 		if(version != "3.1" && getWeaponInfo(victim.weapons[0].name).impactClass == "HEAT"){
 			var enemies = enumRange(victim.x, victim.y, 3, ENEMIES).filter(function(e){if(e.type == DROID)return true; return false;});
 			if(enemies.length != 0){
 				enemies = sortByDistance(enemies, victim, 1);
 				orderDroidObj_p(victim, DORDER_ATTACK, enemies[0]);
+				return;
 			}
+			return;
 		}
 
 
@@ -406,14 +408,14 @@ function eventChat(sender, to, message) {
 			chat(sender, "VTOLs is mine now.");
 			break;
 		case "dbg":
-			debugMsg("DEBUG: avail_research", 'chat');
+			debugMsg("DEBUG: avail_research", 'dbg');
 			for(var i in avail_research){
-				debugMsg(avail_research[i].name, 'chat');
+				debugMsg(avail_research[i].name, 'dbg');
 			}
-			debugMsg("<==-==>", 'chat');
-			debugMsg("DEBUG: research_way", 'chat');
+			debugMsg("<==-==>", 'dbg');
+			debugMsg("DEBUG: research_way", 'dbg');
 			for(var i in research_way){
-				debugMsg(research_way[i], 'chat');
+				debugMsg(research_way[i], 'dbg');
 			}
 			break;
 	}

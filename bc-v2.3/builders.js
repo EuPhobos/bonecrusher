@@ -8,15 +8,16 @@ function groupBuilders(droid){
 	//распределяем строителей по группам
 	if ( droid ) {
 		
-		if (distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) > base_range && buildersMainLen >= 2 && policy['build'] != 'rich'){ groupAddDroid(buildersHunters, droid); debugMsg("buildersHunters +1",'group'); }
-		
+		if(policy['build'] != 'rich' && earlyGame && distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) < base_range && buildersMainLen < 2) { groupAddDroid(buildersMain, droid); debugMsg("buildersMain +1",'group'); }
+		else if(policy['build'] != 'rich' && earlyGame && distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) > base_range){ groupAddDroid(buildersHunters, droid); debugMsg("...buildersHunters +1",'group'); }
+		else if( (distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) > base_range || (earlyGame && buildersHuntersLen < 2)) && buildersMainLen >= 2 && policy['build'] != 'rich'){ groupAddDroid(buildersHunters, droid); debugMsg("....buildersHunters +1",'group'); }
 		//Если основных строителей меньше минимальных, то добавляем новичка в группу основных строителей
 		else if ( buildersMainLen < minBuilders || factory_ready.length == 0) { groupAddDroid(buildersMain, droid); debugMsg("buildersMain +1", 'group'); } 
 		//Если нет строителей-охотников, то добавляем к ним новичка
-		else if (buildersHuntersLen < 1) { groupAddDroid(buildersHunters, droid);  debugMsg("buildersHunters +1",'group');}
+		else if (buildersHuntersLen < 1) { groupAddDroid(buildersHunters, droid);  debugMsg(".buildersHunters +1",'group');}
 		//Держим такой баланс в группе: строителей на 1 больше чем строителей-охотников
 		else if (buildersMainLen < (buildersHuntersLen+1) && buildersMainLen < 5) { groupAddDroid(buildersMain, droid); debugMsg("buildersMain +1",'group'); } 
-		else { groupAddDroid(buildersHunters, droid); debugMsg("buildersHunters +1",'group'); }
+		else { groupAddDroid(buildersHunters, droid); debugMsg("..buildersHunters +1",'group'); }
 	}
 }
 
@@ -285,7 +286,7 @@ function buildersOrder(order,target) {
 function rigDefence(obj, nearbase){
 	if ( typeof nearbase === "undefined" ) nearbase = false;
 
-	if(playerPower(me) < 700){
+	if( (playerPower(me) < 700 && nf['policy'] != 'island' ) || playerPower(me) < 1300){
 //		debugMsg('exit low power not rich', 'defence');
 		return false;
 	}

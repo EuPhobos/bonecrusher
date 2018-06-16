@@ -1,7 +1,7 @@
 
 
 function mainBuilders(rotation){
-	debugMsg('mainBuilders()', 'builders_advanced');
+//	debugMsg('mainBuilders()', 'builders_advanced');
 	
 	var helped=0;
 	var module=0;
@@ -12,20 +12,23 @@ function mainBuilders(rotation){
 	var rnd = Math.round(Math.random());
 	for (var i=0;i<_b.length;++i){
 		
-		debugMsg('---', 'builders');
+//		debugMsg('---', 'builders');
 		var obj = _b[i];
 		
 		if(builderBusy(obj) == true) {
-			debugMsg("+ Строитель занят "+i, 'builders');
+//			debugMsg("+ Строитель занят "+i, 'builders');
 //			return;
 			continue;
 		}
 		
-		debugMsg('oilHunt', 'builders');
-		if(resource_extractor_ready.length == 0 && power_gen_ready.length != 0 && oilHunt(obj, true)){debugMsg('+ oilHunt', 'builders');continue;}
+//		debugMsg('oilHunt', 'builders');
+		if(resource_extractor_ready.length == 0 && power_gen_ready.length != 0 && oilHunt(obj, true)){
+//			debugMsg('+ oilHunt', 'builders');
+			continue;
+		}
 
 		
-		debugMsg('helps', 'builders');
+//		debugMsg('helps', 'builders');
 		//ищем чего-бы достроить или починить
 		if(helped < 1){
 			var myBase = enumStruct(me);
@@ -39,7 +42,7 @@ function mainBuilders(rotation){
 			if(_h)continue;
 		}
 		
-		debugMsg('modules', 'builders');
+//		debugMsg('modules', 'builders');
 		//Модули на здания
 		var safe = getInfoNear(base.x,base.y,'safe',(base_range/2)).value;
 		var busy = false;
@@ -64,10 +67,13 @@ function mainBuilders(rotation){
 			break;
 		}
 		
-		debugMsg('1-rigDefence', 'builders');
-		if(!safe && policy['build'] != 'rich' && rigDefence(obj, true)){debugMsg('+ 1-rigDefence', 'builders');continue;}
+//		debugMsg('1-rigDefence', 'builders');
+		if(!safe && policy['build'] != 'rich' && rigDefence(obj, true)){
+//			debugMsg('+ 1-rigDefence', 'builders');
+			continue;
+		}
 		
-		debugMsg('policy build', 'builders');
+//		debugMsg('policy build', 'builders');
 		if(policy['build'] == 'cyborgs'){
 			if(research_lab_ready.length < 1) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			if(factory_ready.length == 0) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
@@ -87,10 +93,13 @@ function mainBuilders(rotation){
 			if(research_lab.length < 3) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			if(factory.length < 2) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(research_lab.length < 4) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
-			if(power_gen.length < 4) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;} }
+			if(power_gen.length < 2) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;} }
 			if(hq.length == 0) { if(builderBuild(obj, "A0CommandCentre", rotation)){build++; continue;} }
+			if(power_gen.length < 3) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;} }
+			if(factory.length < 3) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(power_gen.length < 5) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;} }
 			if(research_lab.length < 5) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+			if(factory.length < 4) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if( (power_gen.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
 			if(factory.length < 5) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(isStructureAvailable("A0CyborgFactory") && cyborg_factory.length < 5) { if(builderBuild(obj, "A0CyborgFactory", rotation)){build++; continue;} }
@@ -102,8 +111,9 @@ function mainBuilders(rotation){
 			if(playerPower(me) > 1000 && research_lab.length < 5) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			if(factory.length < 1) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if( (power_gen.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
-			if(factory.length < 2) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
-			if(research_lab.length < 5 && getResearch("R-Vehicle-Prop-Hover").done && playerPower(me) > 500) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+			if(research_lab.length < 5 && playerPower(me) > 800) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+			if(factory.length < 3 && playerPower(me) > 900) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
+			
 		}else {
 			//Завод, лаборатория,генератор,ком-центр! - вот залог хорошего пионера!
 			if(factory_ready.length < 1) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
@@ -125,53 +135,52 @@ function mainBuilders(rotation){
 			if(factory.length <= 5 && playerPower(me) > 1000) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 4 && playerPower(me) > 500) { if(builderBuild(obj, "A0CyborgFactory", rotation)){build++; continue;} }
 
+			//Генератор энергии
+			if(power_gen_ready.length <= 1) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;} }
+			if(research_lab_ready.length < 5 && playerPower(me) > 1500) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+
+			if(research_lab_ready.length < 3) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+			if(factory_ready.length <= 3 && playerPower(me) > 500) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
+			if(factory_ready.length <= 4 && playerPower(me) > 800) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
+			if(research_lab_ready.length < 4 && playerPower(me) > 400) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+			
 		}
 
-		debugMsg('other build', 'builders');
+//		debugMsg('other build', 'builders');
 		
-		//Генератор энергии
-		if(power_gen_ready.length <= 1) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;} }
-		if(research_lab_ready.length < 5 && playerPower(me) > 1500) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 
-		if(research_lab_ready.length < 3) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
-		if(factory_ready.length <= 3 && playerPower(me) > 500) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
-		if(factory_ready.length <= 4 && playerPower(me) > 800) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
-		if(research_lab_ready.length < 4 && playerPower(me) > 400) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 		
 		//Строим генераторы
 		if( (power_gen_ready.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
-		
-		
-		
-		if(research_lab.length < 5 && playerPower(me) > 500 && policy['build'] != 'island') { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
-		if(factory.length < 5 && playerPower(me) > 1200){ if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
+		if(research_lab.length < 5 && playerPower(me) > 1200) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+		if(factory.length < 5 && playerPower(me) > 1300){ if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 		if(isStructureAvailable("A0CyborgFactory") && cyborg_factory.length < 5 && playerPower(me) > 800 && nf['policy'] != 'island') { if(builderBuild(obj, "A0CyborgFactory", rotation)){build++; continue;} }
 		
 		
 		
 		
-		debugMsg('uplink build', 'builders');
+//		debugMsg('uplink build', 'builders');
 		if(isStructureAvailable("A0Sat-linkCentre") && uplink_center.length == 0) { if(builderBuild(obj, "A0Sat-linkCentre", rotation)){build++; continue;}  }
 		
 //		debugMsg(isStructureAvailable("A0VTolFactory1")+' '+vtol_factory_ready.length, "temp");
-		debugMsg('vtol build', 'builders');
+//		debugMsg('vtol build', 'builders');
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 1){
 //			debugMsg('Build VTOL factory', "temp");
 			if(builderBuild(obj, "A0VTolFactory1", rotation)){build++; continue;} 
 		}
 		if(isStructureAvailable("A0VtolPad") && rearm_pad_ready.length < Math.ceil(enumGroup(VTOLAttacker).length/2) && rearm_pad.length <= (maxPads-1)){ if(builderBuild(obj, "A0VtolPad", rotation)){build++; continue;} }
 		
-		debugMsg('aa build', 'builders');
+//		debugMsg('aa build', 'builders');
 		if(AA_build(obj, true)){build++; continue;}
 						
-		debugMsg('other vtol build', 'builders');
+//		debugMsg('other vtol build', 'builders');
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 2 && playerPower(me) > 500){ if(builderBuild(obj, "A0VTolFactory1", rotation)){build++; continue;} }
 		if(isStructureAvailable("A0VtolPad") && playerPower(me) > 2000 && rearm_pad.length < enumGroup(VTOLAttacker).length && rearm_pad.length <= maxPads){ if(builderBuild(obj, "A0VtolPad", rotation)){build++; continue;} }
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory.length < 5 && playerPower(me) > 1000){ if(builderBuild(obj, "A0VTolFactory1", rotation)){build++; continue;} }
 		
 //		debugMsg("Строителям нечего строить, 'builders');
 		
-		debugMsg('2 rigDefence', 'buildersbug');
+//		debugMsg('2 rigDefence', 'buildersbug');
 		if((policy['build'] != 'rich' || isFullBase(me)) && rigDefence(obj)){
 //			debugMsg('Главные стоят защиту', 'builders');
 			continue;
@@ -180,12 +189,12 @@ function mainBuilders(rotation){
 //			debugMsg('Главные не строят защиту: '+(policy['build'] != 'rich')+' '+isFullBase(me)+' '+rigDef, 'builders');
 //		}
 		
-		debugMsg('oilHunt', 'builders');
+//		debugMsg('oilHunt', 'builders');
 		if(oilHunt(obj, true)) continue;
 
 		//Если свободны, и далеко от базы - отправляем домой
 //		if(distBetweenTwoPoints_p(base.x,base.y,obj.x,obj.y) > 10 && !builderBusy(obj)) { orderDroidLoc_p(obj,DORDER_MOVE,base.x,base.y); continue; }
-		debugMsg("Строители бездельничают "+iter, 'builders');
+//		debugMsg("Строители бездельничают "+iter, 'builders');
 //		debugMsg(distBetweenTwoPoints_p(base.x,base.y,obj.x,obj.y)+'<=2 && '+groupSize(buildersHunters)+'<5 && '+getInfoNear(base.x,base.y,'safe',base_range).value+' && ( ( '+policy['build']+'==cyborgs && '+cyborg_factory_ready.length+'>2 ) || '+policy['build']+'!=cyborgs ) && '+policy['build']+'!=rich','buildersbug');
 //		debugMsg(distBetweenTwoPoints_p(base.x,base.y,obj.x,obj.y)+'>2 && '+unitIdle(obj),'buildersbug');
 		if(distBetweenTwoPoints_p(base.x,base.y,obj.x,obj.y) <= 2 && groupSize(buildersHunters) < 5 && groupSize(buildersMain) > 1 && getInfoNear(base.x,base.y,'safe',base_range).value 
@@ -199,7 +208,7 @@ function mainBuilders(rotation){
 			continue;
 		}
 		
-		debugMsg('===', 'builders');
+//		debugMsg('===', 'builders');
 
 	}
 }

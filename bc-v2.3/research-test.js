@@ -239,6 +239,7 @@ const research_orange = [
 "R-Defense-Tower01",
 "R-Sys-Engineering01",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
+"R-Wpn-MG5",					//Twin Assault Gun
 "R-Struc-PowerModuleMk1",
 "R-Struc-Power-Upgrade03a",
 "R-Wpn-Cannon1Mk1",		// #6  Light Cannon
@@ -515,9 +516,9 @@ function chooseResearch(){
 		_research = forceResearch;
 		setResearchWay(_research);
 	}else{
-		var _w=["None","Black","Green","Red","Yellow","Orange","Blue"];
+		var _w=["None","Black","Green","Red","Yellow","Orange","Blue","Rich"];
 	//	if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange"];
-		if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange","Yellow"];
+		if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange","Green","Orange","Green","Yellow","Rich"];
 		if(policy['build'] == 'rich') _w = ['Rich'];
 		var _r = 0;
 		debugMsg("bc_ally="+bc_ally.length, 'research');
