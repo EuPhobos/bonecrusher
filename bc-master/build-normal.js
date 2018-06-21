@@ -27,6 +27,8 @@ function mainBuilders(rotation){
 			continue;
 		}
 
+		if(power_gen.length == 0 && playerPower(me) < 700) {if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;}}
+		if( (power_gen_ready.length * 4) <= resource_extractor.length-4 && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
 		
 //		debugMsg('helps', 'builders');
 		//ищем чего-бы достроить или починить
@@ -42,6 +44,7 @@ function mainBuilders(rotation){
 			if(_h)continue;
 		}
 		
+		
 //		debugMsg('modules', 'builders');
 		//Модули на здания
 		var safe = getInfoNear(base.x,base.y,'safe',(base_range/2)).value;
@@ -54,7 +57,7 @@ function mainBuilders(rotation){
 				if(getResearch("R-Struc-Factory-Module").done) { factory.forEach( function(e){ if(e.modules < 1){ orderDroidBuild_p(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);module++;busy=true;}});}
 				if(getResearch("R-Struc-Factory-Module").done) { vtol_factory.forEach( function(e){ if(e.modules < 2){ orderDroidBuild_p(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);module++;busy=true;}});}
 //				if(getResearch("R-Struc-Factory-Module").done && ( getResearch("R-Vehicle-Metals02").done && playerPower(me) > 500 || policy['build'] == 'rich') ) { factory.forEach( function(e){ if(e.modules < 2){ orderDroidBuild_p(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);module++;busy=true;}});}
-				if(getResearch("R-Struc-Factory-Module").done && (playerPower(me) > 500 || policy['build'] == 'rich') ) { factory.forEach( function(e){ if(e.modules < 2){ orderDroidBuild_p(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);module++;busy=true;}});}
+				if(!earlyGame && getResearch("R-Struc-Factory-Module").done && (playerPower(me) > 500 || policy['build'] == 'rich') ) { factory.forEach( function(e){ if(e.modules < 2){ orderDroidBuild_p(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y);module++;busy=true;}});}
 			}
 		}
 		if(busy) continue;
@@ -72,6 +75,9 @@ function mainBuilders(rotation){
 //			debugMsg('+ 1-rigDefence', 'builders');
 			continue;
 		}
+		
+		
+		
 		
 //		debugMsg('policy build', 'builders');
 		if(policy['build'] == 'cyborgs'){
