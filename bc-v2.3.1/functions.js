@@ -633,8 +633,12 @@ function checkProcess(){
 	if(!running)return;
 	if(Math.floor(gameTime / 1000) < 300) return;
 	
+	if(playerLoose(me)){
+		gameStop("loose");
+	}
+	
 	for ( plally in bc_ally ){
-		if(bc_ally[plally] == me) return;
+		if(bc_ally[plally] == me) continue;
 
 		if(getInfoNear(base.x,base.y,'safe',base_range).value){
 			
@@ -664,10 +668,6 @@ function checkProcess(){
 				}
 			}
 		}
-	}
-	
-	if(playerLoose(me)){
-		gameStop("loose");
 	}
 }
 

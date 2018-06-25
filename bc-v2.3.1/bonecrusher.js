@@ -1,8 +1,8 @@
-const vernum    = "master";
-const verdate   = "xx.06.2018";
+const vernum    = "v2.3.1";
+const verdate   = "25.06.2018";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
-const release	= false;
+const release	= true;
 
 //var forceResearch = "Yellow";
 
@@ -39,6 +39,11 @@ const release	= false;
 
 
 ///////\\\\\\\
+//v2.3.1 Changes
+//		Исправил грубую ошибку, которую допустил перед релизом =(
+//		ошибка отменяла важный алгоритм коммандной игры нескольких BoneCrusher AI
+//		Теперь может играть на картах T2/T3
+
 //v2.3 Changes
 //		Исправлены ошибки с производством киборгов в версиях игры выше чем 3.2.3 (master)
 //		Теперь знает о том, есть ли среди союзников ИИ BoneCrusher, и если есть, включаются дополнительные алгоритмы
@@ -153,7 +158,7 @@ var debugLevels = new Array('dbg', 'error', 'init', 'end');
 //var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'group', 'production', 'performance', 'donate');
 //var debugLevels = new Array('error', 'init', 'stats', 'performance', 'ally', 'army', 'research', 'mark', 'defence');
 //var debugLevels = new Array('error', 'init', 'stats', 'builders');
-var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap', 'group', 'template', 'performance', 'army', 'builders');
+//var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap', 'group', 'template', 'performance', 'army', 'builders');
 
 
 var debugName;
