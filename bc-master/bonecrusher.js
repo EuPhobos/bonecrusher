@@ -1,8 +1,8 @@
-const vernum    = "2.4";
-const verdate   = "05.07.2018";
+const vernum    = "master";
+const verdate   = "xx.07.2018";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
-const release	= true;
+const release	= false;
 
 //var forceResearch = "Yellow";
 
@@ -167,7 +167,7 @@ var debugLevels = new Array('dbg', 'error', 'init', 'end');
 //var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'group', 'production', 'performance', 'donate');
 //var debugLevels = new Array('error', 'init', 'stats', 'performance', 'ally', 'army', 'research', 'mark', 'defence');
 //var debugLevels = new Array('error', 'init', 'stats', 'builders');
-//var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap', 'group', 'template', 'performance', 'army', 'builders');
+var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap', 'group', 'template', 'performance', 'army', 'builders');
 
 
 var debugName;
@@ -343,9 +343,10 @@ var nastyFeatures=[];
 var nastyFeaturesLen;
 
 //Переназначаются в функции prepeareProduce() что бы не читерить.
-//var light_bodies=["Body3MBT","Body2SUP","Body4ABT","Body1REC"];
-//var medium_bodies=["Body7ABT","Body6SUPP","Body8MBT","Body5REC"];
-//var heavy_bodies=["Body13SUP","Body10MBT","Body9REC","Body12SUP","Body11ABT"];
+var light_bodies=["Body3MBT","Body2SUP","Body4ABT","Body1REC"];
+var medium_bodies=["Body7ABT","Body6SUPP","Body8MBT","Body5REC"];
+var heavy_bodies=["Body13SUP","Body10MBT","Body9REC","Body12SUP","Body11ABT"];
+/*
 var light_bodies=[
 "Body8MBT",  // Scorpion (жёлтое 2)
 "Body1REC"   // Viper (серое 1)
@@ -365,7 +366,7 @@ var heavy_bodies=[
 "Body9REC",  // Tiger (зелёное 3)
 "Body11ABT"  // Python (серое 3)
 ];
-
+*/
 var avail_cyborgs=[];
 
 var cyborgs=[

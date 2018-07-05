@@ -9,7 +9,7 @@ function prepeareProduce(){
 	var hq = enumStruct(me, HQ).filter(function (e){if(e.status == BUILT)return true;return false;});
 	if (hq.length != 0){
 		
-		/*
+		
 		//Составляем корпуса
 		light_bodies=[];
 		medium_bodies=[];
@@ -40,7 +40,7 @@ function prepeareProduce(){
 					
 			}
 		});
-		*/
+		
 		
 		/*
 		//Сортируем пушки по "крутизне", базируясь на research.points

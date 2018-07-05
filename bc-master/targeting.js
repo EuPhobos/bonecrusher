@@ -322,7 +322,7 @@ function targetCyborgs(){
 }
 
 
-var brave = 7;
+var brave = 3;
 
 //Направляем армию
 function pointRegularArmy(army){
@@ -334,7 +334,7 @@ function pointRegularArmy(army){
 	//Если есть точка сбора для армии
 	if(pointRegular){
 		//Ближайшие войска к точке сбора
-		var near = enumRange(pointRegular.x, pointRegular.y, 20, ALLIES).filter(function(obj){if(obj.type == DROID && (obj.droidType == DROID_WEAPON || obj.droidType == DROID_CYBORG))return true;return false;});
+		var near = enumRange(pointRegular.x, pointRegular.y, 20, ALLIES).filter(function(obj){if( ( obj.type == DROID && (obj.droidType == DROID_WEAPON || obj.droidType == DROID_CYBORG) ) || (obj.type == STRUCTURE && obj.stattype == DEFENSE))return true;return false;});
 //		var near = enumRange(pointRegular.x, pointRegular.y, 20, ALLIES).filter(function(obj){if(obj.group == army[0].group)return true;return false;});
 		
 		//Вражеские войска на нашей точке сбора
@@ -349,7 +349,7 @@ function pointRegularArmy(army){
 	//Если нет точки сбора
 	if(!pointRegular){
 		//Ближайшие войска к самому дальному от стартовой позиции (передовая армия)
-		var near = enumRange(army[0].x, army[0].y, 20, ALLIES).filter(function(obj){if(obj.type==DROID || (obj.type == STRUCTURE && obj.stattype == DEFENSE))return true;return false;});
+		var near = enumRange(army[0].x, army[0].y, 20, ALLIES).filter(function(obj){if( ( obj.type == DROID && (obj.droidType == DROID_WEAPON || obj.droidType == DROID_CYBORG) ) || (obj.type == STRUCTURE && obj.stattype == DEFENSE))return true;return false;});
 		
 		//Ближайшие враги к передовой армии
 		var enemy = enumRange(army[0].x, army[0].y, 40, ENEMIES, true).filter(function(obj){if( ( obj.type==DROID && !obj.isVTOL ) || (obj.type == STRUCTURE && obj.stattype == DEFENSE))return true; return false;});
