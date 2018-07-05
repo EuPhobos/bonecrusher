@@ -777,7 +777,7 @@ function filterNearAlly(obj){
 //		if ( playerLoose(p) ) continue; //Пропускаем проигравших
 		if ( playerSpectator(p) ) continue;
 		if ( distBetweenTwoPoints_p(base.x,base.y,startPositions[p].x,startPositions[p].y) < base_range ) continue; //Если союзник внутри радиуса нашей базы, вышки забираем
-		obj = obj.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,startPositions[p].x,startPositions[p].y) < (base_range/2) )return false; return true;})
+		obj = obj.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,startPositions[p].x,startPositions[p].y) < base_range )return false; return true;})
 	}
 	return obj;
 }
@@ -924,6 +924,19 @@ function getEnemyCloseBase(){
 		targ = targ.concat(enumStruct(scavengerPlayer, DROID_ANY, me));
 	}
 	return targ.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,base.x,base.y) < (base_range/2) && !isFixVTOL(e))return true; return false;});
+}
+
+function getOurDefences(){
+	var targ = [];
+	for ( a in ally ){
+		targ = targ.concat(enumStruct(a[i], DEFENSE).filter(function(e){if(e.status == 1)return true; return false;}));
+	}
+	targ = targ.concat(enumStruct(me, DEFENSE).filter(function(e){if(e.status == 1)return true; return false;}));
+	return targ;
+}
+
+function getNearFreeResources(pos){
+	return enumFeature(ALL_PLAYERS, "OilResource").filter(function(e){if(distBetweenTwoPoints_p(pos.x,pos.y,e.x,e.y) < base_range) return true; return false;});
 }
 
 //Возвращает булево, если база игрока имеет:

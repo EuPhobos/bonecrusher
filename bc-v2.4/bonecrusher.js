@@ -1,5 +1,5 @@
-const vernum    = "v2.3.1";
-const verdate   = "25.06.2018";
+const vernum    = "2.4";
+const verdate   = "05.07.2018";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 const release	= true;
@@ -39,6 +39,15 @@ const release	= true;
 
 
 ///////\\\\\\\
+//v2.4 Changes
+//		Исправлен неверный билд на уровене сложности INSANE
+//		На уровне сложности INSANE + High Oil более дорогой режим застройки обороны
+//		Мелкие улучшения в модуле стоителей
+//		Мелкие улучшения в путях исследований
+//		Мелкие улучшения в модуле наведения наземных войск для High Oil карт
+//		Мелкие улучшения в модуле наведения VTOL
+//		Строители разом строят по одной башни возле вражеской нефтевышки, вместо многих башен по одному строителю
+//
 //v2.3.1 Changes
 //		Исправил грубую ошибку, которую допустил перед релизом =(
 //		ошибка отменяла важный алгоритм коммандной игры нескольких BoneCrusher AI
@@ -202,7 +211,7 @@ var nfAlgorithm = false;
 //"RoundRobin" - пока не реализована..
 var researchStrategy = 'Strict'; //По умолчанию, можно изменить в файле настроек вынесенный за предел мода
 
-var base_range = 40; // В каких пределах работают основные строители (не охотники)
+var base_range = 20; // В каких пределах работают основные строители (не охотники)
 
 var buildersTimer = 25000;		//Триггер для заказа строителей (что бы не выходили пачкой сразу)
 var fixersTimer = 50000;		//Триггер для заказа рем.инженеров
@@ -334,9 +343,28 @@ var nastyFeatures=[];
 var nastyFeaturesLen;
 
 //Переназначаются в функции prepeareProduce() что бы не читерить.
-var light_bodies=["Body3MBT","Body2SUP","Body4ABT","Body1REC"];
-var medium_bodies=["Body7ABT","Body6SUPP","Body8MBT","Body5REC"];
-var heavy_bodies=["Body13SUP","Body10MBT","Body9REC","Body12SUP","Body11ABT"];
+//var light_bodies=["Body3MBT","Body2SUP","Body4ABT","Body1REC"];
+//var medium_bodies=["Body7ABT","Body6SUPP","Body8MBT","Body5REC"];
+//var heavy_bodies=["Body13SUP","Body10MBT","Body9REC","Body12SUP","Body11ABT"];
+var light_bodies=[
+"Body8MBT",  // Scorpion (жёлтое 2)
+"Body1REC"   // Viper (серое 1)
+//"Body4ABT"  // Bug (жёлтое 1)
+];
+var medium_bodies=[
+"Body12SUP", // Mantis (жёлтое 3)
+"Body7ABT",  // Retribution (чёрное 2)
+"Body6SUPP", // Panther (зелёное 2)
+"Body3MBT",  // Retaliation (чёрное 1)
+"Body2SUP",  // Leopard (зелёное 1)
+"Body5REC"   // Cobra (серое 2)
+];
+var heavy_bodies=[
+"Body13SUP", // Wyvern (красное 1)
+"Body10MBT", // Vengeance (чёрное 3)
+"Body9REC",  // Tiger (зелёное 3)
+"Body11ABT"  // Python (серое 3)
+];
 
 var avail_cyborgs=[];
 
@@ -520,7 +548,17 @@ function init(){
 	
 	delete _builders;
 
-	if(nearResources.length > 30){
+	if(ally.length == 1){
+		debugMsg("Имеется союзник" , 'init');
+	}
+	if(ally.length > 1){
+		debugMsg("Имеются союзники" , 'init');
+	}
+	if(ally.length != 0){
+		if(alliancesType == 2) debugMsg("Исследования общие", 'init');
+		if(alliancesType == 3) debugMsg("Исследования раздельные", 'init');
+	}
+	if(nearResources.length >= 24){
 		//TODO
 		//		debugMsg("Играем по тактике богатых карт.", 'init');
 		//include("multiplay/skirmish/bc-"+vernum+"/build-rich.js");
@@ -767,7 +805,9 @@ function letsRockThisFxxxingWorld(init){
 			if(nfAlgorithm)setTimer("nastyFeaturesClean", 35000+me*100);
 			setTimer("defenceQueue", 60000+me*100);
 			setTimer("targetVTOL", 56000+me*100); //Не раньше 30 сек.
-	
+			setTimer("targetRegular", 65000+me*100);
+
+			
 		} else if(difficulty == HARD){
 		
 			setTimer("targetPartisan", 5000+me*100);
@@ -786,6 +826,8 @@ function letsRockThisFxxxingWorld(init){
 		
 		} else if(difficulty == INSANE){
 		
+//			research_way.unshift(["R-Defense-MortarPit-Incenediary"]);
+			
 			setTimer("targetPartisan", 5000+me*100);
 			setTimer("buildersOrder", 5000+me*100);
 			setTimer("targetJammers", 5500+me*100);

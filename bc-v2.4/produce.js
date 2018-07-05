@@ -9,6 +9,7 @@ function prepeareProduce(){
 	var hq = enumStruct(me, HQ).filter(function (e){if(e.status == BUILT)return true;return false;});
 	if (hq.length != 0){
 		
+		/*
 		//Составляем корпуса
 		light_bodies=[];
 		medium_bodies=[];
@@ -39,7 +40,7 @@ function prepeareProduce(){
 					
 			}
 		});
-		
+		*/
 		
 		/*
 		//Сортируем пушки по "крутизне", базируясь на research.points
@@ -123,6 +124,14 @@ function produceDroids(){
 		var _prop = ['tracked01','HalfTrack','wheeled01'];
 		if(nf['policy']=='island') _prop = ['hover01'];
 		else if(nf['policy'] == 'both') _prop = ['hover01', 'tracked01', 'HalfTrack', 'wheeled01'];
+		
+		
+		if(earlyGame && getResearch("R-Sys-Sensor-Turret01").done){
+			
+			//SensorTurret1Mk1
+			var todo;
+		}
+		
 		//Строители
 		//Если строители не в лимите -И- база не подвергается нападению
 		//Если целей для охотников более 7 -И- денег более 750 -ИЛИ- (строитель всего один или ноль охотников), а денег более 150 -ИЛИ- вообще нет строителей

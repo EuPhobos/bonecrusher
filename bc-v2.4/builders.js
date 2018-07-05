@@ -8,7 +8,8 @@ function groupBuilders(droid){
 	//распределяем строителей по группам
 	if ( droid ) {
 		
-		if(policy['build'] != 'rich' && earlyGame && distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) < base_range && buildersMainLen < 2) { groupAddDroid(buildersMain, droid); debugMsg("buildersMain +1",'group'); }
+		if(!earlyGame && getNearFreeResources.length != 0 && buildersHuntersLen == 0) {groupAddDroid(buildersHunters, droid); debugMsg("+....buildersHunters +1",'group'); }
+		else if(policy['build'] != 'rich' && earlyGame && distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) < base_range && buildersMainLen < 2) { groupAddDroid(buildersMain, droid); debugMsg("buildersMain +1",'group'); }
 		else if(policy['build'] != 'rich' && earlyGame && distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) > base_range){ groupAddDroid(buildersHunters, droid); debugMsg("...buildersHunters +1",'group'); }
 		else if( (distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) > base_range || (earlyGame && buildersHuntersLen < 2)) && buildersMainLen >= 2 && policy['build'] != 'rich'){ groupAddDroid(buildersHunters, droid); debugMsg("....buildersHunters +1",'group'); }
 		//Если основных строителей меньше минимальных, то добавляем новичка в группу основных строителей
@@ -65,8 +66,8 @@ function checkBase(){
 }
 
 //Строим базу
-function builderBuild(droid, structure, rotation){
-	
+function builderBuild(droid, structure, rotation, position){
+	if(typeof position === 'undefined') position = false;
 	var struct;
 	switch(structure){
 		case "A0LightFactory":if(enumStruct(me,FACTORY).length >= maxFactories)return false;struct = factory; break;
@@ -90,23 +91,32 @@ function builderBuild(droid, structure, rotation){
 	
 	//Строим новое здание
 	if (isStructureAvailable(structure, me)){
-		var pos = pickStructLocation(droid,structure,base.x+1,base.y+1);
-		if (!!pos && distBetweenTwoPoints_p(pos.x,pos.y,base.x,base.y) < (base_range/2)) {
+		if(position) var _pos = position;
+		else var _pos = base;
+		var pos = pickStructLocation(droid,structure,_pos.x+1,_pos.y+1);
+		if (!!pos && (policy['build'] == 'rich' || base_range < 15 || distBetweenTwoPoints_p(pos.x,pos.y,base.x,base.y) < base_range)) {
+//		if (!!pos) {
 //			debugMsg("Строю: ("+pos.x+","+pos.y+") ["+structure+"]",3);
-			orderDroidBuild_p(droid, DORDER_BUILD, structure, pos.x, pos.y, rotation);
-			return true;
+			if(orderDroidBuild_p(droid, DORDER_BUILD, structure, pos.x, pos.y, rotation)){
+				debugMsg("droid:"+droid.id+", structure:"+structure+", pos:"+pos.x+'x'+pos.y+", ok", "builders");
+				return true;
+			}
+			else{
+				debugMsg("droid:"+droid.id+", structure:"+structure+", pos:"+pos.x+'x'+pos.y+", fail", "builders");
+				return false;
+			}
 		}else{
 			//Перевод базы на хрен знает что..
 			var _base = sortByDistance(getSeeResources(), base).filter(function(e){
 				if(distBetweenTwoPoints_p(e.x,e.y,base.x,base.y) > base_range && droidCanReach(droid, e.x,e.y) )return true;return false;
 			});
 			if(_base.length != 0){
-				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", меняем позицию базы с "+base.x+"x"+base.y+" на "+_base[0].x+"x"+_base[0].y+", dist="
+				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+pos.x+"x"+pos.y+" "+structure+", меняем позицию базы с "+base.x+"x"+base.y+" на "+_base[0].x+"x"+_base[0].y+", dist="
 				+distBetweenTwoPoints_p(base.x,base.y,_base[0].x,_base[0].y), 'builders');
 				if(version!="3.1" && !release) mark(_base[0].x,_base[0].y);
 				base = {x:_base[0].x,y:_base[0].y};
 			}else{
-//				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+structure+", останов.", 'builders');
+				debugMsg("WARNING: Не найдено подходящей площадки для постройки "+pos.x+"x"+pos.y+" "+structure+", останов.", 'builders');
 			}
 			return false;
 		}
@@ -335,15 +345,20 @@ function defenceQueue(){
 	var myRigs = [];
 	
 	if(policy['build'] == 'rich' ){
-
-		if(pointRegular){
-			myRigs = myRigs.concat(pointRegular);
-		}
-		if(targRegular){
-			myRigs = myRigs.concat(targRegular);
-		}
-		if(lastImpact){
-			myRigs = myRigs.concat(lastImpact);
+		
+		if(difficulty == INSANE){
+			myRigs = myRigs.concat(enumGroup(armyRegular).filter(function(e){if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) > (base_range/2))return true;return false;}));
+		}else{
+		
+			if(pointRegular){
+				myRigs = myRigs.concat(pointRegular);
+			}
+			if(targRegular){
+				myRigs = myRigs.concat(targRegular);
+			}
+			if(lastImpact){
+				myRigs = myRigs.concat(lastImpact);
+			}
 		}
 	}
 	else 
@@ -467,6 +482,17 @@ function oilHunt(obj, nearbase){
 					return true;
 				}else if(defence.length != 0 && builder_targets[i].type == STRUCTURE && builder_targets[i].stattype == RESOURCE_EXTRACTOR
 					&& builder_targets[i].player != me){
+					
+					//Проверяем, вдруг рядом другой строитель уже строит защитную башню
+					if(version != '3.1'){
+						var def = enumRange(builder_targets[i].x, builder_targets[i].y, 7, ALLIES)
+						.filter(function(e){if(e.type == STRUCTURE && e.stattype == DEFENSE && e.status == BEING_BUILT)return true; return false;});
+						if(def.length != 0){
+							orderDroidObj_p(obj, DORDER_HELPBUILD, def[0]);
+							return true;
+						}
+					}
+					
 					var toBuild = defence[Math.floor(Math.random()*Math.min(defence.length, 3))];
 					var pos = pickStructLocation(obj,toBuild,builder_targets[i].x+Math.round(Math.random()*2-1), builder_targets[i].y+Math.round(Math.random()*2-1));
 					if(!!pos && !builderBusy(obj) && (!getInfoNear(builder_targets[i].x,builder_targets[i].y,'defended').value || playerPower(me) > 500)){

@@ -10,11 +10,16 @@ function mainBuilders(rotation){
 	var _b = enumGroup(buildersMain);
 	//enumGroup(buildersMain).forEach( function(obj, iter){
 	var rnd = Math.round(Math.random());
-	for (var i=0;i<_b.length;++i){
-		
+	for (var i=0;i<_b.length;i++){
 //		debugMsg('---', 'builders');
 		var obj = _b[i];
-		
+		var pos = {x:base.x, y:base.y};
+/*
+
+		if(i==0) pos = {x:obj.x, y:obj.y};
+		if(i==2) pos = {x:obj.x, y:obj.y};
+		debugMsg("droid #"+i+": "+obj.id,  'builders');
+*/
 		if(builderBusy(obj) == true) {
 //			debugMsg("+ Строитель занят "+i, 'builders');
 //			return;
@@ -28,7 +33,7 @@ function mainBuilders(rotation){
 		}
 
 		if(power_gen.length == 0 && playerPower(me) < 700) {if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;}}
-		if( (power_gen_ready.length * 4) <= resource_extractor.length-4 && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
+//		if( !(earlyGame || policy['build'] == 'rich' ) && (power_gen_ready.length * 4) <= resource_extractor.length-4 && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
 		
 //		debugMsg('helps', 'builders');
 		//ищем чего-бы достроить или починить
@@ -36,8 +41,10 @@ function mainBuilders(rotation){
 			var myBase = enumStruct(me);
 			var _h=false;
 			for ( var b in myBase ){
-				if(distBetweenTwoPoints_p(base.x,base.y,myBase[b].x,myBase[b].y) > (base_range/2))continue;
+//				if(earlyGame && distBetweenTwoPoints_p(myBase[b].x, myBase[b].y, obj.x, obj.y) > 5){continue;}
+				if(distBetweenTwoPoints_p(base.x,base.y,myBase[b].x,myBase[b].y) > (base_range/2)){continue;}
 				if(myBase[b].status == BEING_BUILT && myBase[b].stattype == RESOURCE_EXTRACTOR){continue;}
+				if(myBase[b].status == BEING_BUILT && myBase[b].stattype == DEFENSE){continue;}
 				if(myBase[b].status == BEING_BUILT) {orderDroidObj_p(obj, DORDER_HELPBUILD, myBase[b]); helped++; _h=true; break;}
 				if(myBase[b].health < 100) {orderDroidObj_p(obj, DORDER_REPAIR, myBase[b]); helped++; _h=true; break;}
 			}
@@ -75,10 +82,10 @@ function mainBuilders(rotation){
 //			debugMsg('+ 1-rigDefence', 'builders');
 			continue;
 		}
-		
-		
-		
-		
+
+
+
+
 //		debugMsg('policy build', 'builders');
 		if(policy['build'] == 'cyborgs'){
 			if(research_lab_ready.length < 1) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
@@ -93,7 +100,11 @@ function mainBuilders(rotation){
 			if(factory_ready.length < 2 && playerPower(me) > 400) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			
 		}else if(policy['build'] == 'rich'){
+			
 			if(gameTime > 500000 && factory.length < 5) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
+			if(research_lab.length < 1) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+			if(ally.length >= 1 && alliancesType == 2 && factory.length < 1) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
+			if(ally.length >= 2 && alliancesType == 2 && factory.length < 2 && Math.round(Math.random()*2) == 0) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(research_lab.length < 2) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			if(factory.length < 1) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(research_lab.length < 3) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
@@ -123,10 +134,17 @@ function mainBuilders(rotation){
 		}else {
 			//Завод, лаборатория,генератор,ком-центр! - вот залог хорошего пионера!
 			if(factory_ready.length < 1) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
+			
+			if(ally.length >= 1 && alliancesType == 2 && research_lab_ready.length < 1) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+			if(ally.length >= 1 && alliancesType == 2 && factory_ready.length < 2) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
+			if(ally.length >= 1 && alliancesType == 2 && hq_ready.length == 0) { if(builderBuild(obj, "A0CommandCentre", rotation)){build++; continue;} }
+			
 			if(factory.length == 1 && research_lab.length == 0){
 				if(rnd){ if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 				else {if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			}
+			
+
 			
 			if(factory.length == 1){ if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 

@@ -190,7 +190,7 @@ function eventStructureBuilt(structure, droid){
 			factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 
 			if(groupSize(buildersMain) != 0){
-				if( ( factory_ready.length == 2 || factory_ready.length == 3) && policy['build'] == 'rich'){
+				if( ( (factory_ready.length == 1 && research_lab_ready.length == 1) || factory_ready.length == 2 || factory_ready.length == 3) && policy['build'] == 'rich'){
 					var e = enumGroup(buildersMain)[0];
 					groupAddDroid(buildersHunters, e);
 					debugMsg("Fact Rich FORCE "+i+" Builder --> Hunter +1", 'group');
@@ -291,6 +291,10 @@ function eventAttacked(victim, attacker) {
 	if(((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE)) && gameTime > eventsRun['targetRegular']){
 		eventsRun['targetRegular'] = gameTime + 5000;
 		lastImpact = {x:victim.x,y:victim.y};
+		if(version != '3.1' && distBetweenTwoPoints_p(lastImpact.x, lastImpact.y, base.x, base.y) < base_range){
+			var warriors = enumRange(victim.x, victim.y, 20, ALLIES).filter(function(e){if(e.player == me && e.type == DROID && e.droidType == DROID_WEAPON)return true; return false;});
+			warriors.forEach(function(e){orderDroidLoc_p(e, DORDER_SCOUT, lastImpact.x, lastImpact.y);});
+		}
 		targetRegular(attacker, victim);
 	}
 	

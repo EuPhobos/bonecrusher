@@ -55,6 +55,7 @@ const research_rich = [
 "R-Struc-Power-Upgrade01b",		// #24  Gas Turbine Generator Mk2
 "R-Vehicle-Metals01",		// #25  Composite Alloys
 "R-Cyborg-Metals02",		// #26  Cyborg Composite Alloys Mk2
+"R-Vehicle-Body08",
 "R-Struc-Power-Upgrade01c",		// #27  Gas Turbine Generator Mk3
 "R-Struc-Research-Upgrade05",		// #28  Dedicated Synaptic Link Data Analysis Mk2
 "R-Struc-Research-Upgrade06",		// #29  Dedicated Synaptic Link Data Analysis Mk3
@@ -172,10 +173,10 @@ const research_green = [
 "R-Sys-ECM-Upgrade01",	//Глушилка
 "R-Wpn-MG-ROF03",				//Hyper Fire Chaingun Upgrade
 "R-Vehicle-Body11",		// #101  Heavy Body - Python
+"R-Wpn-MG5",					//Twin Assault Gun
 "R-Wpn-MG3Mk1",
 "R-Wpn-Cannon4AMk1",			//Hyper Velocity Cannon
 "R-Sys-ECM-Upgrade02",
-"R-Wpn-MG5",					//Twin Assault Gun
 "R-Cyborg-Metals04",            // #16  Cyborg Dense Composite Alloys
 "R-Vehicle-Metals03",           // #11  Composite Alloys Mk3
 'R-Defense-Emplacement-HPVcannon',
@@ -199,21 +200,22 @@ const research_green = [
 ];
 
 const research_yellow = [
+"R-Defense-Tower01",
 "R-Sys-Engineering01",
 "R-Struc-Research-Module",
 "R-Wpn-Flamer01Mk1",
 "R-Struc-PowerModuleMk1",
 "R-Struc-Power-Upgrade03a",
-"R-Defense-Tower01",
 "R-Defense-MortarPit-Incenediary",
 "R-Struc-Factory-Cyborg",
 "R-Wpn-Flamer-ROF03",
 "R-Struc-Research-Upgrade09",
-"R-Vehicle-Prop-Halftracks",    //Полугусенецы
+"R-Vehicle-Prop-Tracks",		// #98  Tracked Propulsion
 "R-Wpn-Plasmite-Flamer", // plasmite
 "R-Struc-Power-Upgrade03a",
 "R-Vehicle-Body05",                             //Средняя начальная броня
 "R-Cyborg-Metals09",
+"R-Wpn-MG-ROF03",
 "R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Sys-MobileRepairTurretHvy",
 "R-Vehicle-Body08",
@@ -240,6 +242,7 @@ const research_orange = [
 "R-Sys-Engineering01",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
 "R-Wpn-MG5",					//Twin Assault Gun
+"R-Vehicle-Body08",
 "R-Struc-PowerModuleMk1",
 "R-Struc-Power-Upgrade03a",
 "R-Wpn-Cannon1Mk1",		// #6  Light Cannon
@@ -251,6 +254,7 @@ const research_orange = [
 "R-Wpn-Plasmite-Flamer", // plasmite
 "R-Struc-Research-Upgrade09",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
+"R-Defense-WallTower-QuadRotAA",
 "R-Struc-VTOLPad",
 "R-Wpn-Bomb04",
 "R-Struc-Power-Upgrade03a",
@@ -518,8 +522,8 @@ function chooseResearch(){
 	}else{
 		var _w=["None","Black","Green","Red","Yellow","Orange","Blue","Rich"];
 	//	if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange"];
-		if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange","Green","Orange","Green","Yellow","Rich"];
-		if(policy['build'] == 'rich') _w = ['Rich'];
+		if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange","Yellow","Rich","Orange","Green","Green"];
+		if(bc_ally.length == 1 && policy['build'] == 'rich' && difficulty == MEDIUM) _w = ['Rich'];
 		var _r = 0;
 		debugMsg("bc_ally="+bc_ally.length, 'research');
 		if(bc_ally.length > 1){
