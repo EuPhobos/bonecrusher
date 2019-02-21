@@ -10,6 +10,7 @@ function mainBuilders(rotation){
 	var _b = enumGroup(buildersMain);
 	//enumGroup(buildersMain).forEach( function(obj, iter){
 	var rnd = Math.round(Math.random());
+	debugMsg("lab="+research_lab_ready.length+", fact="+factory_ready.length+", pow="+playerPower(me), 'builders');
 	for (var i=0;i<_b.length;i++){
 //		debugMsg('---', 'builders');
 		var obj = _b[i];
@@ -33,6 +34,7 @@ function mainBuilders(rotation){
 		}
 
 		if(power_gen.length == 0 && playerPower(me) < 700) {if(builderBuild(obj, "A0PowerGenerator", rotation)){build++; continue;}}
+		if(playerPower(me) < 300 && (power_gen_ready.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
 //		if( !(earlyGame || policy['build'] == 'rich' ) && (power_gen_ready.length * 4) <= resource_extractor.length-4 && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
 		
 //		debugMsg('helps', 'builders');
@@ -86,7 +88,7 @@ function mainBuilders(rotation){
 
 
 
-//		debugMsg('policy build', 'builders');
+		debugMsg('policy build', 'builders');
 		if(policy['build'] == 'cyborgs'){
 			if(research_lab_ready.length < 1) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			if(factory_ready.length == 0) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
@@ -168,9 +170,10 @@ function mainBuilders(rotation){
 			if(factory_ready.length <= 4 && playerPower(me) > 800) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(research_lab_ready.length < 4 && playerPower(me) > 400) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			
+			if(isStructureAvailable("A0CyborgFactory") && cyborg_factory.length < 1) { if(builderBuild(obj, "A0CyborgFactory", rotation)){build++; continue;} }
 		}
 
-//		debugMsg('other build', 'builders');
+		debugMsg('other build', 'builders');
 		
 
 		
@@ -183,11 +186,11 @@ function mainBuilders(rotation){
 		
 		
 		
-//		debugMsg('uplink build', 'builders');
+		debugMsg('uplink build', 'builders');
 		if(isStructureAvailable("A0Sat-linkCentre") && uplink_center.length == 0) { if(builderBuild(obj, "A0Sat-linkCentre", rotation)){build++; continue;}  }
 		
 //		debugMsg(isStructureAvailable("A0VTolFactory1")+' '+vtol_factory_ready.length, "temp");
-//		debugMsg('vtol build', 'builders');
+		debugMsg('vtol build', 'builders');
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory_ready.length < 1){
 //			debugMsg('Build VTOL factory', "temp");
 			if(builderBuild(obj, "A0VTolFactory1", rotation)){build++; continue;} 
@@ -202,7 +205,7 @@ function mainBuilders(rotation){
 		if(isStructureAvailable("A0VtolPad") && playerPower(me) > 2000 && rearm_pad.length < enumGroup(VTOLAttacker).length && rearm_pad.length <= maxPads){ if(builderBuild(obj, "A0VtolPad", rotation)){build++; continue;} }
 		if(isStructureAvailable("A0VTolFactory1") && vtol_factory.length < 5 && playerPower(me) > 1000){ if(builderBuild(obj, "A0VTolFactory1", rotation)){build++; continue;} }
 		
-//		debugMsg("Строителям нечего строить, 'builders');
+		debugMsg("Строителям нечего строить", 'builders');
 		
 //		debugMsg('2 rigDefence', 'buildersbug');
 		if((policy['build'] != 'rich' || isFullBase(me)) && rigDefence(obj)){
@@ -232,7 +235,7 @@ function mainBuilders(rotation){
 			continue;
 		}
 		
-//		debugMsg('===', 'builders');
+		debugMsg('===', 'builders');
 
 	}
 }

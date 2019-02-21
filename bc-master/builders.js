@@ -93,12 +93,17 @@ function builderBuild(droid, structure, rotation, position){
 	if (isStructureAvailable(structure, me)){
 		if(position) var _pos = position;
 		else var _pos = base;
+		debugMsg("droid:"+droid.id+", structure:"+structure+", pos:"+_pos.x+'x'+_pos.y+", try", "builders");
 		var pos = pickStructLocation(droid,structure,_pos.x+1,_pos.y+1);
 		if (!!pos && (policy['build'] == 'rich' || base_range < 15 || distBetweenTwoPoints_p(pos.x,pos.y,base.x,base.y) < (base_range+10))) {
 //		if (!!pos) {
 //			debugMsg("Строю: ("+pos.x+","+pos.y+") ["+structure+"]",3);
-			if(orderDroidBuild_p(droid, DORDER_BUILD, structure, pos.x, pos.y, rotation)){
-				debugMsg("droid:"+droid.id+", structure:"+structure+", pos:"+pos.x+'x'+pos.y+", ok", "builders");
+
+			var result = orderDroidBuild_p(droid, DORDER_BUILD, structure, pos.x, pos.y, rotation);
+			debugMsg("droid:"+droid.id+", structure:"+structure+", pos:"+pos.x+'x'+pos.y+", "+result, "builders");
+			if(version=="3.1") return true;
+			if(result){
+				debugMsg("droid:"+droid.id+", structure:"+structure+", pos:"+pos.x+'x'+pos.y+", ok", "builders");	
 				return true;
 			}
 			else{

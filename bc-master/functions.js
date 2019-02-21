@@ -326,7 +326,7 @@ function stats(){
 	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; Jammers="+groupSize(armyJammers)+"; targets="+builder_targets.length, 'stats');
 	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length+"; way="+rWay, 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
-	debugMsg("Base: "+base.x+"x"+base.y+", safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length+", full="+isFullBase(me), 'stats');
+	debugMsg("Base: "+base.x+"x"+base.y+", r="+base_range+", safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length+", full="+isFullBase(me), 'stats');
 	debugMsg("Bodies: light="+light_bodies.length+"; medium="+medium_bodies.length+"; heavy="+heavy_bodies.length, 'stats');
 	debugMsg("Misc: enemyDist="+enemyDist+"; nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen+"; barrels="+enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.player == 99)return true;return false;}).length
 		+"; known defence="+defence.length+"; known AA="+AA_defence.length+"; AA_queue="+AA_queue.length, 'stats');

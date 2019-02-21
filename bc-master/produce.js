@@ -159,10 +159,10 @@ function produceDroids(){
 		}
 //		return;
 		
-		if(version != '3.1'){
+		if(!(version == '3.1' || version.substr(0,3) == '3.3')){
 			debugMsg('ver3.2='+(version == '3.1')+', R-Sys-ECM-Upgrade01.done='+getResearch('R-Sys-ECM-Upgrade01').done+', base_safe='+getInfoNear(base.x,base.y,'safe',base_range).value+',  need_jam='+(groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers)+', jam_in_prod='+inProduce('jammer'), 'triggers');
 		}
-		if (version != '3.1' && getResearch('R-Sys-ECM-Upgrade01').done && getInfoNear(base.x,base.y,'safe',base_range).value && (groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers) && inProduce('jammer') == 0){
+		if (!(version == '3.1' || version.substr(0,3) == '3.3') && getResearch('R-Sys-ECM-Upgrade01').done && getInfoNear(base.x,base.y,'safe',base_range).value && (groupSize(armyJammers) == 0 || groupSize(armyJammers) < maxJammers) && inProduce('jammer') == 0){
 			var _jammer = "ECM1TurretMk1";
 			produceTrigger[droid_factories[0].id] = 'jammer';
 			debugMsg("ADD jammer "+droid_factories[0].id, 'triggers');

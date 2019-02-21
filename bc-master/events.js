@@ -1,4 +1,4 @@
-function eventResearched(research, structure) {
+function eventResearched(research, structure, player) {
 	
 	if (gameTime < 1000) return;
 	
@@ -148,7 +148,7 @@ function eventObjectTransfer(gameObject, from) {
 
 //Срабатывает при завершении строительства здания
 function eventStructureBuilt(structure, droid){
-	
+
 	/*
 	if(policy['build'] == 'rich'){
 		var _b = enumGroup(buildersMain)[0];

@@ -39,6 +39,10 @@ const release	= false;
 
 
 ///////\\\\\\\
+//v2.5
+//		Вновь работает в 3.1.5
+//		Работает в 3.3.0-beta1
+//		Мелкие улучшения
 //v2.4 Changes
 //		Исправлен неверный билд на уровене сложности INSANE
 //		На уровне сложности INSANE + High Oil более дорогой режим застройки обороны
@@ -167,7 +171,8 @@ var debugLevels = new Array('dbg', 'error', 'init', 'end');
 //var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'group', 'production', 'performance', 'donate');
 //var debugLevels = new Array('error', 'init', 'stats', 'performance', 'ally', 'army', 'research', 'mark', 'defence');
 //var debugLevels = new Array('error', 'init', 'stats', 'builders');
-var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap', 'group', 'template', 'performance', 'army', 'builders');
+//var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap', 'group', 'template', 'performance', 'army', 'builders');
+//var debugLevels = new Array('error', 'init', 'stats', 'production', 'builders');
 
 
 var debugName;
@@ -744,6 +749,10 @@ function init(){
 	
 	queue("welcome", 3000+me*(Math.floor(Math.random()*2000)+1500) );
 	if(version != "3.1") queue("checkAlly", 2000);
+	else{
+		debugMsg("wz=3.1, base_range=40", 'init');
+		base_range = 40;
+	}
 	
 	letsRockThisFxxxingWorld(true); // <-- Жжём плазмитом сцуко!	
 }

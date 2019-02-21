@@ -162,6 +162,7 @@ const research_rich = [
 const research_green = [
 "R-Wpn-MG1Mk1",
 "R-Sys-Engineering01",
+"R-Defense-Tower01",
 "R-Wpn-Cannon1Mk1",		// #6  Light Cannon
 "R-Struc-PowerModuleMk1",
 "R-Vehicle-Prop-Halftracks",    //Полугусенецы
@@ -203,6 +204,9 @@ const research_yellow = [
 "R-Defense-Tower01",
 "R-Sys-Engineering01",
 "R-Struc-Research-Module",
+"R-Vehicle-Prop-Halftracks",	//Полугусенецы
+"R-Wpn-Mortar01Lt",
+"R-Wpn-Mortar-Damage03",
 "R-Wpn-Flamer01Mk1",
 "R-Struc-PowerModuleMk1",
 "R-Struc-Power-Upgrade03a",
