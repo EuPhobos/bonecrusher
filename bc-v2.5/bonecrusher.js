@@ -1,8 +1,8 @@
-const vernum    = "master";
-const verdate   = "xx.07.2018";
+const vernum    = "v2.5";
+const verdate   = "21.02.2019";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
-const release	= false;
+const release	= true;
 
 //var forceResearch = "Yellow";
 
@@ -42,7 +42,11 @@ const release	= false;
 //v2.5
 //		Вновь работает в 3.1.5
 //		Работает в 3.3.0-beta1
-//		Мелкие улучшения
+//		Мелкие улучшения:
+//			Increased base construction radius
+//			Reduced bravery of the army on High Oil maps
+//			Roll back changes in the choice of body production
+//
 //v2.4 Changes
 //		Исправлен неверный билд на уровене сложности INSANE
 //		На уровне сложности INSANE + High Oil более дорогой режим застройки обороны

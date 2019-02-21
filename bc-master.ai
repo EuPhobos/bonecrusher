@@ -1,4 +1,0 @@
-[AI]
-name = "bc-master"
-js = bc-master/bonecrusher.js
-tip = "for AI vs AI competition"
