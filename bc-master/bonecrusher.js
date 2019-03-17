@@ -1,5 +1,5 @@
-const vernum    = "v2.5";
-const verdate   = "21.02.2019";
+const vernum    = "master"; //next v2.6
+const verdate   = "xx.02.2019";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 const release	= true;
