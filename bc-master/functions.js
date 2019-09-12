@@ -323,7 +323,7 @@ function stats(){
 	debugMsg("Power: "+playerPower(me)+"; rigs="+_gens+"/"+_rigs+"; free="+enumFeature(me, "OilResource").length+"/"+allResources.length+"; unknown="+getUnknownResources().length+"; enemy="+getEnemyResources().length, 'stats');
 	debugMsg("Hold: me="+Math.round(_rigs*100/allResources.length)+"%; enemy~="+Math.round((getEnemyResources().length+getUnknownResources().length)*100/allResources.length)+"%", 'stats');
 	debugMsg("Army: "+(groupSize(armyPartisans)+groupSize(armyRegular)+groupSize(armyCyborgs)+groupSize(VTOLAttacker))+"; Partisans="+groupSize(armyPartisans)+"; Regular="+groupSize(armyRegular)+"; Borgs="+groupSize(armyCyborgs)+"; VTOL="+groupSize(VTOLAttacker), 'stats');
-	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; Jammers="+groupSize(armyJammers)+"; targets="+builder_targets.length, 'stats');
+//	debugMsg("Units: Builders="+groupSize(buildersMain)+"; Hunters="+groupSize(buildersHunters)+"; Repair="+groupSize(armyFixers)+"; Jammers="+groupSize(armyJammers)+"; targets="+builder_targets.length, 'stats');
 	debugMsg("Research: avail="+avail_research.length+"; Ways="+research_way.length+"; way="+rWay, 'stats');
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
 	debugMsg("Base: "+base.x+"x"+base.y+", r="+base_range+", safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length+", full="+isFullBase(me), 'stats');
@@ -522,8 +522,9 @@ function doResearch(){
 
 	var _last_r = research_way[_r][research_way[_r].length-1];
 	var _way = getResearch(_last_r);
-
-	if ( _way.done == true ) {
+	if(!_way) return;
+		
+	if (_way.done == true ) {
 		//		debugMsg("doResearch: Путей "+research_way.length+", путь "+_r+" завершён", 'research_advance');
 		research_way.splice(_r,1);
 		//		debugMsg("doResearch: Осталось путей "+research_way.length, 'research_advance');

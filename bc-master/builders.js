@@ -95,7 +95,7 @@ function builderBuild(droid, structure, rotation, position){
 		else var _pos = base;
 		debugMsg("droid:"+droid.id+", structure:"+structure+", pos:"+_pos.x+'x'+_pos.y+", try", "builders");
 		var pos = pickStructLocation(droid,structure,_pos.x+1,_pos.y+1);
-		if (!!pos && (policy['build'] == 'rich' || base_range < 15 || distBetweenTwoPoints_p(pos.x,pos.y,base.x,base.y) < (base_range+10))) {
+		if (!!pos && !(typeof pos === 'undefined') && (policy['build'] == 'rich' || base_range < 15 || distBetweenTwoPoints_p(pos.x,pos.y,base.x,base.y) < (base_range+10))) {
 //		if (!!pos) {
 //			debugMsg("Строю: ("+pos.x+","+pos.y+") ["+structure+"]",3);
 
