@@ -1,191 +1,36 @@
-const vernum    = "master"; //next v2.6
-const verdate   = "xx.02.2019";
+const vernum    = "v2.6";
+const verdate   = "09.12.2019";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
-const release	= false;
-
-//var forceResearch = "Yellow";
-
-///////\\\\\\\
-
-// после релиза:
-//		Не нарываться на тюрельки за забором.
-//		3.2+ Поработать над чатом
-//		3.2+ поработать над улучшенной передачей юнитов союзнику
-//		NTW В командной игре армии кучкует по отдельности, сделать что бы сообща играли
-//		3.2+ Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
-//		NTW Авиация исследует кластерные бомбы и применяет их на вражескую армию
-//		Применять киборгов-строителей
-//		Исправить переезд базы
-//-----
-//	От части завершено или не надо:
-//		Динамические альянсы (пока невозможно, только с версией игры 3.3.0+)
-//		Очередной раз переписать функцию строителей, или оптимизировать(нет, только в новом боте).
-//		Вроде исправил баг со строительством мега радара (проверить)
-// --- 	eventDroidIdle глючный, иногда вообще не вызывается, сделать функцию слежки за этим(нет смысла, переход на циклы)
-// -++ 	Использовать поздние технологии, лазеры, рельсаганы и т.д.(от части есть, остальное только в новом боте)
-// --- 	Не правильно переносит базу! Переносит на передовую и проигрывает, исправить!(вроде сделал по лучше, понаблюдать)
-// --  	хилерам, не собираться слишком далеко от базы, к дальней пушке(хмм)
-// -+  	Если на базе уничтожены главные строители, но есть строитель-охотник, охотника в главные базу на строителя(вроде уже сделал и работает как надо)
-// --  	Если база под атакой, и нет военных - сменить местоположение базы(вроде уже сделал и работает как надо)
-// --  	Переделать функцию переезда базы, на самое крайнее здание от имеющейся базы(вроде уже сделал и работает как надо)
-// -   	Определять ближайшего врага и ближайшего союзника, для атаки/подмоги по приоритету(сделал немного по другому, вроде работает хорошо)
-// -   	Больше использовать getInfoNear() для прироста производительности(исправил эту функцию, работает хорошо)
-// -   	Сделать более подробную статистику, например очки исследований и затраты на них, кол-во произведённых едениц техники и т.д.(пока нет необходимости)
-
-
-
-
+const release	= true;
 
 
 ///////\\\\\\\
-//v2.5
-//		Вновь работает в 3.1.5
-//		Работает в 3.3.0-beta1
-//		Мелкие улучшения:
-//			Increased base construction radius
-//			Reduced bravery of the army on High Oil maps
-//			Roll back changes in the choice of body production
-//
-//v2.4 Changes
-//		Исправлен неверный билд на уровене сложности INSANE
-//		На уровне сложности INSANE + High Oil более дорогой режим застройки обороны
-//		Мелкие улучшения в модуле стоителей
-//		Мелкие улучшения в путях исследований
-//		Мелкие улучшения в модуле наведения наземных войск для High Oil карт
-//		Мелкие улучшения в модуле наведения VTOL
-//		Строители разом строят по одной башни возле вражеской нефтевышки, вместо многих башен по одному строителю
-//
-//v2.3.1 Changes
-//		Исправил грубую ошибку, которую допустил перед релизом =(
-//		ошибка отменяла важный алгоритм коммандной игры нескольких BoneCrusher AI
-//		Теперь может играть на картах T2/T3
 
-//v2.3 Changes
-//		Исправлены ошибки с производством киборгов в версиях игры выше чем 3.2.3 (master)
-//		Теперь знает о том, есть ли среди союзников ИИ BoneCrusher, и если есть, включаются дополнительные алгоритмы
-//		Если союзник ИИ BoneCrusher, помогать строителями и ресурсами по возможности
-//		Если союзники ИИ BoneCrusher на сложности выше среднего, распределять между всеми ИИ разные пути исследований
-//		master-ветка бота предупреждает о том, что это не релиз
-//		Определяет как близко стартовая база враза, и меняет алгоритм обороны/нападения
-//		Испрпалено: Не производит юнитов, если иследование более лучшего корпуса совершилось раньше строительства модулей на заводы
-//		Исправлен очень долгий лаг инициализация бота при старте игры на Т2/Т3 с полной базой
-//		Новая логика выбора пушек из имеющихся
-//		Теперь умеет играть при настройки старт с полной базой
-//		Доработана функция определения спектатора
-//		Несколько мелких подстроек и улчшуний логики в разных модулях бота
-//		Исправил ошибку в логике при которой бот практически не строил средние тела
-//		Теперь понимает, когда был кикнут, или когда был кикнут его союзник, останавливает циклы и логику
-//		Исправил очень редкую ошибку при выборе постройки обороны, если база находится на самом краю карты
-//		Улучшен модуль строителей
-//		улучшено строительство базы на островных картах
-//		Теперь верно строит базу на нестандартных картах, где стартовые рабочии разделены и разнесены по карте, таких как Jungle
+/* ---=== For buildIn AI ===---
 
+Clean code
++ Remove nastyFeatures algorythms
+- Remove most useless comments
++ Remove "if version"
 
-// Странная ошибка (вроде исправил):
-/*
-error   |05:26:57: [js_pickStructLocation:2218] Bad position (-1, 0)
-error   |05:26:57: [callFunction:195] 0 : rigDefence(obj = [object Object]) at multiplay/skirmish/bc-master/builders.js:300
-error   |05:26:57: [callFunction:195] 1 : buildersOrder() at multiplay/skirmish/bc-master/builders.js:252
-error   |05:26:57: [callFunction:195] 2 : <global>() at -1
-info    |05:26:57: [callFunction:198] Uncaught exception calling function "buildersOrder" at line 300: ReferenceError: startX >= 0 && startX < mapWidth && startY >= 0 && startY < mapHeight failed in js_pickStructLocation at line 2218
-info    |05:26:57: [callFunction:198] Assert in Warzone: qtscript.cpp:198 (false), last script event: 'N/A'
+*/
 
- * */
-
-
-//v2.2 Changes
-//		При нехватке денег, строит 3-й модуль на завод (нашёл и исправил косяк)
-//		При низком приросте доходов не запускать более 3-х лабораторий
-//		Исправлено: Не строил нефтевышки, если союзники на карте были очень близко к базе
-//		Переписана главная функция заполнения кэша-переменной (оптимизация)
-//		Теперь строитель определяет, если нефтевышка или бочка застроена хламом, и не тупит возле неё
-//		Отказаться от тяжёлого огнемёта, он слишком медленен (готово)
-//		Сделал что бы основная армия при сборе половины войск, начинала действовать.
-//		Добивание вражеских строителей
-//		Hunter-ы не помогают в строительстве базы, бездельничают в большом кол-ве внутри базы (исправлено)
-//		После выноса восстанавливает базу не верно (вроде исправил)
-//		Новая функция, убирающие одномерный массив исследований из многомерного массива исследований excludeTech()
-//		Исправлена редкая ошибка в events.js, попытка переместить в группу hunters из пустой группы buildersMain
-//		Исправлена редкая ошибка в builders.js, попытка отсортировать незанятые нефтевышки, при полностью захваченной карты
-//		На уровне сложности выше среднего:
-//			HARD+ не использовать слабые пути исследований
-//			HARD+ не использовать медленные билдордеры
-//			HARD+ дополнительная логика и микроконтроль для армии и строителей
-//			HARD+ строители строят больше защитных башен
-//		Игра на островных картах:
-//			Армия компонуется из ховеров.
-//			На островной карте не строит много колёсных строителей
-//			Не строит много лабораторий, если под контролем мало нефтевышек
-//			На островной карте другая логика перерспределения групп строителей
-//			Убираем все исследования связанные с киборгами через excludeTech()
-//		Особенности только для версии 3.2+
-//			v3.2+ замена строителей на ховеры
-//			v3.2+ Теперь может шарить юнитов с напарником по комманде
-//			v3.2+ Собирает бочки строителями, если их видно
-//		Особенности только для карт типа NTW
-//			Новый buildorder для NTW-типа карт
-//			Группа партизан имеет другую логику атаки и разведки
-//			HARD+ Оптимизированная логика строительства нефтевышек
-//			v3.2+ HARD+ Новая экспериментальная функция управления основной армией (кучкует, отступает, ожидает)
-//			Строители строят защитные башни в местах стычек армий
-//			Не сразу отстраивал заводы, при битве на своей базе и потере заводов.
-
-
-//v2.1 Changes
-//		Новый билдордер
-//		Дополнительные пушки
-//		Тяжёлые супер-киборги
-//		Uplink Satellite
-//		Переработал старовые функции
-//		Отделил строительную функцию от исследований
-//		Вынес настройки в шапку
-//		Исправил баг с двойным удалением таймера nastyFeaturesClean
-//		Возможность быстро отключить функцию nastyFeatures
-//		Новая функция проверки research_way и отсеивания неизвестных технологий
-//		Функция и настройка стратегии исследования research_primary
-//		Если база под атакой, не запускает новые исследования, производит военных (полная хрень, только ухудшает ситуацию, разрешил исследования если денег больше 300 под атакой)
-//		Не помогает в строительстве основной группой строителей, при возведении нефтекачалок
-//		Исправление, теперь строит тяжелого инженера с "краном", минуя лёгкий "паяльник", если исследование идёт таким путём
-//		Группе киборгов реагированние на нападение
-//		v3.2+ Управление глушилками
-//		Оптимизация и мониторингfunc
-//		Замечено зацикленное поведение гл. строителей, скорее всего они пересекают границу базы и срабатывает возврат на базу
-//		v3.2+ Огнемётные танки не отступают перед атакой
-//		Если мало ресурсов, не застраивать множеством оборонки вражеские нефтекачалки
-//		v3.2+ Работа в комманде, передача лишних денег игроку-союзнику, передача строителей
-//		Исправлена ошибка на поздней стадии игры приводящая к простою строителей
-//		Подсчёт общей армии в статистике был не верен
-//		Отдельная логика для игры на богатых картах "NTW"
-//		Строители стали тупить на базе, не захватывают вышки, разобрался
-//		строители застревают на базе, бьются в здания, исправить
-//		Создать несоклько путей развития
-
-
+///////\\\\\\\
+//v1.00 (Встроенная версия)
+//		Remove old game version dependency (if version)
+//		Remove old nfAlgorythm for game v3.1
+//		Slightly improve performance, set order limits
 
 
 //DEBUG: количество вывода, закоментить перед релизом
-var debugLevels = new Array('dbg', 'error', 'init', 'end');
-//var debugLevels = new Array("init", "builders", "army", "production", "base", "events", "stats", "research", "vtol");
+var debugLevels = new Array('error', 'init');
+
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
-//var debugLevels = new Array('error', 'init', 'end', 'stats', 'temp', 'targeting', 'vtol', 'builders', 'getInfoNear');
-//var debugLevels = new Array('error', 'init', 'end', 'stats', 'group', 'temp', 'builders', 'research', 'transfer', 'triggers', 'eventDroidBuilt');
-//var debugLevels = new Array('init', 'end', 'research', 'triggers', 'group', 'performance', 'events', 'stats', 'targeting', 'chat');
-//var debugLevels = new Array('init', 'end', 'error', 'triggers');
-//var debugLevels = new Array('init', 'end', 'error', 'chat', 'stats', 'research', 'group', 'production', 'performance', 'donate');
-//var debugLevels = new Array('error', 'init', 'stats', 'performance', 'ally', 'army', 'research', 'mark', 'defence');
-//var debugLevels = new Array('error', 'init', 'stats', 'builders');
-//var debugLevels = new Array('error', 'init', 'stats', 'research', 'ally', 'chat', 'weap', 'group', 'template', 'performance', 'army', 'builders');
-//var debugLevels = new Array('error', 'init', 'stats', 'production', 'builders');
+
 
 
 var debugName;
-
-
-
-
-
-
 
 
 //Массив конкретных технологий (tech.js)
@@ -201,7 +46,7 @@ include("multiplay/skirmish/bc-"+vernum+"/performance.js");
 include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
 include("multiplay/skirmish/bc-"+vernum+"/tech.js");
 include("multiplay/skirmish/bc-"+vernum+"/weapons.js");
-
+include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
 
 /*
  * 
@@ -210,8 +55,9 @@ include("multiplay/skirmish/bc-"+vernum+"/weapons.js");
  */
 
 
-//Алгоритм "nastyFeatures" - очистки деревьев, домов и прочего мусора рядом с ресурсами и базой (тяжёлый, не совсем корректный, но пусть будет, т.к. самоотключающийся)
-var nfAlgorithm = false;
+//Hard CPU-load algorythms
+var weakCPU = true;
+
 
 //Стратегия исследования пути
 //"Strict" - строгая, primary_way исcледуется один за другим
@@ -224,6 +70,7 @@ var base_range = 20; // В каких пределах работают осно
 
 var buildersTimer = 25000;		//Триггер для заказа строителей (что бы не выходили пачкой сразу)
 var fixersTimer = 50000;		//Триггер для заказа рем.инженеров
+var scannersTimer = 300000;		//Триггер для заказа сенсоров
 var checkRegularArmyTimer = 10000;
 var reactRegularArmyTimer = 10000;
 var reactWarriorsTimer = 5000;
@@ -240,6 +87,7 @@ var maxPartisans = 15;
 var minRegular = 10;
 var maxRegular = 50;
 var maxVTOL = 40;
+var minCyborgs = 20;
 var maxCyborgs = 30;
 var maxFixers = 5;
 var maxJammers = 2;
@@ -248,16 +96,41 @@ var maxScouts = 2;
 var maxExtractors = 40;
 var maxGenerators = 10;
 
-var fullBase = false;
+//Performance limits
+var ordersLimit = 200;
+
+//functions controller for performance purpose
+var func_buildersOrder = true;
+var func_buildersOrder_timer = 5000+me*100;
+var func_buildersOrder_trigger = 0;
+
 /*
  * 
  * -=-=-=-
  * 
  */
 
+// --- CONSTANTS --- \\
+
 //Отсутствующие переменные
-var DORDER_NONE = 0;
-var DORDER_RECOVER = 33;
+const DORDER_NONE = 0;
+const DORDER_RECOVER = 33;
+
+
+// --- TRIGGERS --- \\
+
+var fullBase = false;
+var earlyGame = true;
+var running = false;	//Работаем?
+
+var produceTrigger=[];
+
+var armyToPlayer = false;	//Передавать всю новую армию игроку №№
+var vtolToPlayer = false;
+
+
+// --- VARIABLES --- \\
+
 
 //Координаты всех ресурсов, свободных и занятых
 var allResources;
@@ -276,13 +149,10 @@ var rWay;
 //Массив всех приказов юнитам
 var _globalOrders = [];
 
-var earlyGame = true;
 
 var bc_ally=[]; //Союзные ИИ BoneCrusher-ы
 
 var avail_research = [];	//Массив возможных исследований, заполняется в функции doResearch();
-
-var running = false;	//Работаем?
 
 var scavengerPlayer = -1;
 
@@ -290,7 +160,6 @@ var buildersMain = newGroup();
 var buildersHunters = newGroup();
 
 var policy = [];
-policy['build'] = 'standart';
 
 //Фитчи, не совместимые с 3.1.5
 var nf = [];
@@ -308,6 +177,7 @@ var armySupport = newGroup();
 var armyCyborgs = newGroup();
 var armyFixers = newGroup();
 var armyJammers = newGroup();
+var armyScanners = newGroup();
 var armyScouts = newGroup();
 var partJammers = newGroup();
 var VTOLAttacker = newGroup();
@@ -317,10 +187,18 @@ var maxFactories, maxFactoriesCyb, maxFactoriesVTOL, maxLabs, maxPads;
 //Triggers
 var buildersTrigger = 0;
 var fixersTrigger = 0;
+var scannersTrigger = 0;
 var checkRegularArmyTrigger = 0;
 var reactRegularArmyTrigger = 0;
 var reactWarriorsTrigger = 0;
 var fullBaseTrigger = 0;
+
+var berserk = false;
+var seer = false;
+var credit = 0;
+
+var lassat_charged = false;
+
 
 var eventsRun=[];
 eventsRun['targetCyborgs'] = 0;
@@ -330,11 +208,8 @@ eventsRun['targetJammers'] = 0;
 eventsRun['targetFixers'] = 0;
 eventsRun['buildersOrder'] = 0;
 eventsRun['victimCyborgs'] = 0;
+eventsRun['targetSensors'] = 0;
 
-var produceTrigger=[];
-
-var armyToPlayer = false;	//Передавать всю новую армию игроку №№
-var vtolToPlayer = false;
 
 //Предустановки на исследование
 var research_way = []; //Главный путь развития, компануется далее, в функциях, в зависимости от уровня сложности и др. настроек
@@ -345,11 +220,6 @@ const research_synapse = ["R-Struc-Research-Upgrade09"];
 const research_power = ["R-Struc-Power-Upgrade03a"];
 const research_armor = ["R-Vehicle-Metals09"];
 const research_sensor = ["R-Sys-Sensor-UpLink"];
-
-//Переменная мусора
-//Всмысле мерзкие домики мешаются рядом с нефтяными вышками или бочками!
-var nastyFeatures=[];
-var nastyFeaturesLen;
 
 //Переназначаются в функции prepeareProduce() что бы не читерить.
 var light_bodies=["Body3MBT","Body2SUP","Body4ABT","Body1REC"];
@@ -378,8 +248,30 @@ var heavy_bodies=[
 */
 var avail_cyborgs=[];
 
+
+// Research, Body, Weapon
 var cyborgs=[
-//	["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"],			// легкий пулемёт
+//	["R-Wpn-MG1Mk1",			"CyborgLightBody",		"CyborgChaingun"],			// легкий пулемёт
+["R-Wpn-Flamer01Mk1",			"CyborgLightBody",		"CyborgFlamer01"],			// лёгкий огнемёт
+["R-Wpn-MG4",					"CyborgLightBody",		"CyborgRotMG"],				// тяжёлый пулемёт
+["R-Wpn-Flame2",				"CyborgLightBody",		"Cyb-Wpn-Thermite"],		// горячий напалм
+["R-Wpn-Cannon1Mk1",			"CyborgLightBody",		"CyborgCannon"],			// лёгкая пушка
+["R-Wpn-Mortar01Lt",			"CyborgLightBody",		"Cyb-Wpn-Grenade"],			// гранатамёт
+["R-Wpn-Rocket01-LtAT",			"CyborgLightBody",		"CyborgRocket"],			// Lancer
+["R-Wpn-Missile2A-T",			"CyborgLightBody",		"Cyb-Wpn-Atmiss"],			// scourge
+["R-Wpn-Laser01",				"CyborgLightBody",		"Cyb-Wpn-Laser"],			// Flashlight Gunner
+["R-Wpn-RailGun01",				"CyborgLightBody",		"Cyb-Wpn-Rail1"],			// Needle Gunner
+["R-Cyborg-Hvywpn-A-T",			"CyborgHeavyBody",		"Cyb-Hvywpn-A-T"],			//Super scourge
+["R-Cyborg-Hvywpn-Mcannon",		"CyborgHeavyBody",		"Cyb-Hvywpn-Mcannon"],		//Super Heavy Gunner
+["R-Cyborg-Hvywpn-HPV",			"CyborgHeavyBody",		"Cyb-Hvywpn-HPV"],			//Super Hyper velocity
+["R-Cyborg-Hvywpn-Acannon",		"CyborgHeavyBody",		"Cyb-Hvywpn-Acannon"],		//Super autocannon
+["R-Cyborg-Hvywpn-PulseLsr",	"CyborgHeavyBody",		"Cyb-Hvywpn-PulseLsr"],		//Super pulse laser
+["R-Cyborg-Hvywpn-TK",			"CyborgHeavyBody",		"Cyb-Hvywpn-TK"],			//Super tank killer
+["R-Cyborg-Hvywpn-RailGunner",	"CyborgHeavyBody",		"Cyb-Hvywpn-RailGunner"],	//Super Rail-Gunner
+
+];
+/*var cyborgs=[
+["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"],			// легкий пулемёт
 ["R-Wpn-Flamer01Mk1", "CyborgFlamerGrd", "CyborgFlamer01"],			// лёгкий огнемёт
 ["R-Wpn-MG4", "CybRotMgGrd","CyborgRotMG"],							// тяжёлый пулемёт
 ["R-Wpn-Flame2", "Cyb-Bod-Thermite", "Cyb-Wpn-Thermite"],			// горячий напалм
@@ -391,7 +283,7 @@ var cyborgs=[
 ["R-Cyborg-Hvywpn-HPV", "Cyb-Hvybod-HPV", "Cyb-Hvywpn-HPV"],			//Super Hyper velocity
 ["R-Cyborg-Hvywpn-Acannon", "Cyb-Hvybod-Acannon", "Cyb-Hvywpn-Acannon"],	//Super autocannon
 ["R-Cyborg-Hvywpn-PulseLsr", "Cyb-Hvybod-PulseLsr","Cyb-Hvywpn-PulseLsr"],	//super pulse laser
-];
+];*/
 
 
 var bodies=[
@@ -490,6 +382,14 @@ function init(){
 	initBase();
 	startPos = base;
 	
+	var technology = enumResearch();
+	if(technology.length) debugMsg("Доступных исследований: "+technology.length, "init");
+	else debugMsg("ВНИМАНИЕ: Нет доступных исследований", "init");
+	
+	debugMsg('Is Multiplayer: '+isMultiplayer(), 'init');
+	debugMsg('Is Human in Ally: '+isHumanAlly(), 'init');
+	debugMsg('Num Enemies: '+getNumEnemies(), 'init');
+	
 	//Получаем координаты всех ресурсов и занятых и свободных
 	allResources = enumFeature(ALL_PLAYERS, "OilResource");
 	var nearResources = allResources.filter(function(e){if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) < base_range) return true; return false;});
@@ -520,7 +420,7 @@ function init(){
 		else if(allianceExistsBetween(me,player)){
 			msg+=" мой союзник ";
 			ally.push(player);
-			if(version != "3.1" && (data.name == 'bc-master' || data.name.substr(0,11) == "BoneCrusher")){ msg+="BC!"; bc_ally.push(player);}
+			if(data.name == 'bc-master' || data.name.substr(0,11) == "BoneCrusher"){ msg+="BC!"; bc_ally.push(player);}
 			else{msg+=data.name;}
 		}
 		else{
@@ -556,7 +456,7 @@ function init(){
 		debugMsg(msg,"init");
 	});
 	
-	delete _builders;
+
 
 	if(ally.length == 1){
 		debugMsg("Имеется союзник" , 'init');
@@ -569,21 +469,18 @@ function init(){
 		if(alliancesType == 3) debugMsg("Исследования раздельные", 'init');
 	}
 	if(nearResources.length >= 24){
-		//TODO
-		//		debugMsg("Играем по тактике богатых карт.", 'init');
-		//include("multiplay/skirmish/bc-"+vernum+"/build-rich.js");
-		include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
 		policy['build'] = 'rich';
 		initBase();
 	}else{
-		include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
+		policy['build'] = 'standart';
 	}
 	
 	debugMsg("Policy build order = "+policy['build'], 'init');
+	debugMsg("nf Policy = "+nf['policy'], 'init');
 
 	
 	//Research way
-	if(Math.round(Math.random()*5) != 0) researchCustom = true;
+	if(Math.round(Math.random()*3) != 0) researchCustom = true;
 	if(difficulty == HARD || difficulty == INSANE) researchCustom = true;
 	if(researchCustom){
 		researchStrategy = 'Smudged';
@@ -596,7 +493,7 @@ function init(){
 		//fixResearchWay(research_mortar_flamer);
 		var _primary = fixResearchWay(research_primary);
 		if(_primary == false){
-			debugMsg('Внимание, не удалось проверить путь исследований!', 'error');
+			debugMsg('Cannot check research way', 'error');
 			debugMsg("initializing standart research_primary", 'init');
 			include("multiplay/skirmish/bc-"+vernum+"/research-normal.js");
 			researchCustom = false;
@@ -633,14 +530,15 @@ function init(){
 //			["R-Vehicle-Prop-Tracks"]
 		);
 		
-		cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);
+		if(technology.length)cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgLightBody", "CyborgChaingun"]);
 		
 		buildersTimer = 7000;
 		minBuilders = 10;
 		minPartisans = 1;
-		maxPartisans = 2;
+		maxPartisans = 4;
 		builderPts = 150;
 		maxRegular = 100;
+		scannersTimer = 120000
 	}
 	
 //	if(policy['build'] == 'cyborgs') cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);
@@ -701,7 +599,7 @@ function init(){
 	
 	if(nf['policy'] == 'island'){
 		debugMsg("Тактика игры: "+nf['policy'], 'init');
-		_msg='Change policy form: '+policy['build'];
+		var _msg='Change policy form: '+policy['build'];
 		if(policy['build'] != 'rich') policy['build'] = 'island';
 		debugMsg(_msg+' to '+policy['build'], 'init');
 		debugMsg('Change maxCyborgs='+maxCyborgs+' to 0', 'init');
@@ -730,58 +628,29 @@ function init(){
 	
 	if(!release) for ( var p = 0; p < maxPlayers; ++p ) {debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'temp');}
 	
-	var _trash = enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.damageable)return true;return false;});
-	nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
-		if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) < (base_range/2))return true;
-													   return false;
-	}));
-	allResources.forEach(function(r){
-		nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
-			if(distBetweenTwoPoints_p(r.x,r.y,e.x,e.y) < 7)return true;
-														   return false;
-		}));
-	});
-	nastyFeatures = removeDuplicates(nastyFeatures, 'id');
-	if (nastyFeatures.length != 0 )debugMsg("Желательно уничтожить мусор на карте: "+nastyFeatures.length,'init');
-	nastyFeaturesLen = nastyFeatures.length;
-	nastyFeatures = []; // Сброс, потому что без проверки по propulsionCanReach, переинициализируется в nastyFeaturesClean();
-	//nastyFeatures.forEach(function(e){debugMsg(e.id+" "+e.x+"x"+e.y+" "+e.name+" "+e.damageable+" "+e.player, 'init');});
-	
 	//Просто дебаг информация
 	var oilDrums = enumFeature(ALL_PLAYERS, "OilDrum");
 	debugMsg("На карте "+oilDrums.length+" бочек с нефтью", 'init');
 	
 	queue("welcome", 3000+me*(Math.floor(Math.random()*2000)+1500) );
-	if(version != "3.1") queue("checkAlly", 2000);
-	else{
-		debugMsg("wz=3.1, base_range=40", 'init');
-		base_range = 40;
-	}
-	
+	queue("checkAlly", 2000);
 	letsRockThisFxxxingWorld(true); // <-- Жжём плазмитом сцуко!	
 }
 
 function welcome(){
-
-	if(version != "3.1"){
-		
-		if(vernum == 'master'){
-			playerData.forEach( function(data, player) {
-				chat(player, ' from '+debugName+': '+chatting('dev'));
-			});
-		}
-		else{
-			playerData.forEach( function(data, player) {
-				chat(player, ' from '+debugName+': '+chatting('welcome'));
-			});
-		}
-	}
-
+	playerData.forEach( function(data, player) {
+		chat(player, ' from '+debugName+': '+chatting('welcome'));
+	});
 }
 
 //Старт
 function letsRockThisFxxxingWorld(init){
 	debugMsg("Старт/Run", 'init');
+	
+	include("multiplay/skirmish/bc-"+vernum+"/weap-init.js");
+	
+	//Remove chaingun and flamer cyborgs if better available
+	cyborgs = cyborgs.filter(function(e){if( (e[2] == 'CyborgChaingun' && getResearch('R-Wpn-MG4').done) || (e[2] == 'CyborgFlamer01' && getResearch('R-Wpn-Flame2').done) )return false;return true;});
 	
 	//Первых военных в группу
 	enumDroid(me,DROID_CYBORG).forEach(function(e){groupAddDroid(armyCyborgs, e);});
@@ -803,7 +672,7 @@ function letsRockThisFxxxingWorld(init){
 			setTimer("doResearch", 60000+me*100);
 			setTimer("defenceQueue", 60000+me*100);
 			setTimer("produceCyborgs", 25000+me*100);
-			setTimer("buildersOrder", 120000+me*100);
+//			setTimer("buildersOrder", 120000+me*100);
 			setTimer("targetVTOL", 120000+me*100); //Не раньше 30 сек.
 		
 	
@@ -812,21 +681,21 @@ function letsRockThisFxxxingWorld(init){
 			setTimer("produceDroids", 7000+me*100);
 			setTimer("produceVTOL", 8000+me*100);
 			setTimer("produceCyborgs", 9000+me*100);
-			if(policy['build'] == 'rich') setTimer("buildersOrder", 5000+me*100);
-			else setTimer("buildersOrder", 120000+me*100);
+//			if(policy['build'] == 'rich') setTimer("buildersOrder", 5000+me*100);
+//			else setTimer("buildersOrder", 120000+me*100);
 			setTimer("checkEventIdle", 30000+me*100);	//т.к. eventDroidIdle глючит, будем дополнительно отслежвать.
 			setTimer("doResearch", 30000+me*100);
-			if(nfAlgorithm)setTimer("nastyFeaturesClean", 35000+me*100);
 			setTimer("defenceQueue", 60000+me*100);
 			setTimer("targetVTOL", 56000+me*100); //Не раньше 30 сек.
 			setTimer("targetRegular", 65000+me*100);
 
+			if(policy['build'] == 'rich') func_buildersOrder_timer = 5000+me*100;
 			
 		} else if(difficulty == HARD){
 		
 			setTimer("targetPartisan", 5000+me*100);
-			setTimer("buildersOrder", 5000+me*100);
-			setTimer("targetJammers", 5500+me*100);
+//			setTimer("buildersOrder", 5000+me*100);
+//			setTimer("targetJammers", 5500+me*100);
 			setTimer("targetCyborgs", 7000+me*100);
 			setTimer("produceDroids", 7000+me*100);
 			setTimer("produceVTOL", 8000+me*100);
@@ -836,15 +705,19 @@ function letsRockThisFxxxingWorld(init){
 			setTimer("defenceQueue", 60000+me*100);
 			setTimer("targetRegular", 32000+me*100);
 			setTimer("targetVTOL", 56000+me*100); //Не раньше 30 сек.
-			if(nfAlgorithm)setTimer("nastyFeaturesClean", 35000+me*100);
+			
+			reactRegularArmyTimer = 5000;
+			checkRegularArmyTimer = 5000;
+			reactWarriorsTimer = 2000;
+			func_buildersOrder_timer = 5000+me*100;
 		
 		} else if(difficulty == INSANE){
 		
 //			research_way.unshift(["R-Defense-MortarPit-Incenediary"]);
 			
 			setTimer("targetPartisan", 5000+me*100);
-			setTimer("buildersOrder", 5000+me*100);
-			setTimer("targetJammers", 5500+me*100);
+//			setTimer("buildersOrder", 5000+me*100);
+//			setTimer("targetJammers", 5500+me*100);
 			setTimer("produceDroids", 6000+me*100);
 			setTimer("produceVTOL", 6500+me*100);
 			setTimer("produceCyborgs", 7000+me*100);
@@ -854,22 +727,47 @@ function letsRockThisFxxxingWorld(init){
 			setTimer("doResearch", 12000+me*100);
 			setTimer("defenceQueue", 30000+me*100);
 			setTimer("targetVTOL", 56000+me*100); //Не раньше 30 сек.
-			if(nfAlgorithm)setTimer("nastyFeaturesClean", 35000+me*100);
-		
+			
+			reactRegularArmyTimer = 5000;
+			checkRegularArmyTimer = 5000;
+			reactWarriorsTimer = 2000;
+			func_buildersOrder_timer = 5000+me*100;
+//Disable Cheats
+/*			
+			if(!isMultiplayer() && ( !isHumanAlly() || !release ) ){
+				berserk = true;
+				debugMsg('Berserk activated', 'init');
+				if(getNumEnemies() > 1){
+					debugMsg('Big army activated', 'init');
+					minPartisans = 20;
+					maxPartisans = 25;
+					minRegular = 30;
+					maxRegular = 70;
+					minCyborgs = 40;
+					maxCyborgs = 50;
+				}
+				if(getNumEnemies() > 2){
+					debugMsg('Seer activated', 'init');
+					seer = true;
+				}
+			}
+*/
+			
 		}
 	
 		if(!release){
 			setTimer("stats", 10000); // Отключить в релизе
-			setTimer("perfMonitor", 100000);
 		}
 		setTimer("checkProcess", 60000+me*100);
+		setTimer("perfMonitor", 5000);
+
 	}
 }
 
 function initBase(){
 	//Первых строителей в группу
 	checkBase();
-	_builders = enumDroid(me,DROID_CONSTRUCT);
+	var _builders = enumDroid(me,DROID_CONSTRUCT);
 	
 	//Получаем свои координаты
 	var _r = Math.floor(Math.random()*_builders.length);
@@ -883,7 +781,7 @@ function initBase(){
 	}
 
 
-	delete _builders;
+
 	debugMsg("Тут будет моя база: ("+base.x+","+base.y+")", 'init');
 	if(!release)mark(base.x,base.y);
 }
@@ -893,9 +791,24 @@ function debugMsg(msg,level){
 //	if (debugName == "Grey" ) return; //Временно
 	if(debugLevels.indexOf(level) == -1) return;
 	var timeMsg = Math.floor(gameTime / 1000);
-	debug("bc["+timeMsg+"]{"+debugName+"}("+level+"): "+msg);
+	debug(shortname+"["+timeMsg+"]{"+debugName+"}("+level+"): "+msg);
 }
 
 function eventStartLevel() {
 	queue("init", 1000);
+}
+
+function eventGameLoaded(){
+	queue("init", 1000);
+}
+
+function eventGameSaving(){
+	running = false;
+}
+
+function eventGameSaved(){
+	running = true;
+	playerData.forEach( function(data, player) {
+		chat(player, ' from '+debugName+': '+chatting('saved'));
+	});
 }

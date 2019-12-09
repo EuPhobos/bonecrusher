@@ -18,7 +18,7 @@ const research_blue = [
 "R-Struc-Research-Upgrade09",
 "R-Cyborg-Metals09",			//Кинетическая броня киборгов (финал)
 "R-Vehicle-Armor-Heat09",		//Vehicle Superdense Thermal Armor Mk3
-"R-Sys-ECM-Upgrade02",	//Глушилка
+//"R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Sys-Sensor-UpLink",
 "R-Cyborg-Hvywpn-A-T",
 "R-Sys-Autorepair-General",             //Автопочинка
@@ -84,7 +84,7 @@ const research_rich = [
 "R-Wpn-Flamer-Damage03",		// #52  High Temperature Flamer Gel Mk3
 "R-Wpn-Flamer-Damage04",		// #53  Superhot Flamer Gel
 "R-Wpn-Flame2",		// #54  Heavy Flamer - Inferno
-"R-Sys-ECM-Upgrade01",		// #55  Electronic Countermeasures
+//"R-Sys-ECM-Upgrade01",		// #55  Electronic Countermeasures
 "R-Struc-Factory-Upgrade01",		// #56  Automated Manufacturing
 "R-Wpn-MG-ROF01",		// #57  Chaingun Upgrade
 "R-Wpn-MG-ROF02",		// #58  Rapid Fire Chaingun
@@ -93,7 +93,7 @@ const research_rich = [
 "R-Vehicle-Body11",		// #61  Heavy Body - Python
 "R-Sys-Sensor-Upgrade02",		// #62  Sensor Upgrade Mk2
 "R-Sys-Sensor-Upgrade03",		// #63  Sensor Upgrade Mk3
-"R-Sys-ECM-Upgrade02",		// #64  Electronic Countermeasures Mk2
+//"R-Sys-ECM-Upgrade02",		// #64  Electronic Countermeasures Mk2
 "R-Wpn-MG4",		// #65  Assault Gun
 "R-Wpn-MG5",		// #66  Twin Assault Gun
 "R-Cyborg-Metals03",		// #67  Cyborg Composite Alloys Mk3
@@ -171,13 +171,13 @@ const research_green = [
 "R-Struc-Research-Upgrade09",
 "R-Sys-MobileRepairTurretHvy",
 "R-Sys-Autorepair-General",             //Автопочинка
-"R-Sys-ECM-Upgrade01",	//Глушилка
+//"R-Sys-ECM-Upgrade01",	//Глушилка
 "R-Wpn-MG-ROF03",				//Hyper Fire Chaingun Upgrade
 "R-Vehicle-Body11",		// #101  Heavy Body - Python
 "R-Wpn-MG5",					//Twin Assault Gun
 "R-Wpn-MG3Mk1",
 "R-Wpn-Cannon4AMk1",			//Hyper Velocity Cannon
-"R-Sys-ECM-Upgrade02",
+//"R-Sys-ECM-Upgrade02",
 "R-Cyborg-Metals04",            // #16  Cyborg Dense Composite Alloys
 "R-Vehicle-Metals03",           // #11  Composite Alloys Mk3
 'R-Defense-Emplacement-HPVcannon',
@@ -220,7 +220,7 @@ const research_yellow = [
 "R-Vehicle-Body05",                             //Средняя начальная броня
 "R-Cyborg-Metals09",
 "R-Wpn-MG-ROF03",
-"R-Sys-ECM-Upgrade02",	//Глушилка
+//"R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Sys-MobileRepairTurretHvy",
 "R-Vehicle-Body08",
 "R-Sys-Autorepair-General",             //Автопочинка
@@ -262,7 +262,7 @@ const research_orange = [
 "R-Struc-VTOLPad",
 "R-Wpn-Bomb04",
 "R-Struc-Power-Upgrade03a",
-"R-Sys-ECM-Upgrade02",	//Глушилка
+//"R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Vehicle-Body05",				//Средняя начальная броня
 "R-Cyborg-Metals09",
 "R-Wpn-Cannon6TwinAslt",		////Спаренная штурмовая пушка
@@ -312,7 +312,7 @@ const research_red = [
 "R-Sys-MobileRepairTurretHvy",
 "R-Vehicle-Metals09",			//Superdense Composite Alloys Mk3 (финал) 
 "R-Sys-Autorepair-General",		//Автопочинка
-"R-Sys-ECM-Upgrade02",	//Глушилка
+//"R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Wpn-MG5",					//Twin Assault Gun
 "R-Wpn-Rocket-Accuracy02",
 "R-Sys-MobileRepairTurretHvy",
@@ -374,7 +374,7 @@ const research_black = [
 "R-Wpn-Cannon-Damage04",		// #43  APFSDS Cannon Rounds
 "R-Wpn-Cannon-ROF01",		// #44  Cannon Autoloader
 "R-Wpn-Cannon5",		// #45  Assault Cannon
-"R-Sys-ECM-Upgrade02",	//Глушилка
+//"R-Sys-ECM-Upgrade02",	//Глушилка
 "R-Cyborg-Hvywpn-Acannon",		// #46  Super Auto-Cannon Cyborg
 "R-Struc-Factory-Upgrade01",		// #47  Automated Manufacturing
 "R-Struc-Factory-Upgrade04",		// #48  Robotic Manufacturing
@@ -519,12 +519,12 @@ const research_black = [
 ];
 
 function chooseResearch(){
-	var _research = debugName;
+//	var _research = debugName;
 	if(typeof forceResearch !== 'undefined'){
-		_research = forceResearch;
+		var _research = forceResearch;
 		setResearchWay(_research);
 	}else{
-		var _w=["None","Black","Green","Red","Yellow","Orange","Blue","Rich"];
+		var _w=["Black","Green","Red","Yellow","Orange","Blue","Rich"];
 	//	if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange"];
 		if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange","Yellow","Rich","Orange","Green","Green"];
 		if(bc_ally.length == 1 && policy['build'] == 'rich' && difficulty == MEDIUM) _w = ['Rich'];

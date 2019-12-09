@@ -1,6 +1,19 @@
+function eventStructureReady(structure) {
+	if(structure.player == me){
+		switch (structure.stattype) {
+			case LASSAT:
+				lassat_charged = true;
+				debugMsg('lassat charged','lassat');
+				playerData.forEach( function(data, player) {
+					chat(player, ' from '+debugName+': '+chatting('lassat_charged'));
+				});
+			break;
+		}
+	}
+} 
 function eventResearched(research, structure, player) {
 	
-	if (gameTime < 1000) return;
+	if (!running) return;
 	
 	debugMsg("Новая технология \""+research_name[research.name]+"\" ["+research.name+"]", 'research');
 	prepeareProduce();
@@ -9,8 +22,12 @@ function eventResearched(research, structure, player) {
 	if(research.name == 'R-Vehicle-Prop-Hover'){
 		minBuilders = 7;
 		buildersTimer = 5000;
-		if(version != "3.1") recycleBuilders();
+		recycleBuilders();
 	}
+
+	//Remove chaingun and flamer cyborgs if better available
+	if(research.name == 'R-Wpn-MG4'){cyborgs = cyborgs.filter(function(e){if(e[2] == 'CyborgChaingun')return false;return true;});}
+	if(research.name == 'R-Wpn-Flame2'){cyborgs = cyborgs.filter(function(e){if(e[2] == 'CyborgFlamer01')return false;return true;});}
 }
 
 //3.2+
@@ -20,6 +37,7 @@ function eventPlayerLeft(player) {
 	enemy = enemy.filter(function(p){if(p==player) return false; return true;});
 	if(player == me) gameStop('kick');
 }
+
 // Обязательно использовать
 function eventDroidIdle(droid) {
 	
@@ -54,6 +72,11 @@ function eventDroidIdle(droid) {
 		break;
 		case DROID_SENSOR:
 			// Ищем чего бы подсветить/разведать
+			if(gameTime > eventsRun['targetSensors']){
+				debugMsg("targetSensors", 'events');
+				eventsRun['targetSensors'] = gameTime + 5000;
+				targetSensors();
+			}
 		break;
 		case DROID_ECM:
 			if(gameTime > eventsRun['targetJammers']){
@@ -72,7 +95,18 @@ function eventDroidIdle(droid) {
 	}
 }
 
+//Я так понял, данный триггер больше не работает так как был задуман.
 function eventObjectSeen(sensor, gameObject) {
+	
+	debug(sensor.name+': '.gameObject.name, 'eventSeen');
+/*	
+	if(sensor.type == DROID && sensor.droidType == DROID_SENSOR && !allianceExistsBetween(me, gameObject.player)){
+		var sensors = enumGroup(armyScanners);
+		pointRegular = armyScanners[0];
+		debug(pointRegular.x+'x'+pointRegular.y);
+	}
+*/
+	
 	switch (gameObject.type) {
 		case STRUCTURE:
 		if (!allianceExistsBetween(me,gameObject.player)) {
@@ -110,6 +144,7 @@ function eventObjectTransfer(gameObject, from) {
 					groupArmy(gameObject);
 					break;
 				case DROID_CONSTRUCT:
+				case 10:
 					
 					if(groupSize(buildersMain) >= 2) groupAddDroid(buildersHunters, gameObject);
 					else { groupBuilders(gameObject); }
@@ -128,6 +163,10 @@ function eventObjectTransfer(gameObject, from) {
 						queue("letsRockThisFxxxingWorld", 1000);
 					}
 					
+					break;
+				case DROID_SENSOR:
+					groupAddDroid(armyScanners, droid);
+					targetSensors();
 					break;
 				case DROID_CYBORG:
 					groupArmy(gameObject);
@@ -158,8 +197,8 @@ function eventStructureBuilt(structure, droid){
 		}
 	}
 	*/
+	func_buildersOrder_trigger = 0;
 	buildersOrder();
-	
 	
 	switch (structure.stattype) {
 		case RESEARCH_LAB:
@@ -180,7 +219,6 @@ function eventStructureBuilt(structure, droid){
 				else if( ( ( factory_ready.length == 1 && research_lab_ready.length == 3) || research_lab_ready.length == 4 ) && policy['build'] == 'rich'){
 					var e = enumGroup(buildersMain)[0];
 					groupAddDroid(buildersHunters, e);
-					debugMsg("Res Rich FORCE "+i+" Builder --> Hunter +1", 'group');
 				}
 			}
 			
@@ -193,7 +231,6 @@ function eventStructureBuilt(structure, droid){
 				if( ( (factory_ready.length == 1 && research_lab_ready.length == 1) || factory_ready.length == 2 || factory_ready.length == 3) && policy['build'] == 'rich'){
 					var e = enumGroup(buildersMain)[0];
 					groupAddDroid(buildersHunters, e);
-					debugMsg("Fact Rich FORCE "+i+" Builder --> Hunter +1", 'group');
 				}
 				
 	//			if(policy['build'] != 'rich'){
@@ -236,7 +273,13 @@ function eventDroidBuilt(droid, structure) {
 			break;
 		case DROID_CONSTRUCT:
 			groupBuilders(droid);
-			queue("buildersOrder", 5000);
+			func_buildersOrder_trigger = 0;
+			queue("buildersOrder", 1000);
+			break;
+		case 10:
+			groupAddDroid(buildersMain, droid);
+			func_buildersOrder_trigger = 0;
+			queue("buildersOrder", 1000);
 			break;
 	}
 	
@@ -245,9 +288,14 @@ function eventDroidBuilt(droid, structure) {
 			if(droid.droidType == DROID_WEAPON){
 				if(checkDonate(droid)){return;}
 				else groupArmy(droid);
+				if(policy['build'] == 'rich') targetRegular();
 			}
 			if(droid.droidType == DROID_REPAIR){
 				groupArmy(droid);
+			}
+			if(droid.droidType == DROID_SENSOR){
+				groupAddDroid(armyScanners, droid);
+				targetSensors();
 			}
 //			if(droid.droidType == DROID_ECM) groupArmy(droid);
 			produceDroids();
@@ -262,7 +310,7 @@ function eventDroidBuilt(droid, structure) {
 //			targetCyborgs();
 			break;
 		case VTOL_FACTORY:
-			if(version != '3.1' && vtolToPlayer !== false){donateObject(droid, vtolToPlayer);}
+			if(vtolToPlayer !== false){donateObject(droid, vtolToPlayer);}
 			else{
 				orderDroidLoc_p(droid, 40, base.x, base.y);
 				groupAddDroid(VTOLAttacker, droid);
@@ -287,11 +335,13 @@ function eventAttacked(victim, attacker) {
 	//Если атака с самолёта рядом с базой, строим ПВО
 	if(isFixVTOL(attacker) && distBetweenTwoPoints_p(victim.x,victim.y,base.x,base.y) < base_range) AA_queue.push({x:victim.x,y:victim.y});
 	
+	var lastImpact;
+	
 	//Если атака по стратегическим точкам, направляем основную армию
 	if(((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE)) && gameTime > eventsRun['targetRegular']){
 		eventsRun['targetRegular'] = gameTime + 5000;
 		lastImpact = {x:victim.x,y:victim.y};
-		if(version != '3.1' && distBetweenTwoPoints_p(lastImpact.x, lastImpact.y, base.x, base.y) < base_range){
+		if(distBetweenTwoPoints_p(lastImpact.x, lastImpact.y, base.x, base.y) < base_range){
 			var warriors = enumRange(victim.x, victim.y, 20, ALLIES).filter(function(e){if(e.player == me && e.type == DROID && e.droidType == DROID_WEAPON)return true; return false;});
 			warriors.forEach(function(e){orderDroidLoc_p(e, DORDER_SCOUT, lastImpact.x, lastImpact.y);});
 		}
@@ -303,6 +353,20 @@ function eventAttacked(victim, attacker) {
 		orderDroidLoc_p(victim, DORDER_MOVE, base.x, base.y);
 	}
 	
+	if(victim.type == DROID && victim.droidType == DROID_SENSOR){
+		var point = enumDroid(me, DROID_WEAPON);
+		
+		//Отходим к союзникам, если союзная армия ближе
+		point = point.concat(getAllyArmy());
+		
+		if(point.length != 0){
+			point = sortByDistance(point, victim, 1);
+		} else point = base;
+		
+		orderDroidLoc_p(victim, DORDER_MOVE, point.x, point.y);
+		
+	}
+	
 	//Если атака по армии, отводим атакованного
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)){
 		lastImpact = {x:victim.x,y:victim.y};
@@ -311,7 +375,7 @@ function eventAttacked(victim, attacker) {
 		if(policy['build'] == 'rich'){ targetRegular(attacker, victim);return;}
 		
 		//Если атакуют огнемётные войска, атакуем ими ближайшего врага
-		if(version != "3.1" && getWeaponInfo(victim.weapons[0].name).impactClass == "HEAT"){
+		if(getWeaponInfo(victim.weapons[0].name).impactClass == "HEAT"){
 			var enemies = enumRange(victim.x, victim.y, 3, ENEMIES).filter(function(e){if(e.type == DROID)return true; return false;});
 			if(enemies.length != 0){
 				enemies = sortByDistance(enemies, victim, 1);
@@ -347,10 +411,32 @@ function eventDestroyed(obj){
 			debugMsg('DESTROYED: removed from '+obj.id+' '+rem, 'triggers');
 		}
 	}
+	
+	if(obj.type == STRUCTURE && (obj.player == me || obj.stattype == RESOURCE_EXTRACTOR) && isFullBase(me) ){
+		
+		//Возвращаем частоту функции
+		func_buildersOrder_timer = 5000+me*100;
+		func_buildersOrder_trigger = 0;
+		
+		buildersOrder();
+	}
+	
 }
 
 function eventChat(sender, to, message) {
-	debugMsg('from: '+sender+', to: '+to+', msg: '+message, 'chat')
+//	debugMsg('from: '+sender+', to: '+to+', msg: '+message, 'chat')
+	if(!release)
+	switch (message){
+		case "disable buildersOrder":
+			func_buildersOrder = false;
+			chat(sender, "buildersOrder() disabled");
+			break;
+		case "enable buildersOrder":
+			func_buildersOrder = true;
+			chat(sender, "buildersOrder() enabled");
+			break;
+	}
+	
 	if(sender != me)
 	if(allianceExistsBetween(me, sender))
 	if(message.substr(0,3) == "bc ")

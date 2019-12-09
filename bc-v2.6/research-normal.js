@@ -73,10 +73,12 @@ var research_way_ng = [
 "R-Sys-Sensor-Upgrade03",
 ];
 
+/*
 if(version != "3.1"){
 	research_way_ng.unshift("R-Sys-ECM-Upgrade01");
 	research_way_ng.pop("R-Sys-ECM-Upgrade02");
 }
+*/
 
 const research_way_2 = [
 //"R-Struc-Factory-Cyborg",		//Казармы

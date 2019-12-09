@@ -60,8 +60,8 @@ function getInfoNear(x,y,command,range,time,obj,cheat,inc){
 			_globalInfoNear[x+'_'+y+'_'+command].value = true;
 			return _globalInfoNear[x+'_'+y+'_'+command];
 		}else if(command == 'defended'){
-			var defenses = new Array();
-			defenses = enumStruct(me, DEFENSE).filter(function(e){if(e.status == BUILT) return true; return false;});
+			
+			var defenses = enumStruct(me, DEFENSE).filter(function(e){if(e.status == BUILT) return true; return false;});
 			for ( var d in defenses ) {
 				if ( distBetweenTwoPoints_p(x,y,defenses[d].x,defenses[d].y) < range ) { 
 					_globalInfoNear[x+'_'+y+'_'+command].value = true;
@@ -72,8 +72,8 @@ function getInfoNear(x,y,command,range,time,obj,cheat,inc){
 			return _globalInfoNear[x+'_'+y+'_'+command];
 			
 		}else if(command == 'buildDef'){
-			var _builders;
-			_builder = enumGroup(buildersHunters);
+
+			var _builder = enumGroup(buildersHunters);
 			if(_builder.length == 0) _builder = enumDroid(me,DROID_CONSTRUCT);
 			if(_builder.length == 0){ //Невозможно в данный момент проверить, запоминаем на 10 секунд
 				_globalInfoNear[x+'_'+y+'_'+command].updateIn = 10000;
@@ -162,8 +162,8 @@ function _getInfoNear(x,y,command,range,time,obj,cheat,inc){
 //			debugMsg("x="+x+"; y="+y+"; command="+command+"; setTime="+_globalInfoNear[x][y][command].setTime+"; updateIn="+_globalInfoNear[x][y][command].updateIn+"; value="+_globalInfoNear[x][y][command].value, "getInfoNear");
 			return _globalInfoNear[x][y][command];
 		}else if(command == 'defended'){
-			var defenses = new Array();
-			defenses = enumStruct(me, DEFENSE).filter(function(e){if(e.status == BUILT) return true; return false;});
+			
+			var defenses = enumStruct(me, DEFENSE).filter(function(e){if(e.status == BUILT) return true; return false;});
 			for ( var d in defenses ) {
 				if ( distBetweenTwoPoints_p(x,y,defenses[d].x,defenses[d].y) < range ) { 
 					_globalInfoNear[x][y][command].value = true;
@@ -176,8 +176,8 @@ function _getInfoNear(x,y,command,range,time,obj,cheat,inc){
 			return _globalInfoNear[x][y][command];
 			
 		}else if(command == 'buildDef'){
-			var _builders;
-			_builder = enumGroup(buildersHunters);
+			
+			var _builder = enumGroup(buildersHunters);
 			if(_builder.length == 0) _builder = enumDroid(me,DROID_CONSTRUCT);
 			if(_builder.length == 0){ //Невозможно в данный момент проверить, запоминаем на 10 секунд
 				_globalInfoNear[x][y][command].updateIn = 10000;
@@ -246,7 +246,6 @@ function checkAlly(){
 }
 
 function checkDonate(obj){
-	if(version == '3.1') return false;
 	if(!getInfoNear(base.x,base.y,'safe',base_range).value) return false;
 	if(groupSize(armyPartisans) < (minPartisans/2)) return false;
 //	if()
@@ -276,7 +275,7 @@ function groupArmy(droid, type){
 	}
 	
 	//Забираем киборгов под общее коммандование
-	if(version != '3.1' && droid.droidType == DROID_CYBORG && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE)){
+	if(droid.droidType == DROID_CYBORG && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE)){
 //		debugMsg("armyRegular +1", 'group');
 		groupAddDroid(armyRegular, droid);
 		return;
@@ -300,7 +299,7 @@ function groupArmy(droid, type){
 	}
 	
 	//Перегрупировка
-	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1 && !(version != '3.1' && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE))){
+	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1 && !(policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE))){
 		var regroup = enumGroup(armyRegular);
 		regroup.forEach(function(e){
 //			debugMsg("armyRegular --> armyPartisans +1", 'group');
@@ -328,7 +327,7 @@ function stats(){
 	debugMsg("Weapons: "+guns.length+"; known="+avail_guns.length+"; cyborgs="+avail_cyborgs.length+"; vtol="+avail_vtols.length, 'stats');
 	debugMsg("Base: "+base.x+"x"+base.y+", r="+base_range+", safe="+getInfoNear(base.x,base.y,'safe',base_range).value+"; defense="+enumStruct(me, DEFENSE).length+"; labs="+enumStruct(me, RESEARCH_LAB).length+"; factory="+enumStruct(me, FACTORY).length+"; cyb_factory="+enumStruct(me, CYBORG_FACTORY).length+"; vtol="+enumStruct(me, VTOL_FACTORY).length+", full="+isFullBase(me), 'stats');
 	debugMsg("Bodies: light="+light_bodies.length+"; medium="+medium_bodies.length+"; heavy="+heavy_bodies.length, 'stats');
-	debugMsg("Misc: enemyDist="+enemyDist+"; nasty features="+nastyFeatures.length+"/"+nastyFeaturesLen+"; barrels="+enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.player == 99)return true;return false;}).length
+	debugMsg("Misc: enemyDist="+enemyDist+"; barrels="+enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.player == 99)return true;return false;}).length
 		+"; known defence="+defence.length+"; known AA="+AA_defence.length+"; AA_queue="+AA_queue.length, 'stats');
 	debugMsg("Ally="+ally.length+"; enemy="+enemy.length, 'stats');
 	debugMsg("Produce: "+produceTrigger.length, 'stats');
@@ -365,41 +364,6 @@ function stats(){
 //	});
 }
 
-
-function nastyFeaturesClean(){
-	if(!running)return;
-	if(nfAlgorithm == false){
-		removeTimer("nastyFeaturesClean");
-		debugMsg("nastyFeaturesClean stop", "end");
-		return;
-	}
-	if(nastyFeatures.length != 0) return;
-	var _cyborgs = enumGroup(armyCyborgs);
-	if(_cyborgs.length == 0) return;
-	
-	nastyFeatures=[];
-	var _trash = enumFeature(ALL_PLAYERS, "").filter(function(e){if(e.damageable)return true;return false;});
-	nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
-		if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) < (base_range/2))return true;
-		return false;
-	}));
-	allResources.forEach(function(r){
-		nastyFeatures = nastyFeatures.concat(_trash.filter(function(e){
-			if(distBetweenTwoPoints_p(r.x,r.y,e.x,e.y) < 7)return true;
-			return false;
-		}));
-	});
-	if(nastyFeatures.length != 0){
-		nastyFeatures = removeDuplicates(nastyFeatures, 'id').filter(function(e){if(droidCanReach(_cyborgs[0], e.x, e.y))return true;return false;});
-		nastyFeaturesLen = nastyFeatures.length;
-	}else{
-		// теперь чисто, выход от сюда навсегда
-		nfAlgorithm = false;
-	}
-}
-
-
-
 //Функция определяет подвергается ли ремонту наша цель
 //Если да, возвращяем объект, кто ремонтирует нашу цель
 function isBeingRepaired(who){
@@ -419,11 +383,11 @@ function isBeingRepaired(who){
 //TODO
 //			Тут нужно доработать
 			return false;
-			break; 
+
 		}
 		case STRUCTURE: {
 //			debugMsg("Нас атакует вражесая башня ["+who.player+"]",5);
-			droids = enumDroid(who.player,DROID_CONSTRUCT,me);
+			var droids = enumDroid(who.player,DROID_CONSTRUCT,me);
 			if ( droids.length != 0 ) {
 				for ( var i in droids ) {
 					if ( distBetweenTwoPoints_p(who.x,who.y,droids[i].x,droids[i].y) <= 3 ) {
@@ -433,57 +397,15 @@ function isBeingRepaired(who){
 				}
 			}	
 			return false;
-			break;
+
 		}
 		default: {
 //			debugMsg("Нууу, не знаю, нас атакует Ктулху! ["+who.player+"]",5);
 			return false;
-			break;
-		}
-	}
-	return false;
-}
 
-//Какой-то бардак в функциях движка
-//enumResearch() - возвращает список ТОЛЬКО тех, которые можем стартануть
-//getResearch() - возвращет объект любой запрошенной технологии
-//объект содержит .done и .started которые отвечают за завершённую или запущенную технологию
-//почему бы не сделать что бы enumResearch() возвращал объект ВСЕХ технологий
-//в котором бы содержалась значения .done .started и конежно же .available
-//вместо того что сделано сейчас, можно было бы легко использовать filter()
-//В голову не идёт как это исправить своими силами, забил пока..
-function _doResearch(){
-	debugMsg("doResearch()", 'research');
-	avail_research = enumResearch().filter(function(e){if(e.started)return false;return true;});
-	var labs = enumStruct(me,RESEARCH_LAB).filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});;
-	var way = false;
-	
-	if(labs.length == 0 ){
-		debugMsg("Нет свободных лабораторий", 'research');
-		return;
-	}
-	
-	if ( avail_research.length == 0 ){
-		debugMsg("Nothing research, "+labs.length+" labs idle..", 'research');
-		return;
-	}
-	
-	if ( research_way.length != 0 ) {
-		way = research_way[0].filter(function(e){if(e.done||e.started)return false;return true;});
-		if (way.length == 0){
-			research_way.shift();
-			debugMsg("Another way is complete, restart", 'research');
-			queue("doResearch", 1000);
-			return;
 		}
 	}
-	
-	if ( research_way.length == 0 ) {
-		debugMsg("Empty research ways, going random..", 'research');
-		//TODO random research here..
-	}
-	
-	
+
 }
 
 //Функция предерживается приоритетов исследований
@@ -496,25 +418,27 @@ function doResearch(){
 	if(!running)return;
 //	debugMsg("doResearch()", 'research_advance');
 	//	debugMsg(getInfoNear(base.x,base.y,'safe',base_range).value+" && "+playerPower(me)+"<300 && "+avail_guns.length+"!=0", 'research_advance');
-	if(!getInfoNear(base.x,base.y,'safe',base_range).value && playerPower(me) < 300 && avail_guns.length != 0) return;
+	if(!getInfoNear(base.x,base.y,'safe',base_range).value && !(playerPower(me) > 300 || berserk) && avail_guns.length != 0) return;
 
 	
-	avail_research = enumResearch().filter(function(e){
+	var avail_research = enumResearch().filter(function(e){
 		//		debugMsg(e.name+' - '+e.started+' - '+e.done, 'research_advance');
 		if(e.started)return false;return true;
 	});
-	
+		
+	if ( research_way.length == 0 || avail_research.length == 0 ) {
+//		debugMsg("doResearch: Исследовательские пути завершены!!! Останов.", 'research_advance');
+		return;
+	}
+
 	if ( research_way.length < 5 ){
-		var _research = avail_research[Math.floor(Math.random()*avail_research.length)].name;
+		var rnd = Math.floor(Math.random()*avail_research.length);
+		var _research = avail_research[rnd].name;
 //		debugMsg(_research, 'temp');
 		research_way.push([_research]);
 //		debugMsg("doResearch: Исследовательские пути ("+research_way.length+") подходят к концу! Добавляем рандом. \""+research_name[_research]+"\" ["+_research+"]", 'research_advance');
 	}
-	
-	if ( research_way.length == 0 ) {
-//		debugMsg("doResearch: Исследовательские пути завершены!!! Останов.", 'research_advance');
-		return;
-	}
+
 
 	var labs = enumStruct(me,RESEARCH_LAB);
 	if ( typeof _r === "undefined" ) _r = 0;
@@ -543,9 +467,9 @@ function doResearch(){
 	for ( var l in labs ){
 		
 		if(policy['build'] != 'rich'){
-			if(countStruct('A0ResourceExtractor', me) < 8 && playerPower(me) < 700 && _busy >= 3) break;
-			if(countStruct('A0ResourceExtractor', me) < 5 && playerPower(me) < 500 && _busy >= 2) break;
-			if(countStruct('A0ResourceExtractor', me) < 3 && playerPower(me) < 300 && _busy >= 1) break;
+			if(countStruct('A0ResourceExtractor', me) < 8 && !(playerPower(me) > 700 || berserk) && _busy >= 3) break;
+			if(countStruct('A0ResourceExtractor', me) < 5 && !(playerPower(me) > 500 || berserk) && _busy >= 2) break;
+			if(countStruct('A0ResourceExtractor', me) < 3 && !(playerPower(me) > 300 || berserk) && _busy >= 1) break;
 		}
 		if( (labs[l].status == BUILT) && structureIdle(labs[l]) ){
 //			debugMsg("Лаборатория("+labs[l].id+")["+l+"] исследует путь "+_r, 'research_advance');
@@ -580,17 +504,17 @@ function doResearch(){
 //если num не передан, возвращает полный сортированный массив
 //если num равен 1, то всё равно возвращается массив но с единственным объектом
 function sortByDistance(arr, obj, num, reach){
-	if ( typeof reach === "underfined" ) reach = false;
+	if ( typeof reach === "undefined" ) reach = false;
 	if ( typeof num === "undefined" || num == null || num == false) num = 0;
 	else if ( arr.length == 1 ) num = 1;
 
 	if ( num == 1 ) {
-		var a = Infinity;
+
 		var b = Infinity;
 		var c = new Array();
 		for ( var i in arr ) {
 			if(reach)if(!droidCanReach(obj, arr[i].x, arr[i].y))continue;
-			a = distBetweenTwoPoints_p( obj.x, obj.y, arr[i].x, arr[i].y );
+			var a = distBetweenTwoPoints_p( obj.x, obj.y, arr[i].x, arr[i].y );
 			if ( a < b ) {
 				b = a;
 				c[0] = arr[i];
@@ -638,7 +562,7 @@ function checkProcess(){
 		gameStop("loose");
 	}
 	
-	for ( plally in bc_ally ){
+	for ( var plally in bc_ally ){
 		if(bc_ally[plally] == me) continue;
 
 		if(getInfoNear(base.x,base.y,'safe',base_range).value){
@@ -677,7 +601,7 @@ function gameStop(condition){
 	
 	if(condition == 'loose'){
 		debugMsg("I guess, i'm loose.. Give up", 'end');
-		if(version != "3.1" && running){
+		if(running){
 			playerData.forEach( function(data, player) {
 				chat(player, ' from '+debugName+': '+chatting('loose'));
 			});
@@ -685,70 +609,13 @@ function gameStop(condition){
 		
 	}else if(condition == 'kick'){
 		debugMsg("KICKED", 'end');
-		if(version != "3.1" && running){
+		if(running){
 			playerData.forEach( function(data, player) {
 				chat(player, ' from '+debugName+': '+chatting('kick'));
 			});
 		}
 	}
 		running = false;
-	
-		/* Пока есть баг: http://developer.wz2100.net/ticket/4663
-		if(difficulty == EASY){
-			removeTimer("produceDroids");
-			removeTimer("produceVTOL");
-			removeTimer("checkEventIdle");
-			removeTimer("doResearch");
-			removeTimer("defenceQueue");
-			removeTimer("produceCyborgs");
-			removeTimer("buildersOrder");
-			removeTimer("targetVTOL");
-		} else if(difficulty == MEDIUM){
-			removeTimer("produceDroids");
-			removeTimer("produceVTOL");
-			removeTimer("produceCyborgs");
-			removeTimer("buildersOrder");
-			removeTimer("checkEventIdle");
-			removeTimer("doResearch");
-			removeTimer("defenceQueue");
-			removeTimer("targetVTOL");
-			if(nfAlgorithm)removeTimer("nastyFeaturesClean");
-		} else if(difficulty == HARD){
-			removeTimer("targetPartisan");
-			removeTimer("buildersOrder");
-			removeTimer("targetJammers");
-			removeTimer("targetCyborgs");
-			removeTimer("produceDroids");
-			removeTimer("produceVTOL");
-			removeTimer("targetFixers");
-			removeTimer("produceCyborgs");
-			removeTimer("doResearch");
-			removeTimer("defenceQueue");
-			removeTimer("targetRegular");
-			removeTimer("targetVTOL");
-			if(nfAlgorithm)removeTimer("nastyFeaturesClean");
-		} else if(difficulty == INSANE){
-			removeTimer("targetPartisan");
-			removeTimer("buildersOrder");
-			removeTimer("targetJammers");
-			removeTimer("targetCyborgs");
-			removeTimer("produceDroids");
-			removeTimer("produceVTOL");
-			removeTimer("targetFixers");
-			removeTimer("produceCyborgs");
-			removeTimer("doResearch");
-			removeTimer("defenceQueue");
-			removeTimer("targetRegular");
-			removeTimer("targetVTOL");
-			if(nfAlgorithm)removeTimer("nastyFeaturesClean");
-		}
-			
-
-		if(!release)removeTimer("stats");
-		removeTimer("perfMonitor");
-		removeTimer("checkProcess");
-		*/
-	
 }
 
 function playerLoose(player){
@@ -777,6 +644,15 @@ function filterNearAlly(obj){
 		if ( !allianceExistsBetween(me,p) ) continue; //Выкидываем вражеские
 //		if ( playerLoose(p) ) continue; //Пропускаем проигравших
 		if ( playerSpectator(p) ) continue;
+		
+		//Если союзнику доступно 40 вышек, не уступаем ему свободную.
+		if(policy['build'] == 'rich' && difficulty > 1){
+			var allyRes = enumFeature(ALL_PLAYERS, "OilResource");
+			allyRes = allyRes.filter(function(e){if(distBetweenTwoPoints_p(startPositions[p].x,startPositions[p].y,e.x,e.y) < base_range) return true; return false;});
+			allyRes = allyRes.concat(enumStruct(p, "A0ResourceExtractor").filter(function(e){if(distBetweenTwoPoints_p(startPositions[p].x,startPositions[p].y,e.x,e.y) < base_range) return true; return false;}));
+			if(allyRes.length >= 40) continue;
+		}
+		
 		if ( distBetweenTwoPoints_p(base.x,base.y,startPositions[p].x,startPositions[p].y) < base_range ) continue; //Если союзник внутри радиуса нашей базы, вышки забираем
 		obj = obj.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,startPositions[p].x,startPositions[p].y) < base_range )return false; return true;})
 	}
@@ -830,13 +706,48 @@ function getEnemyNearAlly(){
 	return enemy;
 }
 
+function getEnemyNearPos(x,y,r){
+	if(typeof r === 'undefined') r = 7;
+	var targ = [];
+	var enemy = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		if ( playerSpectator(e) ) continue;
+		if ( e == me ) continue;
+		targ = targ.concat(enumDroid(e, DROID_WEAPON, me));
+	}
+	if(scavengers == true) {
+		targ = targ.concat(enumDroid(scavengerPlayer, DROID_WEAPON, me));
+	}
+	
+	enemy = enemy.concat(targ.filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,x,y) < r )return true;return false;}));
+	
+	return enemy;
+	
+}
+
+function getAllyArmy(){
+	var army = [];
+	
+	for ( var p = 0; p < maxPlayers; ++p ) {
+		if ( p == me ) continue;
+		if ( !allianceExistsBetween(me,p) ) continue;
+		if ( playerSpectator(p) ) continue;
+		
+		army = army.concat(enumDroid(p, DROID_WEAPON));
+		
+	}
+	
+	return army;
+}
+
+
 //Функция возвращяет вышки, о которых в данный момент не известно ничего
 //Просто сравниваем два массива объектов и фильтруем в третий
 function getUnknownResources(){
-	notSee = new Array();
-	iSee = getSeeResources();
+	var iSee = getSeeResources();
 	if ( iSee.length == 0 ) return allResources;
-	notSee = allResources.filter(function (value) {
+	var notSee = allResources.filter(function (value) {
 		for ( var i in iSee ) {
 			if ( value.x == iSee[i].x && value.y == iSee[i].y ) return false;
 		}
@@ -848,7 +759,7 @@ function getUnknownResources(){
 
 //Функция возвращает все видимые ресурсы, свободные, свои и занятые кем либо
 function getSeeResources(){
-	iSee = new Array();
+	var iSee = new Array();
 	iSee = iSee.concat(enumFeature(me, "OilResource"));
 	for ( var e = 0; e < maxPlayers; ++e ){
 //		if ( !allianceExistsBetween(me,e) ) continue; //Выкидываем вражеские
@@ -929,8 +840,8 @@ function getEnemyCloseBase(){
 
 function getOurDefences(){
 	var targ = [];
-	for ( a in ally ){
-		targ = targ.concat(enumStruct(a[i], DEFENSE).filter(function(e){if(e.status == 1)return true; return false;}));
+	for ( var a in ally ){
+		targ = targ.concat(enumStruct(a, DEFENSE).filter(function(e){if(e.status == 1)return true; return false;}));
 	}
 	targ = targ.concat(enumStruct(me, DEFENSE).filter(function(e){if(e.status == 1)return true; return false;}));
 	return targ;
@@ -938,6 +849,34 @@ function getOurDefences(){
 
 function getNearFreeResources(pos){
 	return enumFeature(ALL_PLAYERS, "OilResource").filter(function(e){if(distBetweenTwoPoints_p(pos.x,pos.y,e.x,e.y) < base_range) return true; return false;});
+}
+
+function getNumEnemies(){
+	var enemies = 0;
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( allianceExistsBetween(me,e) ) continue;
+		if ( playerSpectator(e) ) continue;
+		if ( playerLoose(e) ) continue;
+		if ( e == me ) continue;
+		enemies++;
+	}
+	return enemies;
+}
+
+function isMultiplayer(){
+	var humans = 0;
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if(playerData[e].isHuman) humans++;
+	}
+	if(humans > 1) return true;
+	return false;
+}
+
+function isHumanAlly(){
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if(playerData[e].isHuman && allianceExistsBetween(me, e)) return true;
+	}
+	return false;
 }
 
 //Возвращает булево, если база игрока имеет:
@@ -983,7 +922,6 @@ function isFullBase(player){
 }
 
 function mark(x,y){
-	if(version == "3.1") return;
 	removeBeacon(0);
 	addBeacon(x, y, 0);
 	hackMarkTiles();
@@ -1027,6 +965,32 @@ function getEnemyDefences(){
 	for ( var e = 0; e < maxPlayers; ++e ) {
 		if ( allianceExistsBetween(me,e) ) continue;
 		targ = targ.concat(enumStruct(e, DEFENSE, me));
+	}
+	if(scavengers == true) {
+		targ = targ.concat(enumStruct(scavengerPlayer, DEFENSE, me));
+		targ = targ.concat(enumStruct(scavengerPlayer, WALL, me));
+	}
+	return targ;
+}
+
+function getEnemyStructures(){
+	var targ = [];
+	for ( var e = 0; e < maxPlayers; ++e ) {
+		if ( e == me ) continue;
+		if ( allianceExistsBetween(me,e) ) continue;
+		if ( playerSpectator(e) ) continue;
+		targ = targ.concat(enumStruct(e, DEFENSE, me));
+		targ = targ.concat(enumStruct(e, RESOURCE_EXTRACTOR, me));
+		targ = targ.concat(enumStruct(e, FACTORY, me));
+		targ = targ.concat(enumStruct(e, CYBORG_FACTORY, me));
+		targ = targ.concat(enumStruct(e, HQ, me));
+		targ = targ.concat(enumStruct(e, LASSAT, me));
+		targ = targ.concat(enumStruct(e, POWER_GEN, me));
+		targ = targ.concat(enumStruct(e, REARM_PAD, me));
+		targ = targ.concat(enumStruct(e, REPAIR_FACILITY, me));
+		targ = targ.concat(enumStruct(e, RESEARCH_LAB, me));
+		targ = targ.concat(enumStruct(e, SAT_UPLINK, me));
+		targ = targ.concat(enumStruct(e, VTOL_FACTORY, me));
 	}
 	if(scavengers == true) {
 		targ = targ.concat(enumStruct(scavengerPlayer, DEFENSE, me));
@@ -1093,7 +1057,7 @@ function fixResearchWay(way){
 //	debugMsg('Check tech '+way.length, 'research');
 	var _out = [];
 	
-	for(i in way){
+	for(var i in way){
 //		debugMsg('Check: '+way[i], 'research');
 		var _res = getResearch(way[i]);
 		if(_res == null){
@@ -1112,7 +1076,7 @@ function addPrimaryWay(){
 	if(!(research_primary instanceof Array)) return false;
 	if(researchStrategy == "Smudged"){
 		research_primary.reverse();
-		for(i in research_primary){
+		for(var i in research_primary){
 			research_way.unshift([research_primary[i]]);
 		}
 		debugMsg("research_primary smudged", 'research');
@@ -1190,7 +1154,7 @@ function attackObjects(targets, warriors, num, scouting){
 
 	targets = targets.slice(0,num);
 
-	for ( i in targets ) {
+	for ( var i in targets ) {
 		var target = isBeingRepaired(targets[i]);
 		if ( target != false) {
 			targets[i] = target;
@@ -1198,7 +1162,7 @@ function attackObjects(targets, warriors, num, scouting){
 	}
 
 	if ( targets.length >= warriors.length ) {
-		for ( i = 0, len = warriors.length; i<len; ++i ) {
+		for ( var i = 0, len = warriors.length; i<len; ++i ) {
 			if(scouting) orderDroidLoc_p(warriors[i], DORDER_SCOUT, targets[i].x, targets[i].y);
 			else orderDroidObj_p( warriors[i], DORDER_ATTACK, targets[i] );
 		}
@@ -1229,7 +1193,7 @@ function attackObjects(targets, warriors, num, scouting){
 		}
 		return true;
 	}
-	return false;
+
 	
 }
 
@@ -1265,10 +1229,10 @@ function checkEventIdle(){
 
 //для 3.2
 function recycleBuilders(){
-	factory = enumStruct(me, FACTORY);
-	factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
+	var factory = enumStruct(me, FACTORY);
+	var factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 	if(factory_ready.length != 0){
-		_builders = enumDroid(me,DROID_CONSTRUCT);
+		var _builders = enumDroid(me,DROID_CONSTRUCT);
 		_builders.forEach(function(e){
 			orderDroid(e, DORDER_RECYCLE);
 		});
@@ -1305,5 +1269,26 @@ function posRnd(pos, axis){
 }
 
 function secondTick(){
-	if(earlyGame && gameTime/1000 > 130) earlyGame = false;
+	if(earlyGame && gameTime/1000 > 130){
+		earlyGame = false;
+		if(policy['build'] == 'rich'){
+			maxPartisans = 1;
+			scannersTimer = 300000;
+			removeTimer("buildersOrder");
+		}
+	}
+	
+	//CHEAT
+	if(berserk){
+		var qp=queuedPower(me);
+//		debugMsg('qp: '+qp, 'berserk');
+		if(qp > 0){
+			setPower(qp+1, me);
+			credit += (qp+1);
+			debugMsg('+'+(qp+1), 'berserk');
+			debugMsg('credit: '+credit, 'berserk');
+		}
+	}
+	
+	debugMsg('power: '+playerPower(me), 'power');
 }

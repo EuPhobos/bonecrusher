@@ -1,62 +1,3 @@
-
-
-/*
-
-	Данный модуль отслеживает произведённые улучшения на оружия и принимает решения, какие оружия устанавливать на новый юнит
-
-*/
-
-function _weaponsGetGuns(num){
-	
-	var _weapons = [];
-	var _weapon, _points, _dbg;
-	
-	//Цикл по всем типам стволов
-	for ( t in guns_type ) {
-		
-		_weapon = false;
-		_points = 0;
-		_dbg = '';
-		
-//		debugMsg("Check typ: "+t, 'weap');
-		
-		//Цикл по стволам одного типа
-		for ( g in guns_type[t] ) {
-//			debugMsg("Check wpn: "+guns_type[t][g][0]+" - "+getResearch(guns_type[t][g][0]), 'weap');
-			if (getResearch(guns_type[t][g][0]).done){ _weapon = guns_type[t][g][1]; _dbg = research_name[guns_type[t][g][0]]; break; }
-		}
-		
-		//Цикл по исследованиям одного типа
-		for ( r in guns_pts[t] ) {
-//			debugMsg("Check pts: "+guns_pts[t][r]+" - "+getResearch(guns_pts[t][r]), 'weap');
-			if(getResearch(guns_pts[t][r]).done) _points++;
-		}
-		if(_weapon){
-			var precent = Math.round((_points+1)*100/(guns_pts[t].length+1));
-			_weapons.push([_weapon, _points+1]);
-			debugMsg(_dbg+" - "+precent+"%", 'weap');
-		}
-	}
-	
-	if(_weapons.length != 0){
-		_weapons.sort(function (a,b){
-			if(a[1] < b[1]) return -1;
-			if(a[1] > b[1]) return 1;
-			return 0;
-		});
-		_weapons.reverse();
-		_weapons=_weapons.slice(0, num);
-		
-		var _out = [];
-		
-		for ( w in _weapons ){
-			debugMsg(_weapons[w][0]+", "+_weapons[w][1], 'weap');
-			for(var i=0;i<_weapons[w][1];i++) _out.push(_weapons[w][0]);
-		}
-		return _out;
-	}else return [];
-}
-
 var guns=[
 //	===== Пулемёты
 ["R-Wpn-MG1Mk1", "MG1Mk1"],						//Лёгкий пулемёт
@@ -81,7 +22,7 @@ var guns=[
 ["R-Wpn-Rocket03-HvAT", "Rocket-BB"],				//Медленная ракета против строений и танков (в общей армии не очень, только если против укреплений)
 ["R-Wpn-Rocket01-LtAT", "Rocket-LtA-T"],			//Противотанковая пара ракет прямого наведения "Лансер"
 ["R-Wpn-Rocket07-Tank-Killer", "Rocket-HvyA-T"],	//Улучшенная противотанковая пара ракет прямого наведения
-["R-Wpn-Missile2A-T", "Missile-A-T"],				//Тяжолая противотанковая пара ракет прямого наведения "scourge"
+["R-Wpn-Missile2A-T", "Missile-A-T"],				//Тяжёлая противотанковая пара ракет прямого наведения "scourge"
 //	===== Ракеты артиллерии
 ["R-Wpn-Rocket02-MRL", "Rocket-MRL"],				//Лёгкая артиллерийская ракетная баттарея
 ["R-Wpn-Rocket06-IDF", "Rocket-IDF"],				//Дальнобойная артиллерийская ракетная баттарея Ripple
@@ -110,8 +51,8 @@ var guns=[
 
 
 //Типы пушек, по приоритету
-
 var guns_type = [];
+
 
 //Пулемёты
 guns_type['mg'] = [
@@ -142,7 +83,7 @@ guns_type['fl'] = [
 
 //Рокеты
 guns_type['rk'] = [
-["R-Wpn-Missile2A-T", "Missile-A-T"],				//Тяжолая противотанковая пара ракет прямого наведения "scourge"
+["R-Wpn-Missile2A-T", "Missile-A-T"],				//Тяжёлая противотанковая пара ракет прямого наведения "scourge"
 ["R-Wpn-Rocket07-Tank-Killer", "Rocket-HvyA-T"],	//Улучшенная противотанковая пара ракет прямого наведения
 ["R-Wpn-Rocket01-LtAT", "Rocket-LtA-T"],			//Противотанковая пара ракет прямого наведения "Лансер"
 ["R-Wpn-Rocket03-HvAT", "Rocket-BB"],				//Медленная ракета против строений и танков (в общей армии не очень, только если против укреплений)
@@ -178,7 +119,7 @@ guns_type['ls'] = [
 ["R-Wpn-HvyLaser", "HeavyLaser"],					//Heavy Laser
 ["R-Wpn-Laser02", "Laser2PULSEMk1"],				//Pulse Laser
 ["R-Wpn-Laser01", "Laser3BEAMMk1"],					//Laser - Flashlight
-]
+];
 
 //Рельсы
 guns_type['rl'] = [
