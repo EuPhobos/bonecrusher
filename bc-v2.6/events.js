@@ -1,3 +1,5 @@
+debugMsg('Module: events.js','init');
+
 function eventStructureReady(structure) {
 	if(structure.player == me){
 		switch (structure.stattype) {
@@ -28,6 +30,10 @@ function eventResearched(research, structure, player) {
 	//Remove chaingun and flamer cyborgs if better available
 	if(research.name == 'R-Wpn-MG4'){cyborgs = cyborgs.filter(function(e){if(e[2] == 'CyborgChaingun')return false;return true;});}
 	if(research.name == 'R-Wpn-Flame2'){cyborgs = cyborgs.filter(function(e){if(e[2] == 'CyborgFlamer01')return false;return true;});}
+	if(research.name == 'R-Struc-PowerModuleMk1'){func_buildersOrder_trigger = 0;buildersOrder();}
+	if(research.name == 'R-Struc-Factory-Module'){func_buildersOrder_trigger = 0;buildersOrder();}
+	if(research.name == 'R-Struc-Research-Module'){func_buildersOrder_trigger = 0;buildersOrder();}
+	
 }
 
 //3.2+
@@ -153,7 +159,7 @@ function eventObjectTransfer(gameObject, from) {
 						base.x = gameObject.x;
 						base.y = gameObject.y;
 					}
-
+					func_buildersOrder_trigger = 0;
 					buildersOrder();
 					
 					if(running == false){

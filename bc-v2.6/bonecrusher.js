@@ -24,23 +24,33 @@ Clean code
 
 
 //DEBUG: количество вывода, закоментить перед релизом
-var debugLevels = new Array('error', 'init');
+var debugLevels = new Array('error', 'init', 'research');
 
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 
 
 
-var debugName;
+var debugName = me;
 
 
 //Массив конкретных технологий (tech.js)
 var tech = [];
 
+include("multiplay/skirmish/bc-"+vernum+"/names.js");
+
+//инфа
+debugName = colors[playerData[me].colour];
+
 include("multiplay/skirmish/bc-"+vernum+"/functions.js");
+
+//new 3.3+
+var research_path = [];
+include("multiplay/skirmish/bc-"+vernum+"/research-paths.js");
+include("multiplay/skirmish/bc-"+vernum+"/research.js");
+
 include("multiplay/skirmish/bc-"+vernum+"/builders.js");
 include("multiplay/skirmish/bc-"+vernum+"/targeting.js");
 include("multiplay/skirmish/bc-"+vernum+"/events.js");
-include("multiplay/skirmish/bc-"+vernum+"/names.js");
 include("multiplay/skirmish/bc-"+vernum+"/produce.js");
 include("multiplay/skirmish/bc-"+vernum+"/performance.js");
 include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
@@ -56,7 +66,7 @@ include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
 
 
 //Hard CPU-load algorythms
-var weakCPU = true;
+var weakCPU = false;
 
 
 //Стратегия исследования пути
@@ -97,7 +107,7 @@ var maxExtractors = 40;
 var maxGenerators = 10;
 
 //Performance limits
-var ordersLimit = 200;
+var ordersLimit = 100;
 
 //functions controller for performance purpose
 var func_buildersOrder = true;
@@ -211,6 +221,9 @@ eventsRun['victimCyborgs'] = 0;
 eventsRun['targetSensors'] = 0;
 
 
+
+
+//old 3.2-
 //Предустановки на исследование
 var research_way = []; //Главный путь развития, компануется далее, в функциях, в зависимости от уровня сложности и др. настроек
 var research_primary = []; //Первичный, один из главных под-путей развития, к которому задаётся режим его исследований(строгий, размазанный или случайный)
@@ -367,8 +380,7 @@ var AA_towers=[
 
 //Инициализация
 function init(){
-	//инфа
-	debugName = colors[playerData[me].colour];
+
 	
 	debugMsg("ИИ №"+me+" "+vername+" "+vernum+"("+verdate+") difficulty="+difficulty, "init");
 	debugMsg("Warzone2100 "+version, "init");
@@ -480,8 +492,10 @@ function init(){
 
 	
 	//Research way
-	if(Math.round(Math.random()*3) != 0) researchCustom = true;
-	if(difficulty == HARD || difficulty == INSANE) researchCustom = true;
+/*
+	debugMsg('--- init research way ---', 'init');
+//	if(Math.round(Math.random()*3) != 0) researchCustom = true;
+//	if(difficulty == HARD || difficulty == INSANE) researchCustom = true;
 	if(researchCustom){
 		researchStrategy = 'Smudged';
 		debugMsg("initializing custom research_primary", 'init');
@@ -514,8 +528,8 @@ function init(){
 		include("multiplay/skirmish/bc-"+vernum+"/research-normal.js");
 	}
 	if(!addPrimaryWay()){debugMsg("research_primary не добавлен в research_way!", 'error');}
-	
-
+	debugMsg('--- end research way ---', 'init');
+*/
 	
 	if(policy['build'] == 'rich'){
 
@@ -795,6 +809,7 @@ function debugMsg(msg,level){
 }
 
 function eventStartLevel() {
+	if(version != '3.3.0')
 	queue("init", 1000);
 }
 

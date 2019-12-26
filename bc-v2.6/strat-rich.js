@@ -1,4 +1,4 @@
-
+debugMsg('Module: start-rich.js','init');
 
 /*
  * OFFLINE

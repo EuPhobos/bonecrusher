@@ -1,4 +1,4 @@
-
+debugMsg('Module: build-normal.js','init');
 
 function mainBuilders(rotation){
 //	debugMsg('mainBuilders()', 'builders_advanced');
@@ -270,7 +270,7 @@ function mainBuilders(rotation){
 		debugMsg('===', 'builders');
 		
 		//Если строителям нечего делать, уменьшаем кол-во исполнений функции buildersOrder
-		func_buildersOrder_timer+=1000;
+		func_buildersOrder_timer+=250;
 		debugMsg('func_buildersOrder_timer+1000','controller');
 		//Если данному строителю нечего делать, выходим из цикла и по остальным.
 		break; 

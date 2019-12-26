@@ -1,4 +1,4 @@
-
+debugMsg('Module: research-test.js','init');
 
 const research_test = [
 
@@ -162,14 +162,14 @@ const research_rich = [
 const research_green = [
 "R-Wpn-MG1Mk1",
 "R-Sys-Engineering01",
+"R-Vehicle-Prop-Halftracks",    //Полугусенецы
+"R-Struc-PowerModuleMk1",
 "R-Defense-Tower01",
 "R-Wpn-Cannon1Mk1",		// #6  Light Cannon
-"R-Struc-PowerModuleMk1",
-"R-Vehicle-Prop-Halftracks",    //Полугусенецы
-"R-Defense-WallTower02", //защита лёгкая пушка
+//"R-Defense-WallTower02", //защита лёгкая пушка
 "R-Struc-Power-Upgrade03a",
 "R-Struc-Research-Upgrade09",
-"R-Sys-MobileRepairTurretHvy",
+//"R-Sys-MobileRepairTurretHvy",
 "R-Sys-Autorepair-General",             //Автопочинка
 //"R-Sys-ECM-Upgrade01",	//Глушилка
 "R-Wpn-MG-ROF03",				//Hyper Fire Chaingun Upgrade

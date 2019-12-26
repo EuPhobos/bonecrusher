@@ -1,3 +1,5 @@
+debugMsg('Module: targeting.js','init');
+
 function targetVTOL(){
 	if(!running)return;
 //	debugMsg("targetVTOL():", 'targeting');

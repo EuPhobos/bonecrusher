@@ -1,3 +1,5 @@
+debugMsg('Module: research-normal.js','init');
+
 const research_test = ["R-Wpn-MG1Mk1"];
 
 var research_primary = [
@@ -34,7 +36,7 @@ const research_way_1 = [
 "R-Wpn-Rocket05-MiniPod",
 "R-Defense-WallTower02",
 "R-Vehicle-Body05",				//Средняя начальная броня
-"R-Vehicle-Body04",				//Лёгкая броня Bug
+//"R-Vehicle-Body04",				//Лёгкая броня Bug
 //	"R-Wpn-MG-Damage03",
 "R-Wpn-MG-Damage04",			//APDSB MG Bullets Mk3
 //	"R-Sys-Engineering01",			//Инженерия (старт)
@@ -42,7 +44,7 @@ const research_way_1 = [
 "R-Wpn-MG3Mk1",					//Тяжолопулемётная башня
 "R-Vehicle-Prop-Hover",			//Ховер для строителей
 "R-Sys-MobileRepairTurretHvy",	//Тяжёлый паяльник
-"R-Vehicle-Body08",				//Medium Body - Scorpion
+//"R-Vehicle-Body08",				//Medium Body - Scorpion
 "R-Struc-VTOLFactory",			//Авиазавод
 "R-Struc-VTOLPad",				//Заправка авиации A0VtolPad
 "R-Defense-AASite-QuadMg1",		//Hurricane AA Site
@@ -162,7 +164,7 @@ research_way = [
 	research_way_2,
 	research_way_defence,
 	research_way_armor,
-	research_way_cannon,
+//	research_way_cannon,
 	research_rockets,
 	research_way_5
 ];

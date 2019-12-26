@@ -1,4 +1,4 @@
-
+debugMsg('Module: performance.js','init');
 
 
 //function getOrder(obj, order, loc){

@@ -1,3 +1,4 @@
+debugMsg('Module: names.js','init');
 
 //Цвета
 const colors = new Array("Green","Orange","Grey","Black","Red","Blue","Pink","Cyan","Yellow","Purple","White","Bright blue","Neon green","Infrared","Ultraviolet","Brown");

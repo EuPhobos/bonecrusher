@@ -1,4 +1,4 @@
-
+debugMsg('Module: builders.js','init');
 
 function groupBuilders(droid){
 	if ( typeof order === "undefined" ) order = false;
@@ -9,7 +9,7 @@ function groupBuilders(droid){
 	if ( droid ) {
 		
 		if(!earlyGame && getNearFreeResources.length != 0 && buildersHuntersLen == 0) {groupAddDroid(buildersHunters, droid); debugMsg("+....buildersHunters +1",'group'); }
-		else if(policy['build'] != 'rich' && earlyGame && distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) < base_range && buildersMainLen < 2) { groupAddDroid(buildersMain, droid); debugMsg("buildersMain +1",'group'); }
+		else if(policy['build'] != 'rich' && earlyGame && distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) < base_range && buildersMainLen < 3) { groupAddDroid(buildersMain, droid); debugMsg("buildersMain +1",'group'); }
 		else if(policy['build'] != 'rich' && earlyGame && distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) > base_range){ groupAddDroid(buildersHunters, droid); debugMsg("...buildersHunters +1",'group'); }
 		else if( (distBetweenTwoPoints_p(base.x, base.y, droid.x, droid.y) > base_range || (earlyGame && buildersHuntersLen < 2)) && buildersMainLen >= 2 && policy['build'] != 'rich'){ groupAddDroid(buildersHunters, droid); debugMsg("....buildersHunters +1",'group'); }
 		//Если основных строителей меньше минимальных, то добавляем новичка в группу основных строителей

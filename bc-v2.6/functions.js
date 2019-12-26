@@ -1,3 +1,4 @@
+debugMsg('Module: functions.js','init');
 
 //Функция проверяет объекты и возвращает значение
 //Задача стоит в обработке тяжёлых данных, и работа данной функции
@@ -406,91 +407,6 @@ function isBeingRepaired(who){
 		}
 	}
 
-}
-
-//Функция предерживается приоритетов исследований
-//и ровномерно распределяет по свободным лабораториям
-//и должна вызыватся в 3-х случаях (не в цикле)
-//1. При старте игры
-//2. При постройке лабаротории
-//3. При завершении исследования
-function doResearch(){
-	if(!running)return;
-//	debugMsg("doResearch()", 'research_advance');
-	//	debugMsg(getInfoNear(base.x,base.y,'safe',base_range).value+" && "+playerPower(me)+"<300 && "+avail_guns.length+"!=0", 'research_advance');
-	if(!getInfoNear(base.x,base.y,'safe',base_range).value && !(playerPower(me) > 300 || berserk) && avail_guns.length != 0) return;
-
-	
-	var avail_research = enumResearch().filter(function(e){
-		//		debugMsg(e.name+' - '+e.started+' - '+e.done, 'research_advance');
-		if(e.started)return false;return true;
-	});
-		
-	if ( research_way.length == 0 || avail_research.length == 0 ) {
-//		debugMsg("doResearch: Исследовательские пути завершены!!! Останов.", 'research_advance');
-		return;
-	}
-
-	if ( research_way.length < 5 ){
-		var rnd = Math.floor(Math.random()*avail_research.length);
-		var _research = avail_research[rnd].name;
-//		debugMsg(_research, 'temp');
-		research_way.push([_research]);
-//		debugMsg("doResearch: Исследовательские пути ("+research_way.length+") подходят к концу! Добавляем рандом. \""+research_name[_research]+"\" ["+_research+"]", 'research_advance');
-	}
-
-
-	var labs = enumStruct(me,RESEARCH_LAB);
-	if ( typeof _r === "undefined" ) _r = 0;
-	var _busy = 0;
-
-	var _last_r = research_way[_r][research_way[_r].length-1];
-	var _way = getResearch(_last_r);
-	if(!_way) return;
-		
-	if (_way.done == true ) {
-		//		debugMsg("doResearch: Путей "+research_way.length+", путь "+_r+" завершён", 'research_advance');
-		research_way.splice(_r,1);
-		//		debugMsg("doResearch: Осталось путей "+research_way.length, 'research_advance');
-		_r=0;
-		if ( research_way.length == 0 ) {
-//			debugMsg("doResearch: Исследовательские пути завершены! Останов.", 'research_advance');
-			return;
-		}
-	}
-
-	//Если меньше 8 нефтевышек, и меньше 1000 денег, и уже запущенны 3 лабы - выход
-// 	if(countStruct('A0ResourceExtractor', me) < 8 && playerPower(me) < 1000 && enumStruct(me, RESEARCH_LAB).filter(function(e){if(!structureIdle(e)&&e.status==BUILT)return true;return false;}).length >= 3) return;
-// 	if(countStruct('A0ResourceExtractor', me) < 5 && playerPower(me) < 500 && enumStruct(me, RESEARCH_LAB).filter(function(e){if(!structureIdle(e)&&e.status==BUILT)return true;return false;}).length >= 2) return;
-// 	if(countStruct('A0ResourceExtractor', me) <= 3 && playerPower(me) < 300 && enumStruct(me, RESEARCH_LAB).filter(function(e){if(!structureIdle(e)&&e.status==BUILT)return true;return false;}).length >= 1) return;
-	
-	for ( var l in labs ){
-		
-		if(policy['build'] != 'rich'){
-			if(countStruct('A0ResourceExtractor', me) < 8 && !(playerPower(me) > 700 || berserk) && _busy >= 3) break;
-			if(countStruct('A0ResourceExtractor', me) < 5 && !(playerPower(me) > 500 || berserk) && _busy >= 2) break;
-			if(countStruct('A0ResourceExtractor', me) < 3 && !(playerPower(me) > 300 || berserk) && _busy >= 1) break;
-		}
-		if( (labs[l].status == BUILT) && structureIdle(labs[l]) ){
-//			debugMsg("Лаборатория("+labs[l].id+")["+l+"] исследует путь "+_r, 'research_advance');
-			pursueResearch(labs[l], research_way[_r]);
-		}else{
-//			debugMsg("Лаборатория("+labs[l].id+")["+l+"] занята", 'research_advance');
-			_busy++;
-		}
-	}
-
-	if ( _r == research_way.length-1 ) {
-		_r = 0;
-//		debugMsg("doResearch: Все исследования запущены, останов.", 'research_advance');
-	} else if (_busy == labs.length ) {
-//		debugMsg("doResearch: Все все лаборатории заняты, останов.", 'research_advance');
-		_r = 0;
-	} else {
-		_r++;
-//		debugMsg("doResearch: Планировка проверки занятости лабораторий...", 'research_advance');
-		queue("doResearch", 1000);
-	}
 }
 
 
@@ -1051,57 +967,6 @@ function getEnemyProduction(){
 	return targ;
 }
 
-function fixResearchWay(way){
-	if ( typeof way === "undefined" ) return false;
-	if(!(way instanceof Array)) return false;
-//	debugMsg('Check tech '+way.length, 'research');
-	var _out = [];
-	
-	for(var i in way){
-//		debugMsg('Check: '+way[i], 'research');
-		var _res = getResearch(way[i]);
-		if(_res == null){
-			debugMsg('Unknown research "'+way[i]+'" - ignored', 'error');
-			continue;
-		}
-		_out.push(way[i]);
-	}
-	
-	debugMsg('Checked research way length='+way.length+', returned='+_out.length, 'research');
-	return _out;
-}
-
-function addPrimaryWay(){
-	if ( typeof research_primary === "undefined" ) return false;
-	if(!(research_primary instanceof Array)) return false;
-	if(researchStrategy == "Smudged"){
-		research_primary.reverse();
-		for(var i in research_primary){
-			research_way.unshift([research_primary[i]]);
-		}
-		debugMsg("research_primary smudged", 'research');
-		return true;
-	}
-	if(researchStrategy == "Strict"){
-		var _out=[];
-		for(i in research_primary){
-			_out.push(research_primary[i]);
-		}
-		research_way.unshift(_out);
-		debugMsg("research_primary strict", 'research');
-		return true;
-	}
-	if(researchStrategy == "Random"){
-		shuffle(research_primary);
-		for(i in research_primary){
-			research_way.unshift([research_primary[i]]);
-		}
-		debugMsg("research_primary random", 'research');
-		return true;
-	}
-	return false;
-}
-
 function removeDuplicates(originalArray, objKey) {
 	var trimmedArray = [];
 	var values = [];
@@ -1291,4 +1156,29 @@ function secondTick(){
 	}
 	
 	debugMsg('power: '+playerPower(me), 'power');
+}
+
+function intersect_arrays(a, b) {
+    var sorted_a = a.concat().sort();
+    var sorted_b = b.concat().sort();
+    var common = [];
+    var a_i = 0;
+    var b_i = 0;
+
+    while (a_i < a.length
+           && b_i < b.length)
+    {
+        if (sorted_a[a_i] === sorted_b[b_i]) {
+            common.push(sorted_a[a_i]);
+            a_i++;
+            b_i++;
+        }
+        else if(sorted_a[a_i] < sorted_b[b_i]) {
+            a_i++;
+        }
+        else {
+            b_i++;
+        }
+    }
+    return common;
 }
