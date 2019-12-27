@@ -183,6 +183,7 @@ function mainBuilders(rotation){
 			//Строим генераторы, если мало денег и нехватка генераторов
 			if(playerPower(me) < 1000 && (power_gen_ready.length * 4) <= resource_extractor.length && (power_gen.length < getStructureLimit("A0PowerGenerator")) ) { if(builderBuild(obj, "A0PowerGenerator", rotation)){build++;continue;} }
 			
+			if(len_research_lab < 5 && (playerPower(me) > 500 || berserk)) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			if(factory.length <= 5 && (playerPower(me) > 1000 || berserk)) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			if(isStructureAvailable("A0CyborgFactory") && cyborg_factory_ready.length < 4 && (playerPower(me) > 500 || berserk)) { if(builderBuild(obj, "A0CyborgFactory", rotation)){build++; continue;} }
 

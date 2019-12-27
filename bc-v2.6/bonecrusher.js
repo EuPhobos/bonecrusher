@@ -466,6 +466,7 @@ function init(){
 		msg+=" ["+startPositions[player].x+"x"+startPositions[player].y+"]";
 		msg+=" дист. "+dist;
 		debugMsg(msg,"init");
+		debugMsg('bc_ally.length: '+bc_ally.length, 'init');
 	});
 	
 
@@ -533,6 +534,22 @@ function init(){
 	
 	if(policy['build'] == 'rich'){
 
+		//Если есть союзники бонкрашеры
+		if(bc_ally.length > 1){
+			var researches = [research_ratbot, research_fire1, research_cannon, research_fire2, research_rich, research_rockets];
+			var r = bc_ally.indexOf(me)%researches.length;
+			debugMsg('Get research path #'+r+', from ally researches array', 'init');
+			research_path = researches[r];
+		}else{
+			var researches = [research_ratbot, research_cannon, research_fire1, research_rich];
+			debugMsg('Get research path #'+r+', from solo researches array', 'init');
+			research_path = researches[Math.floor(Math.random()*researches.length)];
+		}
+		
+		research_path = research_rockets;
+		
+		
+/*		
 		research_way.unshift(
 			["R-Sys-Engineering01"],
 			["R-Struc-Research-Module"],
@@ -543,6 +560,7 @@ function init(){
 			["R-Vehicle-Body11"]
 //			["R-Vehicle-Prop-Tracks"]
 		);
+*/
 		
 		if(technology.length)cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgLightBody", "CyborgChaingun"]);
 		
@@ -554,6 +572,10 @@ function init(){
 		maxRegular = 100;
 		scannersTimer = 120000
 	}
+	
+	research_path = research_earlygame.concat(research_path).concat(research_lasttech);
+	
+//	research_path = research_earlygame;
 	
 //	if(policy['build'] == 'cyborgs') cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);
 	

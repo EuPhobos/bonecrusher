@@ -3,10 +3,10 @@ debugMsg('Module: research.js','init');
 
 //Rewrited for 3.3+ game version
 function doResearch(){
-	if(!running)return;
+	if(!running)return false;
 	
 	//old dependency
-	if(!getInfoNear(base.x,base.y,'safe',base_range).value && !(playerPower(me) > 300 || berserk) && avail_guns.length != 0) return;
+	if(!getInfoNear(base.x,base.y,'safe',base_range).value && !(playerPower(me) > 300 || berserk) && avail_guns.length != 0) return false;
 	
 	
 	
@@ -15,33 +15,45 @@ function doResearch(){
 	var labs_len = labs.length;
 	labs = labs.filter(function(e){if(e.status == BUILT && structureIdle(e))return true;return false;});
 	
+	//If no ready labs
+	if(labs.length == 0) return false;
+	
 	//old dependency
 	if(policy['build'] != 'rich'){
-			if(countStruct('A0ResourceExtractor', me) < 8 && !(playerPower(me) > 700 || berserk) && (labs_len-labs.len) >= 3) break;
-			if(countStruct('A0ResourceExtractor', me) < 5 && !(playerPower(me) > 500 || berserk) && (labs_len-labs.len) >= 2) break;
-			if(countStruct('A0ResourceExtractor', me) < 3 && !(playerPower(me) > 300 || berserk) && (labs_len-labs.len) >= 1) break;
+			if(countStruct('A0ResourceExtractor', me) < 8 && !(playerPower(me) > 700 || berserk) && (labs_len-labs.len) >= 3) return false;
+			if(countStruct('A0ResourceExtractor', me) < 5 && !(playerPower(me) > 500 || berserk) && (labs_len-labs.len) >= 2) return false;
+			if(countStruct('A0ResourceExtractor', me) < 3 && !(playerPower(me) > 300 || berserk) && (labs_len-labs.len) >= 1) return false;
 	}
 	
-	//If no ready labs
-	if(labs.length == 0) return;
-
-	debugMsg('Labs: '+labs_len+', ready: '+labs.length, 'research');
+	
+	//Get all available researches, filterout started by ally
+	var avail_research = enumResearch().filter(function(o){if(o.started)return false;return true;});
+	
+	if(avail_research.length == 0) return false;
+	
+	debugMsg('Labs: '+labs_len+', ready: '+labs.length+', avail_research: '+avail_research.length, 'research');
 	
 //	debugMsg('research_path.length:'+research_path.length, 'research');
 	
 	//Clear research path from completed researches
-	research_path = research_path.filter(function(o){if(getResearch(o).done)return false; return true});
+	research_path = research_path.filter(function(o){
+		var r = getResearch(o);
+		if(!r){debugMsg('Research "'+o+'" not found', 'error');return false;}
+		if(r.done)return false;
+		return true;
+	});
+
+	var prepare_research = [];
 	
-	//Finish research line
-	if(research_path.length == 0){debugMsg('No more research in research_path', 'error'); return;}
+	if(research_path.length != 0 ){
+		//Filter out started researches by me or ally
+		prepare_research = research_path.filter(function(o){if(getResearch(o).started)return false; return true;});
 	
-	//Filter out started researches by me or ally
-	var prepare_research = research_path.filter(function(o){if(getResearch(o).started)return false; return true;});
+		if(prepare_research.length == 0) return false;
 	
-	debugMsg('Path length: '+prepare_research.length+'; follow to: '+prepare_research[0], 'research');
-	
-	//Get all available researches, filterout started by ally
-	var avail_research = enumResearch().filter(function(o){if(o.started)return false;return true;});
+		debugMsg('Path length: '+prepare_research.length+'; follow to: '+prepare_research[0], 'research');
+		
+	}
 	
 	//Get clean array without objects
 	var researches = [];
@@ -67,17 +79,30 @@ function doResearch(){
 //	if(findResearch(to_research[0]).filter(function(o){if(getResearch(o).started)return false; return true;}}).length == 0)
 	
 	//No more research at this moment
-	if(to_research.length == 0){debugMsg('Nothing research', 'research'); return;}
+	if(to_research.length == 0){
+		var rnd = Math.floor(Math.random()*researches.length);
+		debugMsg('researches.length: '+researches.length+', rnd: '+rnd, 'research');
+		var rnd_research = researches[rnd];
+		debugMsg('Nothing research, start random research: "'+rnd_research+'"', 'research');
+		to_research.push(rnd_research);
+	}
+	
+	//Finish research line
+	if(research_path.length == 0 && to_research.length == 0){debugMsg('No more research in research_path', 'error'); return false;}
 	
 	debugMsg('Start research: '+to_research[0], 'research');
 	
 	//Start pursue research to given technology
-	if(!pursueResearch(labs[0], to_research)) debugMsg('Something wrong in doResearch() function', 'error');
+	if(!pursueResearch(labs[0], to_research)){
+		debugMsg('Something wrong in doResearch() function', 'error');
+		return false;
+	}
 	//debug(JSON.stringify(pursueResearch(labs[0], to_research)));
 	
 	//If there more technology to research and more ready labs - repeat function
-	if(labs.length > 1 && prepare_research.length > 1) queue("doResearch", 500);
+	if(labs.length > 1 && prepare_research.length > 1) queue("doResearch", 700);
 	
+	return true;
 }
 
 
