@@ -1,5 +1,5 @@
 const vernum    = "v2.6";
-const verdate   = "09.12.2019";
+const verdate   = "27.12.2019";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 const release	= true;
@@ -24,7 +24,7 @@ Clean code
 
 
 //DEBUG: количество вывода, закоментить перед релизом
-var debugLevels = new Array('error', 'init', 'research');
+var debugLevels = new Array('error', 'init');
 
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 
@@ -74,7 +74,7 @@ var weakCPU = false;
 //"Smudged" - не строгая, по мере возможности забегает вперёд, но доисследует весь primary_way
 //"Random" - случайная, выборочно по заданному пути, но доиследует весь primary_way
 //"RoundRobin" - пока не реализована..
-var researchStrategy = 'Strict'; //По умолчанию, можно изменить в файле настроек вынесенный за предел мода
+//var researchStrategy = 'Strict'; //По умолчанию, можно изменить в файле настроек вынесенный за предел мода
 
 var base_range = 20; // В каких пределах работают основные строители (не охотники)
 
@@ -466,9 +466,9 @@ function init(){
 		msg+=" ["+startPositions[player].x+"x"+startPositions[player].y+"]";
 		msg+=" дист. "+dist;
 		debugMsg(msg,"init");
-		debugMsg('bc_ally.length: '+bc_ally.length, 'init');
+		
 	});
-	
+	debugMsg('bc_ally.length: '+bc_ally.length, 'init');
 
 
 	if(ally.length == 1){
@@ -536,17 +536,24 @@ function init(){
 
 		//Если есть союзники бонкрашеры
 		if(bc_ally.length > 1){
-			var researches = [research_ratbot, research_fire1, research_cannon, research_fire2, research_rich, research_rockets];
+			var researches = [research_rich2, research_fire1, research_cannon, research_fire2, research_rich, research_rockets];
 			var r = bc_ally.indexOf(me)%researches.length;
 			debugMsg('Get research path #'+r+', from ally researches array', 'init');
 			research_path = researches[r];
 		}else{
-			var researches = [research_ratbot, research_cannon, research_fire1, research_rich];
+			var researches = [
+				research_rich2, research_rich2, research_rich2, research_rich2,
+				research_cannon, research_cannon,
+				research_fire2, 
+				research_rich, research_rich, research_rich,
+				research_fire1, research_fire1,
+				research_rockets];
+			var r = Math.floor(Math.random()*researches.length);
 			debugMsg('Get research path #'+r+', from solo researches array', 'init');
-			research_path = researches[Math.floor(Math.random()*researches.length)];
+			research_path = researches[r];
 		}
 		
-		research_path = research_rockets;
+//		research_path = research_rockets;
 		
 		
 /*		
@@ -571,10 +578,31 @@ function init(){
 		builderPts = 150;
 		maxRegular = 100;
 		scannersTimer = 120000
+	} else {
+		//Если есть союзники бонкрашеры
+		if(bc_ally.length > 1){
+			var researches = [research_fire1, research_cannon, research_fire2, research_rich, research_rockets];
+			var r = bc_ally.indexOf(me)%researches.length;
+			debugMsg('Get research path #'+r+', from ally researches array', 'init');
+			research_path = researches[r];
+		}else{
+			var researches = [
+				research_rich2,
+				research_cannon, research_cannon, research_cannon, research_cannon, 
+				research_fire2, 
+				research_rich,
+				research_fire1, research_fire1,
+				research_rockets];
+			var r = Math.floor(Math.random()*researches.length);
+			debugMsg('Get research path #'+r+', from solo researches array', 'init');
+			research_path = researches[r];
+		}
 	}
 	
 	research_path = research_earlygame.concat(research_path).concat(research_lasttech);
 	
+	
+		
 //	research_path = research_earlygame;
 	
 //	if(policy['build'] == 'cyborgs') cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);
@@ -596,7 +624,8 @@ function init(){
 		
 		//Забываем все предустановленные исследования
 		//Исследуем оружия и защиту в полном рандоме.
-		research_way=[["R-Wpn-MG1Mk1"],["R-Struc-Research-Upgrade09"],["R-Struc-Power-Upgrade03a"]];
+//		research_way=[["R-Wpn-MG1Mk1"],["R-Struc-Research-Upgrade09"],["R-Struc-Power-Upgrade03a"]];
+		research_path = research_earlygame;
 		
 		//Уменьшаем размеры армий
 		(maxPartisans > 7)?maxPartisans = 7:{};
@@ -619,11 +648,18 @@ function init(){
 		
 		//Производим строителя раз в минуту, не раньше
 		buildersTimer = 60000;
+		
+		
+		
 	}else if(difficulty == MEDIUM){
 		buildersTimer = buildersTimer + Math.floor(Math.random()*5000 - 2000);
 		minBuilders = minBuilders + Math.floor(Math.random() * 5 - 2 );
 		builderPts = builderPts + Math.floor(Math.random() * 200 - 150);
 		minPartisans = minPartisans + Math.floor(Math.random() * 6 - 4);
+		
+		//Если в союзниках человек и исслоедования общий, а мы на средней сложности, то просто поддерживаем исследования (без особой ветки)
+		if(alliancesType == 2 && isHumanAlly()){research_path = research_earlygame.concat(research_lasttech);}
+		
 	}
 	debugMsg("minPartisans="+minPartisans+", minBuilders="+minBuilders+", builderPts="+builderPts+", buildersTimer="+buildersTimer, "init");
 	debugMsg("Лимиты базы: maxFactories="+maxFactories+"; maxFactoriesCyb="+maxFactoriesCyb+"; maxFactoriesVTOL="+maxFactoriesVTOL+"; maxPads="+maxPads+"; maxLabs="+maxLabs+"; maxGenerators="+maxGenerators+"; maxExtractors="+maxExtractors, 'init');

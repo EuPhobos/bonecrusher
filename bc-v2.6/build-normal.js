@@ -159,6 +159,12 @@ function mainBuilders(rotation){
 			if(factory.length < 3 && (playerPower(me) > 900 || berserk)) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			
 		}else {
+			
+			
+			if(alliancesType == 2 && isHumanAlly()){
+				if(len_research_lab < 1) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
+			}
+			
 			//Завод, лаборатория,генератор,ком-центр! - вот залог хорошего пионера!
 			if(factory_ready.length < 1) { if(builderBuild(obj, "A0LightFactory", rotation)){build++; continue;} }
 			

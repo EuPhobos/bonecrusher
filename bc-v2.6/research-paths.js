@@ -64,7 +64,7 @@ const research_cannon = [
 "R-Defense-WallTower-DoubleAAgun"		// #107  AA Flak Cannon Hardpoint
 ];
 
-const research_ratbot = [
+const research_rich2 = [
 "R-Vehicle-Engine01", 
 "R-Wpn-Cannon1Mk1", 
 "R-Vehicle-Prop-Halftracks", 
@@ -278,7 +278,7 @@ const research_rich = [
 "R-Vehicle-Body11",		// #61  Heavy Body - Python
 "R-Sys-Sensor-Upgrade02",		// #62  Sensor Upgrade Mk2
 "R-Sys-Sensor-Upgrade03",		// #63  Sensor Upgrade Mk3
-"R-Sys-ECM-Upgrade02",		// #64  Electronic Countermeasures Mk2
+//"R-Sys-ECM-Upgrade02",		// #64  Electronic Countermeasures Mk2
 "R-Wpn-MG4",		// #65  Assault Gun
 "R-Wpn-MG5",		// #66  Twin Assault Gun
 "R-Cyborg-Metals03",		// #67  Cyborg Composite Alloys Mk3
