@@ -485,16 +485,16 @@ function checkProcess(){
 			
 			if(playerPower(bc_ally[plally]) < 100 && playerPower(me) > 100){
 				var _pow = Math.floor(playerPower(me)/2);
-				donatePower(_pow, bc_ally[plally]);
 				debugMsg("Send "+_pow+" power to "+bc_ally[plally], 'ally');
+				donatePower(_pow, bc_ally[plally]);
 			}
 
 			if(enumDroid(bc_ally[plally], DROID_CONSTRUCT).length < 3){
 				if(groupSize(buildersMain) >= 2){
 					var truck = enumGroup(buildersMain);
 					if(truck.length != 0){
-						donateObject(truck[0], bc_ally[plally]);
 						debugMsg("Send builder["+truck[0].id+"] from "+me+" to "+bc_ally[plally], 'ally');
+						donateObject(truck[0], bc_ally[plally]);
 						break;
 					} else { debugMsg("No more builders from "+me+" to "+bc_ally[plally], 'ally');}
 				}
@@ -590,9 +590,6 @@ function filterInaccessible(obj){
 	});
 }
 
-//TODO need to fix logic, sometimes it's buggy
-//it's triggered in middle of battlefield,
-//and send help to random location.. don't known why..
 function getEnemyNearAlly(){
 //	return []; // <-- disable this funtion
 	var targ = [];
@@ -656,6 +653,23 @@ function getAllyArmy(){
 	
 	return army;
 }
+
+//Функция возвращает все свободные нефтеточки на карте.
+function getFreeResources(){
+	return enumFeature(ALL_PLAYERS, "OilResource");
+}
+
+//Функция возвращает все свободные и занятые нефтеточки на карте.
+function getAllResources(){
+	var resources = getFreeResources();
+	for ( var e = 0; e < maxPlayers; ++e ) resources = resources.concat(enumStruct(e,RESOURCE_EXTRACTOR));
+	if(scavengers == true){
+		resources = resources.concat(enumStruct(scavengerPlayer, "A0ResourceExtractor"));
+	}
+	return resources;
+}
+
+
 
 
 //Функция возвращяет вышки, о которых в данный момент не известно ничего
@@ -779,14 +793,14 @@ function getNumEnemies(){
 	return enemies;
 }
 
-function isMultiplayer(){
+/*function isMultiplayer(){
 	var humans = 0;
 	for ( var e = 0; e < maxPlayers; ++e ) {
 		if(playerData[e].isHuman) humans++;
 	}
 	if(humans > 1) return true;
 	return false;
-}
+}*/
 
 function isHumanAlly(){
 	for ( var e = 0; e < maxPlayers; ++e ) {

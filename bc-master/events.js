@@ -24,7 +24,7 @@ function eventResearched(research, structure, player) {
 	if(research.name == 'R-Vehicle-Prop-Hover'){
 		minBuilders = 7;
 		buildersTimer = 5000;
-		recycleBuilders();
+		if(!nf['oilfinite'])recycleBuilders();
 	}
 
 	//Remove chaingun and flamer cyborgs if better available
@@ -468,7 +468,7 @@ function eventChat(sender, to, message) {
 			base.x = startPositions[sender].x;
 			base.y = startPositions[sender].y;
 			break;
-		case "gmn":
+		case "gmp":
 			chat(sender, "I have "+playerPower(me));
 			if(playerPower(me)>500){
 				donatePower(Math.floor(playerPower(me)/2), sender);
@@ -504,8 +504,8 @@ function eventChat(sender, to, message) {
 			chat(sender, "VTOLs is mine now.");
 			break;
 		case "dbg":
-			debugMsg("DEBUG: avail_research", 'dbg');
-			for(var i in avail_research){
+			debugMsg("DEBUG: ", 'dbg');
+/*			for(var i in avail_research){
 				debugMsg(avail_research[i].name, 'dbg');
 			}
 			debugMsg("<==-==>", 'dbg');
@@ -513,8 +513,45 @@ function eventChat(sender, to, message) {
 			for(var i in research_way){
 				debugMsg(research_way[i], 'dbg');
 			}
+*/
+			debug(JSON.stringify(_globalInfoNear));
+			debug(JSON.stringify(_globalOrders));
+			debug(JSON.stringify(defQueue));
+			debug(JSON.stringify(nf));
+			debug(JSON.stringify(policy));
+
+			break;
+		case "ver":
+			chat(sender, "Version: "+vernum+" ("+verdate+")");
 			break;
 	}
+	
+	if(message.substr(0,8) == "cheat me"){
+/*		if(!isMultiplayer() && ( !isHumanAlly() || !release ) ){
+			berserk = true;
+			debugMsg('Berserk activated', 'init');
+			chat(sender, ' from '+debugName+': '+chatting('berserk'));
+		}else{*/
+			chat(sender, ' from '+debugName+': '+chatting('no'));
+//		}
+	}
+/*		
+	if(message.substr(0,13) == "cheat me hard"){
+		if(!isMultiplayer() && ( !isHumanAlly() || !release ) ){
+			debugMsg('Big army activated', 'init');
+			minPartisans = 20;
+			maxPartisans = 25;
+			minRegular = 30;
+			maxRegular = 70;
+			minCyborgs = 40;
+			maxCyborgs = 50;
+			seer = true;
+			debugMsg('Seer activated', 'init');
+			chat(sender, ' from '+debugName+': '+chatting('seer'));
+		}else{
+			chat(sender, ' from '+debugName+': '+chatting('no'));
+		}
+	}*/
 //	else
 //	chat(sender, "You say: "+message+", what?");
 	

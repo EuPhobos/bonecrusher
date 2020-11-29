@@ -1,5 +1,5 @@
-const vernum    = "v2.6";
-const verdate   = "27.12.2019";
+const vernum    = "master";
+const verdate   = "xx.03.2020";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 const release	= true;
@@ -24,7 +24,7 @@ Clean code
 
 
 //DEBUG: количество вывода, закоментить перед релизом
-var debugLevels = new Array('error', 'init');
+var debugLevels = new Array('error', 'init', 'ally', 'research');
 
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 
@@ -124,7 +124,7 @@ var func_buildersOrder_trigger = 0;
 
 //Отсутствующие переменные
 const DORDER_NONE = 0;
-const DORDER_RECOVER = 33;
+//const DORDER_RECOVER = 33;
 
 
 // --- TRIGGERS --- \\
@@ -164,7 +164,7 @@ var bc_ally=[]; //Союзные ИИ BoneCrusher-ы
 
 var avail_research = [];	//Массив возможных исследований, заполняется в функции doResearch();
 
-var scavengerPlayer = -1;
+//var scavengerPlayer = -1;
 
 var buildersMain = newGroup();
 var buildersHunters = newGroup();
@@ -385,8 +385,17 @@ function init(){
 	debugMsg("ИИ №"+me+" "+vername+" "+vernum+"("+verdate+") difficulty="+difficulty, "init");
 	debugMsg("Warzone2100 "+version, "init");
 	
+	//Определеяем моды
+	debugMsg("MODS: "+modList, "init");
+	
+	if(modList.indexOf('oilfinite')!==-1){
+		nf['oilfinite'] = true;
+		debugMsg('Consider oilfinite mod', "init");
+	}
+	
 	//Определяем мусорщиков
-	scavengerPlayer = (scavengers) ? Math.max(7,maxPlayers) : -1;
+	//Больше не требуется, игра сама предоставляет эту переменную
+//	scavengerPlayer = (scavengers) ? Math.max(7,maxPlayers) : -1;
 	if(scavengers)debugMsg("На карте присудствуют гопники! {"+scavengerPlayer+"}", "init");
 	else debugMsg("На карте отсутствуют гопники", "init");
 	
@@ -398,20 +407,18 @@ function init(){
 	if(technology.length) debugMsg("Доступных исследований: "+technology.length, "init");
 	else debugMsg("ВНИМАНИЕ: Нет доступных исследований", "init");
 	
-	debugMsg('Is Multiplayer: '+isMultiplayer(), 'init');
+	debugMsg('Is Multiplayer: '+isMultiplayer, 'init');
 	debugMsg('Is Human in Ally: '+isHumanAlly(), 'init');
 	debugMsg('Num Enemies: '+getNumEnemies(), 'init');
 	
 	//Получаем координаты всех ресурсов и занятых и свободных
-	allResources = enumFeature(ALL_PLAYERS, "OilResource");
-	var nearResources = allResources.filter(function(e){if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) < base_range) return true; return false;});
+	var freeResources = getFreeResources();
+	var nearResources = freeResources.filter(function(e){if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) < base_range) return true; return false;});
 	nearResources = nearResources.concat(enumStruct(me, "A0ResourceExtractor").filter(function(e){if(distBetweenTwoPoints_p(base.x,base.y,e.x,e.y) < base_range) return true; return false;}));
-	debugMsg("На карте "+allResources.length+" свободных ресурсов", 'init');
+	debugMsg("На карте "+freeResources.length+" свободных ресурсов", 'init');
 	
-	for ( var e = 0; e < maxPlayers; ++e ) allResources = allResources.concat(enumStruct(e,RESOURCE_EXTRACTOR));
-	if(scavengers == true){
-		allResources = allResources.concat(enumStruct(scavengerPlayer, "A0ResourceExtractor"));
-	}
+	allResources = getAllResources();
+	
 	debugMsg("На карте "+allResources.length+" всего ресурсов, рядом "+nearResources.length, 'init');
 	
 	_builders = enumDroid(me,DROID_CONSTRUCT);
@@ -586,6 +593,7 @@ function init(){
 			debugMsg('Get research path #'+r+', from ally researches array', 'init');
 			research_path = researches[r];
 		}else{
+/*
 			var researches = [
 				research_rich2,
 				research_cannon, research_cannon, research_cannon, research_cannon, 
@@ -593,13 +601,16 @@ function init(){
 				research_rich,
 				research_fire1, research_fire1,
 				research_rockets];
+*/
+			var researches = [research_orange];
 			var r = Math.floor(Math.random()*researches.length);
 			debugMsg('Get research path #'+r+', from solo researches array', 'init');
 			research_path = researches[r];
 		}
 	}
 	
-	research_path = research_earlygame.concat(research_path).concat(research_lasttech);
+	if(nf['oilfinite'])research_path = research_earlygame.concat(["R-Sys-MobileRepairTurret01"]).concat(research_path).concat(research_lasttech);
+	else research_path = research_earlygame.concat(research_path).concat(research_lasttech);
 	
 	
 		

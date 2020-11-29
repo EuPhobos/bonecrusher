@@ -161,6 +161,8 @@ function mainBuilders(rotation){
 		}else {
 			
 			
+			if(nf['oilfinite'] && isStructureAvailable("A0ComDroidControl", me) && ccontrol.length == 0)if(builderBuild(obj, "A0ComDroidControl", rotation)){build++; continue;}
+			
 			if(alliancesType == 2 && isHumanAlly()){
 				if(len_research_lab < 1) { if(builderBuild(obj, "A0ResearchFacility", rotation)){build++; continue;} }
 			}
