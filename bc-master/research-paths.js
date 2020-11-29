@@ -139,7 +139,7 @@ const research_fire1 = [
 "R-Wpn-Flamer01Mk1",
 "R-Struc-PowerModuleMk1",
 "R-Struc-Power-Upgrade03a",
-"R-Defense-MortarPit-Incenediary",
+"R-Defense-MortarPit-Incendiary",
 "R-Struc-Factory-Cyborg",
 "R-Wpn-Flamer-ROF03",
 "R-Struc-Research-Upgrade09",
@@ -160,7 +160,7 @@ const research_fire1 = [
 "R-Vehicle-Body12",
 "R-Struc-VTOLPad",
 "R-Wpn-Bomb04",
-"R-Wpn-Howitzer-Incenediary",
+"R-Wpn-Howitzer-Incendiary",
 "R-Wpn-Howitzer-ROF04",
 "R-Wpn-HvyHowitzer",
 "R-Wpn-Howitzer-Accuracy03",
@@ -198,7 +198,7 @@ const research_fire2 = [
 "R-Vehicle-Body08",
 "R-Sys-Autorepair-General",		//Автопочинка
 "R-Wpn-Flamer-Damage09",
-"R-Defense-MortarPit-Incenediary",
+"R-Defense-MortarPit-Incendiary",
 //"R-Wpn-Cannon4AMk1",			//Hyper Velocity Cannon
 "R-Wpn-Cannon-ROF01",			//Cannon auto loader
 "R-Wpn-Cannon6TwinAslt",		//Twin Assault Cannon
@@ -210,7 +210,7 @@ const research_fire2 = [
 "R-Wpn-Mortar-Acc03",
 "R-Vehicle-Body12",
 "R-Defense-AASite-QuadMg1",		//Hurricane AA Site
-"R-Wpn-Howitzer-Incenediary",
+"R-Wpn-Howitzer-Incendiary",
 "R-Wpn-Howitzer-ROF04",
 "R-Wpn-HvyHowitzer",
 "R-Wpn-Howitzer-Accuracy03",
@@ -426,7 +426,7 @@ const research_orange = [
 "R-Vehicle-Body08",
 "R-Sys-Autorepair-General",		//Автопочинка
 "R-Wpn-Flamer-Damage09",
-"R-Defense-MortarPit-Incenediary",
+"R-Defense-MortarPit-Incendiary",
 //"R-Wpn-Cannon4AMk1",			//Hyper Velocity Cannon
 "R-Wpn-Cannon-ROF01",			//Cannon auto loader
 "R-Wpn-Cannon6TwinAslt",		//Twin Assault Cannon
@@ -438,7 +438,7 @@ const research_orange = [
 "R-Wpn-Mortar-Acc03",
 "R-Vehicle-Body12",
 "R-Defense-AASite-QuadMg1",		//Hurricane AA Site
-"R-Wpn-Howitzer-Incenediary",
+"R-Wpn-Howitzer-Incendiary",
 "R-Wpn-Howitzer-ROF04",
 "R-Wpn-HvyHowitzer",
 "R-Wpn-Howitzer-Accuracy03",
