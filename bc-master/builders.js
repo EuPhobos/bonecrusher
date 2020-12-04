@@ -313,7 +313,8 @@ function buildersOrder(order,target) {
 function rigDefence(obj, nearbase){
 	if ( typeof nearbase === "undefined" ) nearbase = false;
 
-	if( ( (playerPower(me) < 700 && nf['policy'] != 'island' ) || playerPower(me) < 1300) && !berserk){
+//	if( ( (playerPower(me) < 700 && nf['policy'] != 'island' ) || playerPower(me) < 1300) && !berserk){
+	if( (playerPower(me) < 700 && nf['policy'] != 'island' ) && !berserk){
 //		debugMsg('exit low power not rich', 'defence');
 		return false;
 	}
@@ -387,9 +388,10 @@ function defenceQueue(){
 
 	}
 
-	myRigs = myRigs.concat(enumStruct(me, FACTORY));
-	myRigs = myRigs.concat(enumStruct(me, CYBORG_FACTORY));
-	
+	if(playerPower(me) < 1500){
+		myRigs = myRigs.concat(enumStruct(me, FACTORY));
+		myRigs = myRigs.concat(enumStruct(me, CYBORG_FACTORY));
+	}
 //	var myRigs = enumStruct(me,RESOURCE_EXTRACTOR);
 //	var enemyRigs = getEnemyResources();
 //	var enQueue = [];
@@ -402,9 +404,9 @@ function defenceQueue(){
 				var defNum = 0;
 				for (var i in myDefence){
 					if (distBetweenTwoPoints_p(e.x,e.y,myDefence[i].x,myDefence[i].y) < 7) defNum++; //Если к качалке есть близко на 7 тайлов защита, считаем
-					if (difficulty == EASY && defNum != 0) return false;
-					if ((difficulty == MEDIUM || berserk) && defNum >= 1) return false; //если к качалке близко есть башня, пропускаем
-					if ( ( difficulty == HARD || difficulty == INSANE ) && defNum >= 2) return false;
+					if ( difficulty == EASY && defNum != 0) return false;
+					if ((difficulty == MEDIUM || difficulty == HARD || berserk) && defNum >= 1) return false; //если к качалке близко есть башня, пропускаем
+					if ( difficulty == INSANE && defNum >= 2) return false;
 				}
 				return true; //Добавляем координаты к очереди
 			}

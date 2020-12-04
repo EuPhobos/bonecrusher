@@ -7,6 +7,15 @@ const release	= true;
 
 ///////\\\\\\\
 
+/*
+- Если у мусорщиков больше ОЗ - не нападать
++ Проверить чит-чат для INSANE (как у встроенного)
+- Удалять предпостроенные заборы
+- Строить ремцех
+- Продавать сильно раненых юнитов, если нет ремцехов и армия больше 10
+*/
+
+
 /* ---=== For buildIn AI ===---
 
 Clean code
@@ -111,7 +120,7 @@ var ordersLimit = 100;
 
 //functions controller for performance purpose
 var func_buildersOrder = true;
-var func_buildersOrder_timer = 5000+me*100;
+var func_buildersOrder_timer = 2000+me*100;
 var func_buildersOrder_trigger = 0;
 
 /*
@@ -477,7 +486,9 @@ function init(){
 	});
 	debugMsg('bc_ally.length: '+bc_ally.length, 'init');
 
-
+	if(ally.length == 0){
+		debugMsg("Союзников нет" , 'init');
+	}
 	if(ally.length == 1){
 		debugMsg("Имеется союзник" , 'init');
 	}
@@ -774,7 +785,7 @@ function letsRockThisFxxxingWorld(init){
 
 			if(policy['build'] == 'rich') func_buildersOrder_timer = 5000+me*100;
 			
-		} else if(difficulty == HARD){
+/*		} else if(difficulty == HARD){
 		
 			setTimer("targetPartisan", 5000+me*100);
 //			setTimer("buildersOrder", 5000+me*100);
@@ -792,9 +803,9 @@ function letsRockThisFxxxingWorld(init){
 			reactRegularArmyTimer = 5000;
 			checkRegularArmyTimer = 5000;
 			reactWarriorsTimer = 2000;
-			func_buildersOrder_timer = 5000+me*100;
-		
-		} else if(difficulty == INSANE){
+			func_buildersOrder_timer = 2000+me*100;
+*/		
+		} else if(difficulty == HARD || difficulty == INSANE){
 		
 //			research_way.unshift(["R-Defense-MortarPit-Incendiary"]);
 			
@@ -814,7 +825,8 @@ function letsRockThisFxxxingWorld(init){
 			reactRegularArmyTimer = 5000;
 			checkRegularArmyTimer = 5000;
 			reactWarriorsTimer = 2000;
-			func_buildersOrder_timer = 5000+me*100;
+			func_buildersOrder_timer = 2000+me*100;
+		
 //Disable Cheats
 /*			
 			if(!isMultiplayer() && ( !isHumanAlly() || !release ) ){
