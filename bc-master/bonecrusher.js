@@ -1,18 +1,39 @@
+namespace("bc_");
 const vernum    = "master";
 const verdate   = "xx.03.2020";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 const release	= true;
 
-
 ///////\\\\\\\
 
 /*
-- Если у мусорщиков больше ОЗ - не нападать
 + Проверить чит-чат для INSANE (как у встроенного)
-- Удалять предпостроенные заборы
-- Строить ремцех
-- Продавать сильно раненых юнитов, если нет ремцехов и армия больше 10
+=== Строители
++ Удалять предпостроенные заборы (Есть проблема в движке, статус сносимой структуры становится "Структура возводится" и другие конструкторы едут её "Чинить")
++ Строить ремцех
+++ Строить кучно, возле ближайшей нефтеточке, на краю границы базы (как то доработать, строят криво)
++ Исправлено застревание строителя возле Бочки или Артифакта
++ Строители должны строить защитное сооружение возле любой нефтеточки
++ почему то строители стали маятся, ездят по 2 по точкам, так не должно быть (вроде испрвил)
+=== Армия
+- Если у мусорщиков больше ОЗ - не нападать
+- Может быть изменить поведение армии, при захвате множества вышек переключать на "Rich"
++ Продавать сильно раненых юнитов, если нет ремцехов и армия больше 10
+++ почему то продаются, даже когда есть чинилки, исправить (вроде исправил, проверить)
++ Сенсор объезжает все неразведанные нефтеточки
+=== Прочее
++ Заменены устаревшие функции с groupAddDroid на groupAdd
++ Добавлен namespace на все event функции
++ Исправлены некоторые недочёты в матчах на островных картах
+!- Функция longCycle не допродаёт раненых, проверить почему
+!- на островной карте криво строит оборонительные сооружения
+?- Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
+=== В долгосрочных планах
+NTW В командной игре армии кучкует по отдельности, сделать что бы сообща играли
+NTW Авиация исследует кластерные бомбы и применяет их на вражескую армию
+Авиация более разумно и полностью должна использовать запас снарядов
+Доработать переезд базы
 */
 
 
@@ -33,7 +54,7 @@ Clean code
 
 
 //DEBUG: количество вывода, закоментить перед релизом
-var debugLevels = new Array('error', 'init', 'ally', 'research');
+var debugLevels = new Array('error', 'init', 'ally', 'research', 'defence', 'group', 'droids', 'debug');
 
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 
@@ -120,7 +141,7 @@ var ordersLimit = 100;
 
 //functions controller for performance purpose
 var func_buildersOrder = true;
-var func_buildersOrder_timer = 2000+me*100;
+var func_buildersOrder_timer = 5000+me*100;
 var func_buildersOrder_trigger = 0;
 
 /*
@@ -175,6 +196,11 @@ var avail_research = [];	//Массив возможных исследован�
 
 //var scavengerPlayer = -1;
 
+var rage = difficulty;
+
+if(typeof asPlayer === 'undefined') asPlayer = false;
+else rage = HARD;
+
 var buildersMain = newGroup();
 var buildersHunters = newGroup();
 
@@ -200,6 +226,7 @@ var armyScanners = newGroup();
 var armyScouts = newGroup();
 var partJammers = newGroup();
 var VTOLAttacker = newGroup();
+var droidsRecycle = newGroup();
 
 var maxFactories, maxFactoriesCyb, maxFactoriesVTOL, maxLabs, maxPads;
 
@@ -244,7 +271,8 @@ const research_armor = ["R-Vehicle-Metals09"];
 const research_sensor = ["R-Sys-Sensor-UpLink"];
 
 //Переназначаются в функции prepeareProduce() что бы не читерить.
-var light_bodies=["Body3MBT","Body2SUP","Body4ABT","Body1REC"];
+//var light_bodies=["Body3MBT","Body2SUP","Body4ABT","Body1REC"];
+var light_bodies=["Body3MBT","Body2SUP","Body1REC"];
 var medium_bodies=["Body7ABT","Body6SUPP","Body8MBT","Body5REC"];
 var heavy_bodies=["Body13SUP","Body10MBT","Body9REC","Body12SUP","Body11ABT"];
 /*
@@ -391,7 +419,7 @@ var AA_towers=[
 function init(){
 
 	
-	debugMsg("ИИ №"+me+" "+vername+" "+vernum+"("+verdate+") difficulty="+difficulty, "init");
+	debugMsg("ИИ №"+me+" "+vername+" "+vernum+"("+verdate+") difficulty="+rage, "init");
 	debugMsg("Warzone2100 "+version, "init");
 	
 	//Определеяем моды
@@ -514,7 +542,7 @@ function init(){
 /*
 	debugMsg('--- init research way ---', 'init');
 //	if(Math.round(Math.random()*3) != 0) researchCustom = true;
-//	if(difficulty == HARD || difficulty == INSANE) researchCustom = true;
+//	if(rage == HARD || rage == INSANE) researchCustom = true;
 	if(researchCustom){
 		researchStrategy = 'Smudged';
 		debugMsg("initializing custom research_primary", 'init');
@@ -560,11 +588,12 @@ function init(){
 			research_path = researches[r];
 		}else{
 			var researches = [
-				research_rich2, research_rich2, research_rich2, research_rich2,
+				research_rich2, research_rich2, research_rich2, research_rich2, research_rich2,
 				research_cannon, research_cannon,
 				research_fire2, 
 				research_rich, research_rich, research_rich,
 				research_fire1, research_fire1,
+				research_fire3, research_fire3, research_fire3,
 				research_rockets];
 			var r = Math.floor(Math.random()*researches.length);
 			debugMsg('Get research path #'+r+', from solo researches array', 'init');
@@ -604,16 +633,17 @@ function init(){
 			debugMsg('Get research path #'+r+', from ally researches array', 'init');
 			research_path = researches[r];
 		}else{
-/*
+
 			var researches = [
 				research_rich2,
-				research_cannon, research_cannon, research_cannon, research_cannon, 
+				research_cannon, research_cannon, research_cannon, research_cannon, research_cannon,
 				research_fire2, 
 				research_rich,
-				research_fire1, research_fire1,
+				research_fire1,
+				research_fire3, research_fire3,
 				research_rockets];
-*/
-			var researches = [research_orange];
+
+//			var researches = [research_green];
 			var r = Math.floor(Math.random()*researches.length);
 			debugMsg('Get research path #'+r+', from solo researches array', 'init');
 			research_path = researches[r];
@@ -641,7 +671,7 @@ function init(){
 	
 	
 	//Лёгкий режим
-	if(difficulty == EASY){
+	if(rage == EASY){
 		debugMsg("Похоже я играю с нубами, будем поддаваться:", 'init');
 		
 		//Забываем все предустановленные исследования
@@ -673,7 +703,7 @@ function init(){
 		
 		
 		
-	}else if(difficulty == MEDIUM){
+	}else if(rage == MEDIUM){
 		buildersTimer = buildersTimer + Math.floor(Math.random()*5000 - 2000);
 		minBuilders = minBuilders + Math.floor(Math.random() * 5 - 2 );
 		builderPts = builderPts + Math.floor(Math.random() * 200 - 150);
@@ -733,7 +763,7 @@ function init(){
 
 function welcome(){
 	playerData.forEach( function(data, player) {
-		chat(player, ' from '+debugName+': '+chatting('welcome'));
+		if(!asPlayer)chat(player, ' from '+debugName+': '+chatting('welcome'));
 	});
 }
 
@@ -747,18 +777,19 @@ function letsRockThisFxxxingWorld(init){
 	cyborgs = cyborgs.filter(function(e){if( (e[2] == 'CyborgChaingun' && getResearch('R-Wpn-MG4').done) || (e[2] == 'CyborgFlamer01' && getResearch('R-Wpn-Flame2').done) )return false;return true;});
 	
 	//Первых военных в группу
-	enumDroid(me,DROID_CYBORG).forEach(function(e){groupAddDroid(armyCyborgs, e);});
-	enumDroid(me,DROID_WEAPON).forEach(function(e){groupAddDroid(armyCyborgs, e);}); // <-- Это не ошибка, первых бесплатных определяем как киборгов (работа у них будет киборгская)
+	enumDroid(me,DROID_CYBORG).forEach(function(e){groupAdd(armyCyborgs, e);});
+	enumDroid(me,DROID_WEAPON).forEach(function(e){groupAdd(armyCyborgs, e);}); // <-- Это не ошибка, первых бесплатных определяем как киборгов (работа у них будет киборгская)
 
 	setTimer("secondTick", 1000);
 	queue("buildersOrder", 1000);
 	queue("prepeareProduce", 2000);
 	queue("produceDroids", 3000);
 	queue("doResearch", 3000);
+	setTimer("longCycle", 120000);
 	
 	running = true;
 	if(init){
-		if(difficulty == EASY){
+		if(rage == EASY){
 	
 			setTimer("produceDroids", 10000+me*100);
 			setTimer("produceVTOL", 12000+me*100);
@@ -770,7 +801,7 @@ function letsRockThisFxxxingWorld(init){
 			setTimer("targetVTOL", 120000+me*100); //Не раньше 30 сек.
 		
 	
-		} else if(difficulty == MEDIUM){
+		} else if(rage == MEDIUM){
 
 			setTimer("produceDroids", 7000+me*100);
 			setTimer("produceVTOL", 8000+me*100);
@@ -785,7 +816,7 @@ function letsRockThisFxxxingWorld(init){
 
 			if(policy['build'] == 'rich') func_buildersOrder_timer = 5000+me*100;
 			
-/*		} else if(difficulty == HARD){
+/*		} else if(rage == HARD){
 		
 			setTimer("targetPartisan", 5000+me*100);
 //			setTimer("buildersOrder", 5000+me*100);
@@ -805,7 +836,7 @@ function letsRockThisFxxxingWorld(init){
 			reactWarriorsTimer = 2000;
 			func_buildersOrder_timer = 2000+me*100;
 */		
-		} else if(difficulty == HARD || difficulty == INSANE){
+		} else if(rage == HARD || rage == INSANE){
 		
 //			research_way.unshift(["R-Defense-MortarPit-Incendiary"]);
 			
@@ -871,7 +902,7 @@ function initBase(){
 	_builders.forEach(function(e){groupBuilders(e);});
 
 	if(policy['build'] == 'rich' && _builders.length > 4){
-		groupAddDroid(buildersHunters, _builders[0]);
+		groupAdd(buildersHunters, _builders[0]);
 		debugMsg('Builder --> Hunter +1', 'group');
 	}
 
@@ -889,22 +920,22 @@ function debugMsg(msg,level){
 	debug(shortname+"["+timeMsg+"]{"+debugName+"}("+level+"): "+msg);
 }
 
-function eventStartLevel() {
+function bc_eventStartLevel() {
 	if(version != '3.3.0')
 	queue("init", 1000);
 }
 
-function eventGameLoaded(){
+function bc_eventGameLoaded(){
 	queue("init", 1000);
 }
 
-function eventGameSaving(){
+function bc_eventGameSaving(){
 	running = false;
 }
 
-function eventGameSaved(){
+function bc_eventGameSaved(){
 	running = true;
 	playerData.forEach( function(data, player) {
-		chat(player, ' from '+debugName+': '+chatting('saved'));
+		if(!asPlayer)chat(player, ' from '+debugName+': '+chatting('saved'));
 	});
 }

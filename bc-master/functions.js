@@ -89,7 +89,7 @@ function getInfoNear(x,y,command,range,time,obj,cheat,inc){
 				_globalInfoNear[x+'_'+y+'_'+command].value = false;
 			}
 			return _globalInfoNear[x+'_'+y+'_'+command];
-		}else if(command == 'buildRig'){
+		}else if(command == 'actionTry'){
 			if(typeof _globalInfoNear[x+'_'+y+'_'+command].value === 'undefined'){
 				_globalInfoNear[x+'_'+y+'_'+command].value = 0;
 //				debugMsg('getInfoNear set 0','temp');
@@ -265,20 +265,20 @@ function groupArmy(droid, type){
 	
 	if(type == 'jammer'){
 //		debugMsg("armyJammers +1", 'group');
-		groupAddDroid(armyJammers, droid);
+		groupAdd(armyJammers, droid);
 		return;
 	}
 	
 	if(droid.droidType == DROID_REPAIR){
 //		debugMsg("armyFixers +1", 'group');
-		groupAddDroid(armyFixers, droid);
+		groupAdd(armyFixers, droid);
 		return;
 	}
 	
 	//Забираем киборгов под общее коммандование
-	if(droid.droidType == DROID_CYBORG && policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE)){
+	if(droid.droidType == DROID_CYBORG && policy['build'] == 'rich' && (rage == HARD || rage == INSANE)){
 //		debugMsg("armyRegular +1", 'group');
-		groupAddDroid(armyRegular, droid);
+		groupAdd(armyRegular, droid);
 		return;
 	}
 	
@@ -286,25 +286,25 @@ function groupArmy(droid, type){
 //	if(groupSize(armyPartisans) < 7 || !getResearch("R-Vehicle-Body05").done || groupSize(armyRegular) >= maxRegular ){
 	if(groupSize(armyPartisans) <= minPartisans || groupSize(armyRegular) >= maxRegular){
 //		debugMsg("armyPartisans +1", 'group');
-		groupAddDroid(armyPartisans, droid);
+		groupAdd(armyPartisans, droid);
 	}else{
 		
 		if(droid.droidType == DROID_CYBORG || groupSize(armyCyborgs) == 0){
 //			debugMsg("armyCyborgs +1", 'group');
-			groupAddDroid(armyCyborgs, droid);
+			groupAdd(armyCyborgs, droid);
 			return;
 		}
 		
 //		debugMsg("armyRegular +1", 'group');
-		groupAddDroid(armyRegular, droid);
+		groupAdd(armyRegular, droid);
 	}
 	
 	//Перегрупировка
-	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1 && !(policy['build'] == 'rich' && (difficulty == HARD || difficulty == INSANE))){
+	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1 && !(policy['build'] == 'rich' && (rage == HARD || rage == INSANE))){
 		var regroup = enumGroup(armyRegular);
 		regroup.forEach(function(e){
 //			debugMsg("armyRegular --> armyPartisans +1", 'group');
-			groupAddDroid(armyPartisans, e);
+			groupAdd(armyPartisans, e);
 		});
 	}
 	
@@ -519,7 +519,7 @@ function gameStop(condition){
 		debugMsg("I guess, i'm loose.. Give up", 'end');
 		if(running){
 			playerData.forEach( function(data, player) {
-				chat(player, ' from '+debugName+': '+chatting('loose'));
+				if(!asPlayer)chat(player, ' from '+debugName+': '+chatting('loose'));
 			});
 		}
 		
@@ -527,7 +527,7 @@ function gameStop(condition){
 		debugMsg("KICKED", 'end');
 		if(running){
 			playerData.forEach( function(data, player) {
-				chat(player, ' from '+debugName+': '+chatting('kick'));
+				if(!asPlayer)chat(player, ' from '+debugName+': '+chatting('kick'));
 			});
 		}
 	}
@@ -562,7 +562,7 @@ function filterNearAlly(obj){
 		if ( playerSpectator(p) ) continue;
 		
 		//Если союзнику доступно 40 вышек, не уступаем ему свободную.
-		if(policy['build'] == 'rich' && difficulty > 1){
+		if(policy['build'] == 'rich' && rage > 1){
 			var allyRes = enumFeature(ALL_PLAYERS, "OilResource");
 			allyRes = allyRes.filter(function(e){if(distBetweenTwoPoints_p(startPositions[p].x,startPositions[p].y,e.x,e.y) < base_range) return true; return false;});
 			allyRes = allyRes.concat(enumStruct(p, "A0ResourceExtractor").filter(function(e){if(distBetweenTwoPoints_p(startPositions[p].x,startPositions[p].y,e.x,e.y) < base_range) return true; return false;}));
@@ -582,11 +582,18 @@ function filterNearBase(obj){
 	});
 }
 
+//Функция отфильтровывает объекты за пределами радиуса базы
+function filterOutBase(obj){
+	return obj.filter(function(e){
+		if( distBetweenTwoPoints_p(base.x,base.y, e.x, e.y) < base_range) return true; return false;
+	});
+}
+
 //функция отфильтровывает недостежимые объекты
 function filterInaccessible(obj){
 	return obj.filter(function(e){
 		//Если попыток постройки больше 3, отфильтровываем их
-		if(getInfoNear(e.x,e.y,'buildRig',0,300000,false,false,false).value > 3)return false;return true;
+		if(getInfoNear(e.x,e.y,'actionTry',0,300000,false,false,false).value > 3)return false;return true;
 	});
 }
 
@@ -1106,9 +1113,26 @@ function checkEventIdle(){
 	queue('targetRegular', 400);
 }
 
+function recycleDroid(droid){
+	groupAdd(droidsRecycle, droid);
+	debugMsg(droid.health+": "+droid.x+"x"+droid.y, 'droids');
+	var factory = enumStruct(me, FACTORY);
+	factory = factory.concat(enumStruct(me, REPAIR_FACILITY));
+	var factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
+	if(factory_ready.length != 0){
+		orderDroid(droid, DORDER_RECYCLE);
+		return true;
+	}else{
+		orderDroidLoc_p(droid, DORDER_MOVE, base.x, base.y);
+		return true;
+	}
+	return false;
+}
+
 //для 3.2
 function recycleBuilders(){
 	var factory = enumStruct(me, FACTORY);
+	factory = factory.concat(enumStruct(me, REPAIR_FACILITY));
 	var factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 	if(factory_ready.length != 0){
 		var _builders = enumDroid(me,DROID_CONSTRUCT);
@@ -1195,4 +1219,34 @@ function intersect_arrays(a, b) {
         }
     }
     return common;
+}
+
+//Всякоразно, исправление недочётов.
+function longCycle(){
+	debugMsg("-debug-", 'debug');
+	
+	
+	//Повторно отправляем дроидов на продажу
+	var broken = enumGroup(droidsRecycle);
+	if(broken.length != 0){
+		debugMsg("-broken-", 'debug');
+		broken.forEach(function(o){
+			orderDroid(o, DORDER_RECYCLE);
+		});
+	}
+	
+	//Повторно отправляем дроидов, которые неуспешно продались на островной карте
+	if(nf['policy'] == 'island'){
+		debugMsg("-island-", 'debug');
+
+		var droids = enumGroup(builderHunters);
+		droids = droids.concat(enumGroup(builderMain));
+		droids = droids.concat(enumGroup(armyScanners));
+		droids = droids.concat(enumGroup(armyFixers));
+		if(droids.length != 0)debugMsg("droids="+droids.length, 'debug');
+		if(droids.length != 0)droids = droids.filter(function(o){if(o.propulsion == "wheeled01" || o.propulsion == "HalfTrack" || o.propulsion == "tracked01")return true;return false;});
+		if(droids.length != 0)debugMsg("filtered droids="+droids.length, 'debug');
+		if(droids.length != 0)droids.forEach(function(o){orderDroid(o, DORDER_RECYCLE);});
+	}
+	
 }

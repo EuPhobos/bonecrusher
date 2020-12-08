@@ -525,9 +525,9 @@ function chooseResearch(){
 		setResearchWay(_research);
 	}else{
 		var _w=["Black","Green","Red","Yellow","Orange","Blue","Rich"];
-	//	if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange"];
-		if(difficulty == HARD || difficulty == INSANE) _w=["Green","Orange","Yellow","Rich","Orange","Green","Green"];
-		if(bc_ally.length == 1 && policy['build'] == 'rich' && difficulty == MEDIUM) _w = ['Rich'];
+	//	if(rage == HARD || rage == INSANE) _w=["Green","Orange"];
+		if(rage == HARD || rage == INSANE) _w=["Green","Orange","Yellow","Rich","Orange","Green","Green"];
+		if(bc_ally.length == 1 && policy['build'] == 'rich' && rage == MEDIUM) _w = ['Rich'];
 		var _r = 0;
 		debugMsg("bc_ally="+bc_ally.length, 'research');
 		if(bc_ally.length > 1){

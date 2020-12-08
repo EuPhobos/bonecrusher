@@ -27,8 +27,10 @@ const research_earlygame = [
 */
 const research_earlygame = [
 	"R-Defense-Tower01",
+	"R-Vehicle-Prop-Halftracks",
 	"R-Struc-PowerModuleMk1",
 	"R-Vehicle-Prop-Hover"
+//	"R-Struc-RepairFacility"
 ];
 
 
@@ -36,7 +38,7 @@ const research_test = [
 	"R-Vehicle-Prop-Hover"
 ];
 
-const research_cannon = [
+/*const research_cannon = [
 "R-Defense-Tower01",
 "R-Wpn-Cannon1Mk1",		// #6  Light Cannon
 //"R-Defense-WallTower02", //защита лёгкая пушка
@@ -71,7 +73,7 @@ const research_cannon = [
 "R-Struc-VTOLPad",
 "R-Wpn-Bomb04",
 "R-Defense-WallTower-DoubleAAgun"		// #107  AA Flak Cannon Hardpoint
-];
+];*/
 
 const research_rich2 = [
 "R-Vehicle-Engine01", 
@@ -136,6 +138,7 @@ const research_fire1 = [
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
 "R-Wpn-Mortar01Lt",
 "R-Wpn-Mortar-Damage03",
+"R-Vehicle-Body05",                             //Средняя начальная броня
 "R-Wpn-Flamer01Mk1",
 "R-Struc-PowerModuleMk1",
 "R-Struc-Power-Upgrade03a",
@@ -143,10 +146,9 @@ const research_fire1 = [
 "R-Struc-Factory-Cyborg",
 "R-Wpn-Flamer-ROF03",
 "R-Struc-Research-Upgrade09",
-"R-Vehicle-Prop-Tracks",		// #98  Tracked Propulsion
 "R-Wpn-Plasmite-Flamer", // plasmite
 "R-Struc-Power-Upgrade03a",
-"R-Vehicle-Body05",                             //Средняя начальная броня
+"R-Struc-RepairFacility",
 "R-Cyborg-Metals09",
 "R-Wpn-MG-ROF03",
 //"R-Sys-ECM-Upgrade02",	//Глушилка
@@ -159,6 +161,7 @@ const research_fire1 = [
 "R-Wpn-Mortar-Acc03",
 "R-Vehicle-Body12",
 "R-Struc-VTOLPad",
+"R-Vehicle-Prop-Tracks",		// #98  Tracked Propulsion
 "R-Wpn-Bomb04",
 "R-Wpn-Howitzer-Incendiary",
 "R-Wpn-Howitzer-ROF04",
@@ -352,7 +355,7 @@ const research_rich = [
 "R-Defense-WallTower-DoubleAAgun",		// #126  AA Flak Cannon Hardpoint
 ];
 
-const research_green = [
+const research_cannon = [
 "R-Wpn-MG1Mk1",
 "R-Sys-Engineering01",
 "R-Defense-Tower01",
@@ -369,6 +372,7 @@ const research_green = [
 "R-Wpn-MG-ROF03",				//Hyper Fire Chaingun Upgrade
 "R-Vehicle-Body11",		// #101  Heavy Body - Python
 "R-Wpn-MG5",					//Twin Assault Gun
+"R-Struc-RepairFacility",
 "R-Wpn-MG3Mk1",
 "R-Wpn-Cannon4AMk1",			//Hyper Velocity Cannon
 //"R-Sys-ECM-Upgrade02",
@@ -382,7 +386,7 @@ const research_green = [
 "R-Wpn-Cannon-Accuracy02",		//Cannon Laser Designator
 "R-Wpn-MG-Damage04",            // #32  APDSB MG Bullets Mk3
 "R-Wpn-Cannon-Damage09",		//HVAPFSDS Cannon Rounds Mk3
-"R-Sys-MobileRepairTurretHvy",
+//"R-Sys-MobileRepairTurretHvy",
 'R-Defense-WallTower-HPVcannon',
 "R-Wpn-MG5",					//Twin Assault Gun
 "R-Wpn-MG-Damage08",			//Depleted Uranium MG Bullets
@@ -395,7 +399,7 @@ const research_green = [
 ];
 
 //Flamer-cannon-vtols
-const research_orange = [
+const research_fire3 = [
 "R-Wpn-MG1Mk1",
 "R-Defense-Tower01",
 "R-Sys-Engineering01",
@@ -449,4 +453,4 @@ const research_orange = [
 
 ];
 
-research_path = research_green;
+research_path = research_cannon;

@@ -1,6 +1,6 @@
 debugMsg('Module: events.js','init');
 
-function eventStructureReady(structure) {
+function bc_eventStructureReady(structure) {
 	if(structure.player == me){
 		switch (structure.stattype) {
 			case LASSAT:
@@ -13,7 +13,7 @@ function eventStructureReady(structure) {
 		}
 	}
 } 
-function eventResearched(research, structure, player) {
+function bc_eventResearched(research, structure, player) {
 	
 	if (!running) return;
 	
@@ -37,7 +37,7 @@ function eventResearched(research, structure, player) {
 }
 
 //3.2+
-function eventPlayerLeft(player) {
+function bc_eventPlayerLeft(player) {
 	bc_ally = bc_ally.filter(function(p){if(p==player) return false; return true;});
 	ally = ally.filter(function(p){if(p==player) return false; return true;});
 	enemy = enemy.filter(function(p){if(p==player) return false; return true;});
@@ -45,7 +45,7 @@ function eventPlayerLeft(player) {
 }
 
 // Обязательно использовать
-function eventDroidIdle(droid) {
+function bc_eventDroidIdle(droid) {
 	
 	debugMsg('idle '+droidTypes[droid.droidType], 'events');
 	
@@ -102,7 +102,7 @@ function eventDroidIdle(droid) {
 }
 
 //Я так понял, данный триггер больше не работает так как был задуман.
-function eventObjectSeen(sensor, gameObject) {
+function bc_eventObjectSeen(sensor, gameObject) {
 	
 	debug(sensor.name+': '.gameObject.name, 'eventSeen');
 /*	
@@ -139,20 +139,20 @@ function eventObjectSeen(sensor, gameObject) {
 }
 
 //Если произошла передача от игрока к игроку
-function eventObjectTransfer(gameObject, from) {
+function bc_eventObjectTransfer(gameObject, from) {
 	debugMsg("I="+me+"; object '"+gameObject.name+"' getting to "+gameObject.player+" from "+from, 'transfer');
 	
 	if (gameObject.player == me) { // Что то получили
 		if (allianceExistsBetween(me,from)) { // От союзника
 			switch (gameObject.droidType) {
 				case DROID_WEAPON:
-					if(isVTOL(gameObject))groupAddDroid(VTOLAttacker,gameObject);
+					if(isVTOL(gameObject))groupAdd(VTOLAttacker,gameObject);
 					groupArmy(gameObject);
 					break;
 				case DROID_CONSTRUCT:
 				case 10:
 					
-					if(groupSize(buildersMain) >= 2) groupAddDroid(buildersHunters, gameObject);
+					if(groupSize(buildersMain) >= 2) groupAdd(buildersHunters, gameObject);
 					else { groupBuilders(gameObject); }
 					
 					if(!getInfoNear(base.x,base.y,'safe',base_range).value){
@@ -171,7 +171,7 @@ function eventObjectTransfer(gameObject, from) {
 					
 					break;
 				case DROID_SENSOR:
-					groupAddDroid(armyScanners, droid);
+					groupAdd(armyScanners, droid);
 					targetSensors();
 					break;
 				case DROID_CYBORG:
@@ -192,7 +192,7 @@ function eventObjectTransfer(gameObject, from) {
 }
 
 //Срабатывает при завершении строительства здания
-function eventStructureBuilt(structure, droid){
+function bc_eventStructureBuilt(structure, droid){
 
 	/*
 	if(policy['build'] == 'rich'){
@@ -209,7 +209,7 @@ function eventStructureBuilt(structure, droid){
 	switch (structure.stattype) {
 		case RESEARCH_LAB:
 			queue("doResearch", 1000);
-			if(difficulty != EASY && gameTime < 300000){
+			if(rage != EASY && gameTime < 300000){
 				//Ротация строителей в начале игры, для более быстрого захвата ресурсов на карте
 				//Отключено в лёгком режиме
 				factory = enumStruct(me, FACTORY);
@@ -220,11 +220,11 @@ function eventStructureBuilt(structure, droid){
 				research_lab_ready = research_lab.filter(function(e){if(e.status == 1)return true; return false;});
 //				if( (factory_ready.length == 1 && research_lab_ready.length == 1) || power_gen_ready.length == 1)
 				if(factory_ready.length == 2 && research_lab_ready.length == 1){
-					enumGroup(buildersMain).forEach(function(e,i){if(i!=0){groupAddDroid(buildersHunters, e);debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');}});
+					enumGroup(buildersMain).forEach(function(e,i){if(i!=0){groupAdd(buildersHunters, e);debugMsg("FORCE "+i+" Builder --> Hunter +1", 'group');}});
 				}
 				else if( ( ( factory_ready.length == 1 && research_lab_ready.length == 3) || research_lab_ready.length == 4 ) && policy['build'] == 'rich'){
 					var e = enumGroup(buildersMain)[0];
-					groupAddDroid(buildersHunters, e);
+					groupAdd(buildersHunters, e);
 				}
 			}
 			
@@ -236,7 +236,7 @@ function eventStructureBuilt(structure, droid){
 			if(groupSize(buildersMain) != 0){
 				if( ( (factory_ready.length == 1 && research_lab_ready.length == 1) || factory_ready.length == 2 || factory_ready.length == 3) && policy['build'] == 'rich'){
 					var e = enumGroup(buildersMain)[0];
-					groupAddDroid(buildersHunters, e);
+					groupAdd(buildersHunters, e);
 				}
 				
 	//			if(policy['build'] != 'rich'){
@@ -263,7 +263,7 @@ function eventStructureBuilt(structure, droid){
 }
 
 //этот триггер срабатывает при выходе из завода нового свежего юнита.
-function eventDroidBuilt(droid, structure) {
+function bc_eventDroidBuilt(droid, structure) {
 	
 //	debugMsg("eventDroidBuilt: droidType="+droid.droidType+", name="+droid.name, 'eventDroidBuilt');
 	
@@ -283,7 +283,7 @@ function eventDroidBuilt(droid, structure) {
 			queue("buildersOrder", 1000);
 			break;
 		case 10:
-			groupAddDroid(buildersMain, droid);
+			groupAdd(buildersMain, droid);
 			func_buildersOrder_trigger = 0;
 			queue("buildersOrder", 1000);
 			break;
@@ -300,7 +300,7 @@ function eventDroidBuilt(droid, structure) {
 				groupArmy(droid);
 			}
 			if(droid.droidType == DROID_SENSOR){
-				groupAddDroid(armyScanners, droid);
+				groupAdd(armyScanners, droid);
 				targetSensors();
 			}
 //			if(droid.droidType == DROID_ECM) groupArmy(droid);
@@ -319,7 +319,7 @@ function eventDroidBuilt(droid, structure) {
 			if(vtolToPlayer !== false){donateObject(droid, vtolToPlayer);}
 			else{
 				orderDroidLoc_p(droid, 40, base.x, base.y);
-				groupAddDroid(VTOLAttacker, droid);
+				groupAdd(VTOLAttacker, droid);
 			}
 			produceVTOL();
 //			targetVTOL();
@@ -335,7 +335,7 @@ function eventDroidBuilt(droid, structure) {
 */
 
 
-function eventAttacked(victim, attacker) {
+function bc_eventAttacked(victim, attacker) {
 	if(allianceExistsBetween(me, attacker.player)) return;
 	
 	//Если атака с самолёта рядом с базой, строим ПВО
@@ -377,6 +377,10 @@ function eventAttacked(victim, attacker) {
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)){
 		lastImpact = {x:victim.x,y:victim.y};
 
+		if(victim.health < 10){
+			if(recycleDroid(victim)) return;
+		}
+		
 		//т.к. в богатых картах кол-во партизан всего 2, направляем всю армию к атакованным
 		if(policy['build'] == 'rich'){ targetRegular(attacker, victim);return;}
 		
@@ -410,7 +414,7 @@ function eventAttacked(victim, attacker) {
 	
 }
 
-function eventDestroyed(obj){
+function bc_eventDestroyed(obj){
 	if(obj.type == STRUCTURE && obj.stattype == FACTORY){
 		if(produceTrigger[obj.id]){
 			var rem = produceTrigger.splice(obj.id, 1);
@@ -429,7 +433,8 @@ function eventDestroyed(obj){
 	
 }
 
-function eventChat(sender, to, message) {
+function bc_eventChat(sender, to, message) {
+	if(asPlayer) return;
 //	debugMsg('from: '+sender+', to: '+to+', msg: '+message, 'chat')
 	if(!release)
 	switch (message){
