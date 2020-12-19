@@ -26,6 +26,8 @@ function groupBuilders(droid){
 //Подсчитываем постройки на базе
 var factory, power_gen, resource_extractor, research_lab, hq, cyborg_factory, vtol_factory, rearm_pad, uplink_center, lassat, ccontrol, repfac;
 var factory_ready, power_gen_ready, resource_extractor_ready, research_lab_ready, hq_ready, cyborg_factory_ready, vtol_factory_ready, rearm_pad_ready, uplink_center_ready, lassat_ready, ccontrol_ready, repfac_ready;
+var se_r=0; //Resource extractor length
+
 
 function checkBase(){
 	factory = enumStruct(me, FACTORY);
@@ -44,6 +46,7 @@ function checkBase(){
 	factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 	power_gen_ready = power_gen.filter(function(e){if(e.status == 1)return true; return false;});
 	resource_extractor_ready = resource_extractor.filter(function(e){if(e.status == 1)return true; return false;});
+	se_r = resource_extractor_ready.length;
 	research_lab_ready = research_lab.filter(function(e){if(e.status == 1)return true; return false;});
 	hq_ready = hq.filter(function(e){if(e.status == 1)return true; return false;});
 	cyborg_factory_ready = cyborg_factory.filter(function(e){if(e.status == 1)return true; return false;});
@@ -336,10 +339,12 @@ function rigDefence(obj, nearbase){
 	if ( typeof nearbase === "undefined" ) nearbase = false;
 
 //	if( ( (playerPower(me) < 700 && nf['policy'] != 'island' ) || playerPower(me) < 200) && !berserk){
+
 	if( (playerPower(me) < 700 && nf['policy'] != 'island' ) && !berserk){
-//		debugMsg('exit low power not rich', 'defence');
+		debugMsg('exit low power not rich', 'defence');
 		return false;
 	}
+
 //	debugMsg("rigDefence(): "+defQueue.length);
 
 	if(!nearbase) defQueue = filterNearBase(defQueue);
@@ -366,13 +371,24 @@ function rigDefence(obj, nearbase){
 	
 	if(nearbase && distBetweenTwoPoints_p(base.x,base.y,defQueue[0].x,defQueue[0].y) > base_range/2) return false;
 	
+	if(!getInfoNear(defQueue[0].x,defQueue[0].y,'safe').value) return false;
+	
 //	debugMsg("rigDefence(): Строителем №"+obj.id+" строим "+toBuild+" "+defQueue[0].x+"x"+defQueue[0].y);
-	var pos = pickStructLocation(obj,toBuild,posRnd(defQueue[0].x, 'x'), posRnd(defQueue[0].y, 'y'));
+	var _def = getInfoNear(defQueue[0].x,defQueue[0].y,'buildDef',5,30000,false);
+	if(_def.value && !builderBusy(obj)){
+		debugMsg('try-build: '+defQueue[0].x+'x'+defQueue[0].y+", build: "+_def.x+'x'+_def.y+', '+nearbase, 'defence');
+		orderDroidBuild_p(obj, DORDER_BUILD, toBuild, _def.x, _def.y, 0);
+		defQueue.shift();
+		return true;
+	}
+/*	var pos = pickStructLocation(obj,toBuild,posRnd(defQueue[0].x, 'x'), posRnd(defQueue[0].y, 'y'));
 	if(!!pos && !builderBusy(obj)){
+		debugMsg('try-build: '+defQueue[0].x+'x'+defQueue[0].y+", build: "+pos.x+'x'+pos.y+', '+nearbase, 'defence');
 		orderDroidBuild_p(obj, DORDER_BUILD, toBuild, pos.x, pos.y, 0);
 		defQueue.shift();
 		return true;
 	}
+*/
 //	debugMsg("rigDefence(): Отмена");
 	debugMsg('exit no reason', 'defence');
 	return false;
@@ -425,7 +441,7 @@ function defenceQueue(){
 		defQueue = myRigs.filter(
 			function(e){
 				if(myDefence.length==0) return true; //Если защитных сооружений вообще нет, добавляем все координаты всех наших качалок
-				if(!getInfoNear(e.x,e.y,'buildDef',7,300000,false).value) return false; //Если не получается построить рядом защиту - запоминаем это на 5 минут и пропускаем
+				if(!getInfoNear(e.x,e.y,'buildDef',5,30000,false).value) return false; //Если не получается построить рядом защиту - запоминаем это на 5 минут и пропускаем
 				var defNum = 0;
 				for (var i in myDefence){
 					if (distBetweenTwoPoints_p(e.x,e.y,myDefence[i].x,myDefence[i].y) < 7) defNum++; //Если к качалке есть близко на 7 тайлов защита, считаем

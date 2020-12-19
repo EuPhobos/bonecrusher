@@ -3,10 +3,19 @@ const vernum    = "master";
 const verdate   = "xx.03.2020";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
-const release	= true;
+const release	= false;
+
 
 ///////\\\\\\\
-
+//v1.00 - 10.10.2019 (Встроенная версия)
+//		Remove old game version dependency (if version)
+//		Remove old nfAlgorythm for game v3.1
+//		Slightly improve performance, set order limits
+//v1.01 - 10.12.2019 Big update
+//
+//v1.02 - 03.07.2020 Cosmetic update
+//		Не читерить без явных указаний на это
+//v1.1 - Big update
 /*
 + Проверить чит-чат для INSANE (как у встроенного)
 === Строители
@@ -17,44 +26,30 @@ const release	= true;
 + Строители должны строить защитное сооружение возле любой нефтеточки
 + почему то строители стали маятся, ездят по 2 по точкам, так не должно быть (вроде испрвил)
 === Армия
-- Если у мусорщиков больше ОЗ - не нападать
-- Может быть изменить поведение армии, при захвате множества вышек переключать на "Rich"
++ Если у мусорщиков больше ОЗ - не нападать (доработать отход)
++ Может быть изменить поведение армии, при захвате множества вышек переключать на "Rich" (Изменил, на FFA и больших ландшафтных картах не очень хорошо)
 + Продавать сильно раненых юнитов, если нет ремцехов и армия больше 10
-++ почему то продаются, даже когда есть чинилки, исправить (вроде исправил, проверить)
 + Сенсор объезжает все неразведанные нефтеточки
++ Переключать на режим "Островной", когда выбиты противники на континенте, а оставшиеся недосегаемы по земле
++ Подтюнить островной режим
 === Прочее
 + Заменены устаревшие функции с groupAddDroid на groupAdd
 + Добавлен namespace на все event функции
 + Исправлены некоторые недочёты в матчах на островных картах
-!- Функция longCycle не допродаёт раненых, проверить почему
-!- на островной карте криво строит оборонительные сооружения
-?- Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
++ на островной карте криво строит оборонительные сооружения (починил)
++ Очередная чистка от старых алгоритмов, расчитаных на 3.1.5 версию, замена новыми
+- Добаботать отступление при атаке мусорщиков (в отдельную группу "отступающих"
+- Доработать отступление на ремонт при событии "атака" (в отдельную группу "на ремонт")
 === В долгосрочных планах
+Отдавать приказ военным, очистить загаженный ресурс от дереьев и мусора
 NTW В командной игре армии кучкует по отдельности, сделать что бы сообща играли
 NTW Авиация исследует кластерные бомбы и применяет их на вражескую армию
 Авиация более разумно и полностью должна использовать запас снарядов
 Доработать переезд базы
 */
 
-
-/* ---=== For buildIn AI ===---
-
-Clean code
-+ Remove nastyFeatures algorythms
-- Remove most useless comments
-+ Remove "if version"
-
-*/
-
-///////\\\\\\\
-//v1.00 (Встроенная версия)
-//		Remove old game version dependency (if version)
-//		Remove old nfAlgorythm for game v3.1
-//		Slightly improve performance, set order limits
-
-
 //DEBUG: количество вывода, закоментить перед релизом
-var debugLevels = new Array('error', 'init', 'ally', 'research', 'defence', 'group', 'droids', 'debug');
+var debugLevels = new Array('error', 'init', 'ally', 'research', 'defence', 'group', 'droids', 'debug', 'temp');
 
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 
@@ -114,11 +109,12 @@ var scannersTimer = 300000;		//Триггер для заказа сенсоро
 var checkRegularArmyTimer = 10000;
 var reactRegularArmyTimer = 10000;
 var reactWarriorsTimer = 5000;
+var reactPartisanTimer = 20000;
 var fullBaseTimer = 60000;
 
 var minBuilders = 5;
 
-var builderPts = 750;
+var builderPts = 750; //Необходимость энергии для постройки "лишнего" строителя
 
 var maxConstructors = 15;
 
@@ -189,6 +185,8 @@ var rWay;
 //Массив всех приказов юнитам
 var _globalOrders = [];
 
+var build_rich = 26; //Сколько должно быть рядом нефтеточек, что бы изменить механизм постройки на rich
+var army_rich = 28; //Сколько должно быть занято нефтеточек, что бы изменить механизм армии на rich
 
 var bc_ally=[]; //Союзные ИИ BoneCrusher-ы
 
@@ -227,6 +225,8 @@ var armyScouts = newGroup();
 var partJammers = newGroup();
 var VTOLAttacker = newGroup();
 var droidsRecycle = newGroup();
+var droidBroken = newGroup();
+var droidsFleet = newGroup();
 
 var maxFactories, maxFactoriesCyb, maxFactoriesVTOL, maxLabs, maxPads;
 
@@ -238,6 +238,7 @@ var checkRegularArmyTrigger = 0;
 var reactRegularArmyTrigger = 0;
 var reactWarriorsTrigger = 0;
 var fullBaseTrigger = 0;
+var partisanTrigger = 0;
 
 var berserk = false;
 var seer = false;
@@ -461,6 +462,7 @@ function init(){
 	_builders = enumDroid(me,DROID_CONSTRUCT);
 	
 	debugMsg("Игроков на карте: "+maxPlayers,2);
+	var access=false;
 	playerData.forEach( function(data, player) {
 		var msg = "Игрок №"+player+" "+colors[data.colour];
 		var dist = distBetweenTwoPoints_p(base.x,base.y,startPositions[player].x,startPositions[player].y);
@@ -482,8 +484,15 @@ function init(){
 		else{
 			msg+=" мой враг";
 			enemy.push(player);
+			if(propulsionCanReach('wheeled01', base.x, base.y, startPositions[player].x, startPositions[player].y)){ msg+= ", по земле"; access = 'land';}
+			else if(propulsionCanReach('hover01', base.x, base.y, startPositions[player].x, startPositions[player].y)){ msg+= ", по воде"; access = 'island';}
+			else if(propulsionCanReach('V-Tol', base.x, base.y, startPositions[player].x, startPositions[player].y)){ msg+= ", по воздуху"; access = 'air';}
+			else {msg+= ", не доступен!"; access = 'island';};
+			if(!nf['policy'] || nf['policy'] == 'island' || nf['policy'] == 'air'){nf['policy'] = access;} 
+			/*
 			if(_builders.length != 0){
 				
+				/*
 				//Знаю, в 3.2 можно тщательнее всё проверить, но у нас совместимость с 3.1.5
 				//поэтому логика аналогична
 				//Надеемся, что строитель №0 не ховер, проверяем может ли он добраться до врага
@@ -492,19 +501,11 @@ function init(){
 					if(!nf['policy']){nf['policy'] = 'island';}
 					else if(nf['policy'] == 'land'){ nf['policy'] = 'land';}
 				}else{
-					
-					/*
-					Перенесено в checkAlly(), в functions.js
-					if(Math.floor(dist/2) < base_range){
-						debugMsg('base_range снижено: '+base_range+'->'+Math.floor(dist/2), 'init');
-						base_range = Math.floor(dist/2);
-					}
-					*/
-					
 					if(!nf['policy']){nf['policy'] = 'land';}
 					else if(nf['policy'] == 'island'){ nf['policy'] = 'land';}
 				}
 			}
+			*/
 		}
 		
 		msg+=" ["+startPositions[player].x+"x"+startPositions[player].y+"]";
@@ -527,7 +528,7 @@ function init(){
 		if(alliancesType == 2) debugMsg("Исследования общие", 'init');
 		if(alliancesType == 3) debugMsg("Исследования раздельные", 'init');
 	}
-	if(nearResources.length >= 24){
+	if(nearResources.length >= build_rich){
 		policy['build'] = 'rich';
 		initBase();
 	}else{
@@ -718,39 +719,17 @@ function init(){
 	debugMsg("Лимиты юнитов: maxPartisans="+maxPartisans+"; maxRegular="+maxRegular+"; maxCyborgs="+maxCyborgs+"; maxVTOL="+maxVTOL+"; maxFixers="+maxFixers+"; maxConstructors="+maxConstructors, 'init');
 	
 	
-	if(!release)research_way.forEach(function(e){debugMsg(e, 'research_way');});
 	
 	
 	if(nf['policy'] == 'island'){
 		debugMsg("Тактика игры: "+nf['policy'], 'init');
 		var _msg='Change policy form: '+policy['build'];
-		if(policy['build'] != 'rich') policy['build'] = 'island';
-		debugMsg(_msg+' to '+policy['build'], 'init');
-		debugMsg('Change maxCyborgs='+maxCyborgs+' to 0', 'init');
-		maxCyborgs = 0;
-		debugMsg('Change minBuilders='+minBuilders+' to 3', 'init');
-		minBuilders = 3;
-		buildersTimer = 35000;
-		minPartisans = 2;
-		
-		research_way.unshift(
-			["R-Vehicle-Prop-Hover"],
-			["R-Struc-PowerModuleMk1"],
-			["R-Struc-Research-Module"],
-			["R-Struc-Factory-Module"]
-		);
-		
-		debugMsg("Убираем все исследования связанные с киборгами", 'init');
-		
-		research_way = excludeTech(research_way, tech['cyborgs']);
-		
-		research_way = excludeTech(research_way, tech['tracks']);
-		
-		if(!release)research_way.forEach(function(e){debugMsg(e, 'research_way');});
-		
+		switchToIsland();
 	}
-	
-	if(!release) for ( var p = 0; p < maxPlayers; ++p ) {debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'temp');}
+
+	if(!release)research_path.forEach(function(e){debugMsg(e, 'init');});
+
+	if(!release) for ( var p = 0; p < maxPlayers; ++p ) {debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'init');}
 	
 	//Просто дебаг информация
 	var oilDrums = enumFeature(ALL_PLAYERS, "OilDrum");

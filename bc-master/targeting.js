@@ -7,7 +7,7 @@ function targetVTOL(){
 	var target = [];
 	var scout = [];
 	
-	if(policy['build'] != 'rich') {
+	if(!(policy['build'] == 'rich')) {
 		target = target.concat(sortByDistance(getEnemyResources(), base));
 	}
 	
@@ -60,7 +60,7 @@ function targetVTOL(){
 			
 			if(group.length <= 8){
 				
-				if(policy['build'] != 'rich'){
+				if(!(policy['build'] == 'rich')){
 					attackObjects(target, group, target.length, false);
 				}/* else{
 					group.forEach(function(e){
@@ -97,7 +97,7 @@ function targetJammers(){
 	
 	var jammers = enumGroup(armyJammers);
 	
-	if(policy['build'] == 'rich') var partisans = enumGroup(armyRegular);
+	if(se_r >= army_rich) var partisans = enumGroup(armyRegular);
 	else var partisans = enumGroup(armyPartisans);
 	
 	
@@ -197,6 +197,8 @@ function targetPartisan(){
 
 	if(!running)return;
 	
+	if(partisanTrigger > gameTime) return;
+	
 //	debugMsg("targetPartisan():", 'targeting');
 	
 	var partisans = enumGroup(armyPartisans);
@@ -210,7 +212,7 @@ function targetPartisan(){
 	var target=[];
 	
 	//Отключаем лишние функции в NTW картах
-	if(policy['build'] != 'rich'){
+	if(!(se_r >= army_rich)){
 		target = target.concat(sortByDistance(getEnemyWalls().filter(function(e){if(distBetweenTwoPoints_p(e.x,e.y,base.x,base.y) < base_range)return true;return false;}), base, 1));
 		
 	//	if(target.length != 0) debugMsg("partisans TARGET walls", 'targeting');
@@ -293,7 +295,7 @@ function targetPartisan(){
 				orderDroidObj_p(e, DORDER_ATTACK, target[0]);
 //				debugMsg("ATTACK "+target[0].name, 'targeting');
 			}
-			else if(policy['build'] == 'rich' && target[0].type == FEATURE && target[0].stattype == OIL_RESOURCE){
+			else if(se_r >= army_rich && target[0].type == FEATURE && target[0].stattype == OIL_RESOURCE){
 				orderDroidLoc_p(e, DORDER_MOVE, target[0].x, target[0].y);
 			}
 			else{
@@ -573,7 +575,7 @@ function targetRegular(target, victim){
 	if(typeof victim === 'undefined') victim = false;
 	
 	//	Перенаправляем функцию
-	if(policy['build'] == 'rich' && (rage == MEDIUM || rage == HARD || rage == INSANE)){
+	if(se_r >= army_rich && (rage == MEDIUM || rage == HARD || rage == INSANE)){
 		if(targetRegularRich(target, victim)) return true;
 		return false;
 	}

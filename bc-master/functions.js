@@ -24,6 +24,8 @@ function getInfoNear(x,y,command,range,time,obj,cheat,inc){
 		}
 	}*/
 	
+	debugMsg(x+'x'+y+' '+command, 'gi');
+	
 	if ( typeof _globalInfoNear[x+'_'+y+'_'+command] !== 'undefined'
 	&& gameTime < (_globalInfoNear[x+'_'+y+'_'+command].setTime + _globalInfoNear[x+'_'+y+'_'+command].updateIn) ) {
 		if(inc){
@@ -84,8 +86,12 @@ function getInfoNear(x,y,command,range,time,obj,cheat,inc){
 			var toBuild = defence[Math.floor(Math.random()*defence.length)];
 			var pos = pickStructLocation(_builder[0],toBuild,x,y);
 			if(!!pos && distBetweenTwoPoints_p(x,y,pos.x,pos.y) < range){
+				debugMsg('gi: try: '+x+'x'+y+', build: '+pos.x+'x'+pos.y+' - true', 'defence');
 				_globalInfoNear[x+'_'+y+'_'+command].value = true;
+				_globalInfoNear[x+'_'+y+'_'+command].x = pos.x;
+				_globalInfoNear[x+'_'+y+'_'+command].y = pos.y;
 			}else{
+				debugMsg('gi: try: '+x+'x'+y+' - false', 'defence');
 				_globalInfoNear[x+'_'+y+'_'+command].value = false;
 			}
 			return _globalInfoNear[x+'_'+y+'_'+command];
@@ -276,7 +282,7 @@ function groupArmy(droid, type){
 	}
 	
 	//Забираем киборгов под общее коммандование
-	if(droid.droidType == DROID_CYBORG && policy['build'] == 'rich' && (rage == HARD || rage == INSANE)){
+	if(droid.droidType == DROID_CYBORG && se_r >= army_rich && (rage == HARD || rage == INSANE)){
 //		debugMsg("armyRegular +1", 'group');
 		groupAdd(armyRegular, droid);
 		return;
@@ -300,7 +306,7 @@ function groupArmy(droid, type){
 	}
 	
 	//Перегрупировка
-	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1 && !(policy['build'] == 'rich' && (rage == HARD || rage == INSANE))){
+	if(groupSize(armyPartisans) < minPartisans && groupSize(armyRegular) > 1 && !(se_r >= army_rich && (rage == HARD || rage == INSANE))){
 		var regroup = enumGroup(armyRegular);
 		regroup.forEach(function(e){
 //			debugMsg("armyRegular --> armyPartisans +1", 'group');
@@ -1223,30 +1229,75 @@ function intersect_arrays(a, b) {
 
 //Всякоразно, исправление недочётов.
 function longCycle(){
-	debugMsg("-debug-", 'debug');
+//	debugMsg("-debug-", 'debug');
 	
 	
 	//Повторно отправляем дроидов на продажу
 	var broken = enumGroup(droidsRecycle);
 	if(broken.length != 0){
-		debugMsg("-broken-", 'debug');
+		debugMsg("broken: "+broken.length, 'debug');
 		broken.forEach(function(o){
 			orderDroid(o, DORDER_RECYCLE);
 		});
 	}
 	
+	if(nf['policy'] == 'land'){
+		var access = 'land';
+		playerData.forEach( function(data, player) {
+			if (!access) return;
+			if (player == me) return;
+			if (playerLoose(player)) return;
+			if (playerSpectator(player)) return;
+			if (allianceExistsBetween(me,player)) return;
+			if (propulsionCanReach('wheeled01', base.x, base.y, startPositions[player].x, startPositions[player].y)){ access = false; debugMsg("LongCycle: "+player+', land - exit', 'debug'); return; }
+			else {access = 'island'; debugMsg("LongCycle: "+player+', island', 'debug');}
+		});
+		if(access == 'island'){
+			nf['policy'] = 'island';
+			switchToIsland();
+			debugMsg("Switch to Island", 'debug');
+		}
+	}
+
 	//Повторно отправляем дроидов, которые неуспешно продались на островной карте
-	if(nf['policy'] == 'island'){
+	if(nf['policy'] == 'island' && getResearch("R-Vehicle-Prop-Hover").done){
 		debugMsg("-island-", 'debug');
 
-		var droids = enumGroup(builderHunters);
-		droids = droids.concat(enumGroup(builderMain));
+		var droids = enumDroid(me, DROID_WEAPON);
+		debugMsg("warriors: "+droids.length, 'debug');
+		droids = droids.concat(enumGroup(buildersHunters));
+		debugMsg("hunters: "+droids.length, 'debug');
+		droids = droids.concat(enumGroup(buildersMain));
+		debugMsg("main: "+droids.length, 'debug');
 		droids = droids.concat(enumGroup(armyScanners));
+		debugMsg("scanners: "+droids.length, 'debug');
 		droids = droids.concat(enumGroup(armyFixers));
-		if(droids.length != 0)debugMsg("droids="+droids.length, 'debug');
+		debugMsg("fixers: "+droids.length, 'debug');
+		debugMsg("droids to recycle: "+droids.length, 'debug');
 		if(droids.length != 0)droids = droids.filter(function(o){if(o.propulsion == "wheeled01" || o.propulsion == "HalfTrack" || o.propulsion == "tracked01")return true;return false;});
-		if(droids.length != 0)debugMsg("filtered droids="+droids.length, 'debug');
-		if(droids.length != 0)droids.forEach(function(o){orderDroid(o, DORDER_RECYCLE);});
+		droids = droids.concat(enumDroid(me, DROID_CYBORG));
+		debugMsg("filtered droids="+droids.length, 'debug');
+		if(droids.length != 0)droids.forEach(function(o){recycleDroid(o);});
 	}
 	
+}
+
+function switchToIsland(){
+	
+	if(policy['build'] != 'rich') policy['build'] = 'island';
+	maxCyborgs = 0;
+
+	minBuilders = 3;
+	buildersTimer = 35000;
+	minPartisans = 20;
+	
+	research_path.unshift(
+		["R-Vehicle-Prop-Hover"],
+		["R-Struc-PowerModuleMk1"],
+		["R-Struc-Research-Module"],
+		["R-Struc-Factory-Module"]
+	);
+	
+	research_path = excludeTech(research_path, tech['cyborgs']);
+	research_path = excludeTech(research_path, tech['tracks']);	
 }

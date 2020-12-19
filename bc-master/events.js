@@ -294,7 +294,7 @@ function bc_eventDroidBuilt(droid, structure) {
 			if(droid.droidType == DROID_WEAPON){
 				if(checkDonate(droid)){return;}
 				else groupArmy(droid);
-				if(policy['build'] == 'rich') targetRegular();
+				if(se_r >= army_rich) targetRegular();
 			}
 			if(droid.droidType == DROID_REPAIR){
 				groupArmy(droid);
@@ -337,6 +337,31 @@ function bc_eventDroidBuilt(droid, structure) {
 
 function bc_eventAttacked(victim, attacker) {
 	if(allianceExistsBetween(me, attacker.player)) return;
+	
+	if(scavengers && attacker.player == scavengerPlayer && victim.type == DROID && !isFixVTOL(victim)){
+		var myDroids = enumRange(victim.x, victim.y, 12, ALLIES).filter(function(o){if(o.player == me && o.type == DROID)return true; return false;});
+		var enemyObjects = enumRange(attacker.x, attacker.y, 7, ENEMIES, me);
+		
+		debugMsg('myDroids: '+myDroids.length+', enemyObjects: '+enemyObjects.length, 'temp');
+		
+		var myHP = 0
+		var enemyHP = 0;
+		
+		myDroids.forEach(function(o){myHP+=o.health;});
+		enemyObjects.forEach(function(o){enemyHP+=o.health;});
+		
+		debugMsg('myHP: '+myHP+', enemyHP: '+enemyHP, 'temp');
+		
+		if(myHP < (enemyHP/2)) {
+			myDroids.forEach(function(o){
+				
+				orderDroidLoc_p(o, DORDER_MOVE, base.x, base.y);
+			});
+			partisanTrigger = gameTime + reactPartisanTimer;
+		}
+		
+		return;
+	}
 	
 	//Если атака с самолёта рядом с базой, строим ПВО
 	if(isFixVTOL(attacker) && distBetweenTwoPoints_p(victim.x,victim.y,base.x,base.y) < base_range) AA_queue.push({x:victim.x,y:victim.y});
@@ -382,7 +407,7 @@ function bc_eventAttacked(victim, attacker) {
 		}
 		
 		//т.к. в богатых картах кол-во партизан всего 2, направляем всю армию к атакованным
-		if(policy['build'] == 'rich'){ targetRegular(attacker, victim);return;}
+		if(se_r >= army_rich){ targetRegular(attacker, victim);return;}
 		
 		//Если атакуют огнемётные войска, атакуем ими ближайшего врага
 		if(getWeaponInfo(victim.weapons[0].name).impactClass == "HEAT"){
