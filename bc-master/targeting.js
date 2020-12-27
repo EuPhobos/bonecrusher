@@ -150,10 +150,8 @@ function targetFixers(){
 	
 	if(fixers.length == 0 || partisans.length == 0) return;
 
-	
-		
 	//Армия дохнет? Спасаем задницу бегством!
-	if(partisans.length <= 3){
+	if(partisans.length < 2){
 		var def = enumStruct(me,DEFENSE);
 		if(def.length == 0){
 			if(distBetweenTwoPoints_p(base.x, base.y, fixers[0].x, fixers[0].y) > 3) fixers.forEach(function(e){orderDroidLoc_p(e, DORDER_MOVE, base.x, base.y);});
@@ -163,8 +161,12 @@ function targetFixers(){
 		}
 		return;
 	}
+
+	var target = enumGroup(droidsBroken);
+	if(target.length == 0) target = enumGroup(droidsFleet).filter(function(o){if(o.health < 95)return true;return false;});
+	if(target.length == 0) target = partisans.filter(function(o){if(o.health < 95)return true;return false;});
 	
-	partisans = sortByDistance(partisans, base);
+//	partisans = sortByDistance(partisans, base);
 	fixers.reverse();
 	
 //	var target = [];
@@ -175,7 +177,7 @@ function targetFixers(){
 //	debugMsg("Move all repairs to "+target[0].x+"x"+target[0].y, 'targeting');
 	
 	fixers.forEach(function(f){
-		var target = partisans.filter(function(p){if(p.health < 100 && distBetweenTwoPoints_p(p.x,p.y,f.x,f.y) < 7)return true; return false;});
+//		var target = partisans.filter(function(p){if(p.health < 100 && distBetweenTwoPoints_p(p.x,p.y,f.x,f.y) < 7)return true; return false;});
 		if(target.length != 0){
 			target = sortByDistance(target, f, 1);
 //			if(distBetweenTwoPoints_p(f.x,f.y,target[0].x, target[0].y) < 2) orderDroidLoc_p(f, 41, f.x, f.y); // 41 - DORDER_HOLD
@@ -185,12 +187,12 @@ function targetFixers(){
 			}
 			else{
 				orderDroidLoc_p(f, DORDER_MOVE, target[0].x, target[0].y);
+				orderDroidLoc_p(target[0], DORDER_MOVE, f.x, f.y);
 				return;
 			}
 		}
 		orderDroidLoc_p(f, DORDER_MOVE, partisans[Math.round(partisans.length/2)].x, partisans[Math.round(partisans.length/2)].y);
 	});
-	
 }
 
 function targetPartisan(){
@@ -203,11 +205,14 @@ function targetPartisan(){
 	
 	var partisans = enumGroup(armyPartisans);
 	if(partisans.length == 0) return false;
+
+	/*
 	var fixers = enumStruct(me, REPAIR_FACILITY);
 	fixers = fixers.concat(enumGroup(armyFixers));
 	fixers.reverse();
 	
 	if(fixers.length >= 2 || partisans.length > minPartisans) partisans.filter(function(e){if(e.health > 90)return true;return false;});
+	*/
 	
 	var target=[];
 	
@@ -231,15 +236,15 @@ function targetPartisan(){
 	}
 	//Если слишком мало партизан -И- нет срочной нужны в подмоге, то кучкуем армию у ближайших ресурсов за пределами базы
 	if(partisans.length < minPartisans && target.length==0 && !( gameTime/1000 < 280 && enemyDist > 80 ) ){
-		if(fixers.length == 0){
+//		if(fixers.length == 0){
 			target = target.concat(getUnknownResources());
 			target = target.concat(getSeeResources());
 			target = sortByDistance(target, base).filter(function(e){
 				if(distBetweenTwoPoints_p(e.x,e.y,base.x,base.y) < base_range && droidCanReach(partisans[0], e.x,e.y) )return true;return false;
 			});
-		}else{
-			target = fixers;
-		}
+//		}else{
+//			target = fixers;
+//		}
 		
 		if(target.length != 0){
 //			if(target.length > 4) target = target.slice(4);
@@ -277,6 +282,7 @@ function targetPartisan(){
 	if(target.length != 0){
 //		debugMsg("Партизан="+partisans.length+", атакую "+target[0].name+" расстояние от партизан="+distBetweenTwoPoints_p(partisans[0].x,partisans[0].y,target[0].x,target[0].y)+", от базы="+distBetweenTwoPoints_p(base.x,base.y,target[0].x,target[0].y), 'targeting');
 		partisans.forEach(function(e){
+			/*
 			if(e.health < 60 && fixers.length != 0){
 				if(distBetweenTwoPoints_p(e.x,e.y,fixers[0].x,fixers[0].y) > 2){
 					orderDroidLoc_p(e, DORDER_MOVE, fixers[0].x, fixers[0].y);
@@ -290,7 +296,7 @@ function targetPartisan(){
 			}
 			
 			if(e.health < 99 && fixers.length != 0 && distBetweenTwoPoints_p(e.x,e.y,fixers[0].x,fixers[0].y) < 3) return; //TODO как-то.. переделать чтоль.
-			
+			*/
 			if( (target[0].type == STRUCTURE && target[0].stattype == WALL) || (target[0].type == DROID && target[0].droidType == DROID_CONSTRUCT) ){
 				orderDroidObj_p(e, DORDER_ATTACK, target[0]);
 //				debugMsg("ATTACK "+target[0].name, 'targeting');

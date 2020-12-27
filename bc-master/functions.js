@@ -435,7 +435,8 @@ function sortByDistance(arr, obj, num, reach){
 		var b = Infinity;
 		var c = new Array();
 		for ( var i in arr ) {
-			if(reach)if(!droidCanReach(obj, arr[i].x, arr[i].y))continue;
+			if(reach)if(!droidCanReach_p(obj, arr[i].x, arr[i].y))continue;
+//			if(reach)if(!droidCanReach_p(arr[i], obj.x, obj.y))continue;
 			var a = distBetweenTwoPoints_p( obj.x, obj.y, arr[i].x, arr[i].y );
 			if ( a < b ) {
 				b = a;
@@ -454,7 +455,8 @@ function sortByDistance(arr, obj, num, reach){
 	}
 
 	if(reach){arr = arr.filter( function(e){
-		if(!droidCanReach(obj,e.x,e.y)) return false;
+		if(!droidCanReach_p(obj,e.x,e.y)) return false;
+//		if(!droidCanReach_p(e,obj.x,obj.y)) return false;
 		return true;
 	});}
 	
@@ -1119,21 +1121,6 @@ function checkEventIdle(){
 	queue('targetRegular', 400);
 }
 
-function recycleDroid(droid){
-	groupAdd(droidsRecycle, droid);
-	debugMsg(droid.health+": "+droid.x+"x"+droid.y, 'droids');
-	var factory = enumStruct(me, FACTORY);
-	factory = factory.concat(enumStruct(me, REPAIR_FACILITY));
-	var factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
-	if(factory_ready.length != 0){
-		orderDroid(droid, DORDER_RECYCLE);
-		return true;
-	}else{
-		orderDroidLoc_p(droid, DORDER_MOVE, base.x, base.y);
-		return true;
-	}
-	return false;
-}
 
 //для 3.2
 function recycleBuilders(){
@@ -1228,6 +1215,7 @@ function intersect_arrays(a, b) {
 }
 
 //Всякоразно, исправление недочётов.
+//Каждые 2 минуты
 function longCycle(){
 //	debugMsg("-debug-", 'debug');
 	
@@ -1280,6 +1268,19 @@ function longCycle(){
 		if(droids.length != 0)droids.forEach(function(o){recycleDroid(o);});
 	}
 	
+	var points = getFixPoints();
+	var broken = enumGroup(droidsBroken);
+	if(broken.length != 0){
+		broken.forEach(function(o){
+			if(o.health > 80){groupArmy(o); return;}
+			if(!points) recycleDroid(o);
+			var p=0;
+			if(points.length > 1)p=Math.floor(Math.random()*points.length);
+			orderDroidLoc_p(o, DORDER_MOVE, points[p].x, points[p].y); return;
+		});
+	}
+	
+	fleetsReturn();
 }
 
 function switchToIsland(){
@@ -1300,4 +1301,180 @@ function switchToIsland(){
 	
 	research_path = excludeTech(research_path, tech['cyborgs']);
 	research_path = excludeTech(research_path, tech['tracks']);	
+}
+
+
+
+
+function recycleDroid(droid){
+/*
+	debugMsg('droidID: '+droid.id+' health: '+droid.health, 'group');
+	debugMsg(JSON.stringify(droid), 'group');
+	debugMsg(typeof droid.group, 'group');
+*/
+	if(!(typeof droid.group === "undefined") && droid.group != droidsRecycle) groupAdd(droidsRecycle, droid);
+	
+	debugMsg(droid.health+": "+droid.x+"x"+droid.y, 'droids');
+	
+	var factory = enumStruct(me, FACTORY);
+	factory = factory.concat(enumStruct(me, REPAIR_FACILITY));
+	
+	var factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
+	
+	if(factory_ready.length != 0){
+		orderDroid(droid, DORDER_RECYCLE);
+		return true;
+	}else{
+		orderDroidLoc_p(droid, DORDER_MOVE, base.x, base.y);
+		return true;
+	}
+	
+	return false;
+}
+
+function getFixPoints(droid){
+	
+	if ( typeof droid === "undefined" ) droid = false;
+	
+	var points = enumStruct(me, REPAIR_FACILITY);
+	points = points.concat(enumGroup(armyFixers));
+	
+	if(points.length != 0) {
+	
+		if(droid !== false) points = sortByDistance(points, droid, 0, true);
+			
+		return points;
+	}
+	
+	return false;
+	
+}
+
+function fixDroid(droid){
+
+	if(!(typeof droid.group === "undefined") && droid.group != droidsBroken) groupAdd(droidsBroken, droid);
+	
+	var points = getFixPoints(droid);
+	debugMsg('fdp:'+points.length, 'temp');
+	if(!points) return recycleDroid(droid);
+	
+	if(points.length > 1){
+		var _points=[];
+		points.forEach(function(p){
+			if(distBetweenTwoPoints_p(droid.x, droid.y, p.x, p.y) > 7) _points.push(p);
+		});
+		points = sortByDistance(_points, droid);
+	}
+		
+	if(points.length != 0) { orderDroidLoc_p(droid, DORDER_MOVE, points[0].x, points[0].y); return true; }
+	
+	return false;
+}
+
+//TODO как ни будь доработать в будущем
+//Отходить должны к ближайшим войскам, после определённого радиуса
+function getFleetPoint(droid){
+
+	if ( typeof droid === "undefined" ) return false;
+
+	var droidsNear = enumRange(droid.x, droid.y, 10, ALLIES);
+//	debugMsg('dl:'+droidsNear.length, 'temp');
+//	debugMsg('dn - '+JSON.stringify(droidsNear), 'temp');
+	droidsNear = sortByDistance(droidsNear, base);
+	debugMsg('dl:'+droidsNear.length, 'temp');
+//	debugMsg('dr:'+droidCanReach(droid, base.x, base.y), 'temp');
+	if(droidsNear.length == 0 || droidsNear[0].id == droid.id) return base
+	return droidsNear[0];
+	
+	/*
+	var points = enumStruct(me, REPAIR_FACILITY);
+	points = points.concat(enumGroup(armyFixers));
+	
+	if(points.length != 0) {
+	
+		if(droid !== false) points = sortByDistance(points, droid, 0, true);
+			
+		return points;
+	}
+	*/
+}
+
+
+function fleetDroid(droid){
+
+	if(!(typeof droid.group === "undefined") && droid.group != droidsFleet) groupAdd(droidsFleet, droid);
+//	debugMsg(JSON.stringify(droid), 'temp');
+	var point = getFleetPoint(droid);
+//	debugMsg('point:'+JSON.stringify(point), 'temp');
+//	debugMsg(JSON.stringify(droid), 'temp');
+	debugMsg('fleet from '+droid.x+'x'+droid.y+' to '+point.x+'x'+point.y, 'temp');
+	orderDroidLoc_p(droid, DORDER_MOVE, point.x, point.y);
+	return true;
+/*	
+	if(points.length > 1){
+		var _points=[];
+		points.forEach(function(p){
+			if(distBetweenTwoPoints_p(droid.x, droid.y, p.x, p.y) > 7) _points.push(p);
+		});
+		points = sortByDistance(_points, droid);
+	}
+		
+	if(points.length != 0) { 
+*/
+//	orderDroidLoc_p(droid, DORDER_MOVE, points[0].x, points[0].y); return true;
+//	}
+	
+//	recycleDroid(droid);
+}
+
+function fleetsReturn(){
+	var fleets = enumGroup(droidsFleet);
+	if (fleets.length == 0) fleets = enumGroup(droidsBroken).filter(function(o){if(o.health > 80)return true; return false;});
+	if(fleets.length != 0){
+		fleets.forEach(function(o){
+			if(o.health < 40){fixDroid(o); return;}
+			if(o.health < 10){recycleDroid(o); return;}
+			groupMixedDroids(o);
+		});
+	}
+}
+
+function groupMixedDroids(droid){
+	switch (droid.droidType) {
+		case DROID_WEAPON:
+			if(isVTOL(droid))groupAdd(VTOLAttacker,droid);
+			groupArmy(droid);
+			break;
+		case DROID_CONSTRUCT:
+		case 10:
+			
+			if(groupSize(buildersMain) >= 2) groupAdd(buildersHunters, droid);
+			else { groupBuilders(droid); }
+			
+			if(!getInfoNear(base.x,base.y,'safe',base_range).value){
+				base.x = droid.x;
+				base.y = droid.y;
+			}
+//			func_buildersOrder_trigger = 0;
+			buildersOrder();
+			
+			if(running == false){
+				base.x = droid.x;
+				base.y = droid.y;
+				queue("initBase", 500);
+				queue("letsRockThisFxxxingWorld", 1000);
+			}
+			
+			break;
+		case DROID_SENSOR:
+			groupAdd(armyScanners, droid);
+			targetSensors();
+			break;
+		case DROID_CYBORG:
+			groupArmy(droid);
+			break;
+		case DROID_REPAIR:
+			groupArmy(droid);
+			break;
+	}
 }

@@ -143,52 +143,17 @@ function bc_eventObjectTransfer(gameObject, from) {
 	debugMsg("I="+me+"; object '"+gameObject.name+"' getting to "+gameObject.player+" from "+from, 'transfer');
 	
 	if (gameObject.player == me) { // Что то получили
-		if (allianceExistsBetween(me,from)) { // От союзника
-			switch (gameObject.droidType) {
-				case DROID_WEAPON:
-					if(isVTOL(gameObject))groupAdd(VTOLAttacker,gameObject);
-					groupArmy(gameObject);
-					break;
-				case DROID_CONSTRUCT:
-				case 10:
-					
-					if(groupSize(buildersMain) >= 2) groupAdd(buildersHunters, gameObject);
-					else { groupBuilders(gameObject); }
-					
-					if(!getInfoNear(base.x,base.y,'safe',base_range).value){
-						base.x = gameObject.x;
-						base.y = gameObject.y;
-					}
-					func_buildersOrder_trigger = 0;
-					buildersOrder();
-					
-					if(running == false){
-						base.x = gameObject.x;
-						base.y = gameObject.y;
-						queue("initBase", 500);
-						queue("letsRockThisFxxxingWorld", 1000);
-					}
-					
-					break;
-				case DROID_SENSOR:
-					groupAdd(armyScanners, droid);
-					targetSensors();
-					break;
-				case DROID_CYBORG:
-					groupArmy(gameObject);
-					break;
-			}
-		} else { // От врага, возможно перевербовка
-			groupArmy(gameObject);
-
-		}
-	} else { // Что-то передали
+		groupMixedDroids(gameObject);
+	} 
+	/*
+	else { // От нас что-то ушло
 		if (allianceExistsBetween(gameObject.player,from)) { // Союзнику
 			
 		} else { // Похоже наших вербуют!!!
 			
 		}
 	}
+	*/
 }
 
 //Срабатывает при завершении строительства здания
@@ -336,10 +301,20 @@ function bc_eventDroidBuilt(droid, structure) {
 
 
 function bc_eventAttacked(victim, attacker) {
+//	debugMsg(JSON.stringify(victim), 'temp');
 	if(allianceExistsBetween(me, attacker.player)) return;
 	
 	if(scavengers && attacker.player == scavengerPlayer && victim.type == DROID && !isFixVTOL(victim)){
+		
+		if(victim.health < 10){
+			if(recycleDroid(victim)) return;
+		}
+		if(victim.health < 40){
+			if(fixDroid(victim)) return;
+		}
+		
 		var myDroids = enumRange(victim.x, victim.y, 12, ALLIES).filter(function(o){if(o.player == me && o.type == DROID)return true; return false;});
+		myDroids = myDroids.filter(function(o){if(o.droidType == DROID_CONSTRUCT && builderBusy(o))return false; return true;});
 		var enemyObjects = enumRange(attacker.x, attacker.y, 7, ENEMIES, me);
 		
 		debugMsg('myDroids: '+myDroids.length+', enemyObjects: '+enemyObjects.length, 'temp');
@@ -350,15 +325,16 @@ function bc_eventAttacked(victim, attacker) {
 		myDroids.forEach(function(o){myHP+=o.health;});
 		enemyObjects.forEach(function(o){enemyHP+=o.health;});
 		
-		debugMsg('myHP: '+myHP+', enemyHP: '+enemyHP, 'temp');
+		debugMsg('scav: myHP: '+myHP+', enemyHP: '+enemyHP, 'temp');
 		
 		if(myHP < (enemyHP/2)) {
 			myDroids.forEach(function(o){
-				
-				orderDroidLoc_p(o, DORDER_MOVE, base.x, base.y);
+				if(o.droidType != DROID_REPAIR) fleetDroid(o);
+//				groupAdd(droidsFleet, o);
+//				orderDroidLoc_p(o, DORDER_MOVE, base.x, base.y);
 			});
-			partisanTrigger = gameTime + reactPartisanTimer;
-		}
+//			partisanTrigger = gameTime + reactPartisanTimer;
+		} else fleetsReturn();
 		
 		return;
 	}
@@ -402,10 +378,29 @@ function bc_eventAttacked(victim, attacker) {
 	if(victim.type == DROID && victim.droidType == DROID_WEAPON && !isFixVTOL(victim)){
 		lastImpact = {x:victim.x,y:victim.y};
 
+		var myDroids = enumRange(victim.x, victim.y, 10, ALLIES).filter(function(o){if(o.player == me && o.type == DROID && o.droidType == DROID_WEAPON)return true; return false;});
+		var enemyObjects = enumRange(attacker.x, attacker.y, 5, ENEMIES, me);
+		var myHP = 0
+		var enemyHP = 0;
+		myDroids.forEach(function(o){myHP+=o.health;});
+		enemyObjects.forEach(function(o){enemyHP+=o.health;});
+		debugMsg('enemy: myHP: '+myHP+', enemyHP: '+enemyHP, 'temp');
+		
+		if(myHP < (enemyHP/2)) {
+			myDroids.forEach(function(o){
+				if(getWeaponInfo(o.weapons[0].name).impactClass != "HEAT") fleetDroid(o);
+//				groupAdd(droidsFleet, o);
+//				orderDroidLoc_p(o, DORDER_MOVE, base.x, base.y);
+			});
+//			partisanTrigger = gameTime + reactPartisanTimer;
+		} else fleetsReturn();
+		
 		if(victim.health < 10){
 			if(recycleDroid(victim)) return;
 		}
-		
+		if(victim.health < 40){
+			if(fixDroid(victim)) return;
+		}
 		//т.к. в богатых картах кол-во партизан всего 2, направляем всю армию к атакованным
 		if(se_r >= army_rich){ targetRegular(attacker, victim);return;}
 		
@@ -423,11 +418,19 @@ function bc_eventAttacked(victim, attacker) {
 
 
 		
-		orderDroidLoc_p(victim, DORDER_MOVE, base.x, base.y);
+		if(fleetTrigger < gameTime){
+			fleetsReturn();
+			fleetTrigger = gameTime + 1000;
+		}
+		fleetDroid(victim);
+//		orderDroidLoc_p(victim, DORDER_MOVE, base.x, base.y);
 	}
 	
 	//Если атака по киборгам, ответный огонь ближайшими киборгами
 	if(victim.type == DROID && victim.droidType == DROID_CYBORG && !isFixVTOL(victim) && gameTime > eventsRun['victimCyborgs']) {
+		if(victim.health < 30){
+			fixDroid(victim);
+		}
 		eventsRun['victimCyborgs'] = gameTime + 10000;
 		var cyborgs = enumGroup(armyCyborgs);
 		cyborgs.forEach(function(e){

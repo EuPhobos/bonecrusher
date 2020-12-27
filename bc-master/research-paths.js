@@ -81,6 +81,7 @@ const research_rich2 = [
 "R-Vehicle-Prop-Halftracks", 
 "R-Vehicle-Body05", 
 "R-Vehicle-Body11", 
+"R-Struc-RepairFacility",
 "R-Struc-Research-Upgrade09",
 "R-Wpn-Cannon4AMk1",
 "R-Wpn-RailGun03", 
@@ -109,6 +110,7 @@ const research_rockets = [
 "R-Defense-MRL",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
 "R-Wpn-Rocket-ROF03",
+"R-Struc-RepairFacility",
 "R-Sys-MobileRepairTurret01",   //Паяльник
 "R-Wpn-MG-Damage08",			//Depleted Uranium MG Bullets
 "R-Wpn-Rocket01-LtAT",
@@ -186,6 +188,7 @@ const research_fire2 = [
 "R-Struc-Research-Module",
 "R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
 "R-Wpn-Flamer-ROF03",
+"R-Struc-RepairFacility",
 "R-Wpn-Plasmite-Flamer", // plasmite
 "R-Struc-Research-Upgrade09",
 "R-Vehicle-Prop-Halftracks",	//Полугусенецы
@@ -253,6 +256,7 @@ const research_rich = [
 "R-Vehicle-Metals01",		// #25  Composite Alloys
 "R-Cyborg-Metals02",		// #26  Cyborg Composite Alloys Mk2
 "R-Vehicle-Body08",
+"R-Struc-RepairFacility",
 "R-Struc-Power-Upgrade01c",		// #27  Gas Turbine Generator Mk3
 "R-Struc-Research-Upgrade05",		// #28  Dedicated Synaptic Link Data Analysis Mk2
 "R-Struc-Research-Upgrade06",		// #29  Dedicated Synaptic Link Data Analysis Mk3
@@ -411,6 +415,7 @@ const research_fire3 = [
 "R-Wpn-Cannon1Mk1",		// #6  Light Cannon
 "R-Wpn-Flamer01Mk1",
 "R-Struc-Factory-Cyborg",
+"R-Struc-RepairFacility",
 "R-Struc-Research-Module",
 "R-Wpn-MG2Mk1",					//Спаренный лёгкий пулемёт
 "R-Wpn-Flamer-ROF03",
