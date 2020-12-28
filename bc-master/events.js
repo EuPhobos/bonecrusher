@@ -559,35 +559,18 @@ function bc_eventChat(sender, to, message) {
 			break;
 	}
 	
-		if(message.substr(0,8) == "cheat me"){
-			if(!isMultiplayer && ( !isHumanAlly() || !release ) ){
-				berserk = true;
-				debugMsg('Berserk activated', 'init');
-				chat(sender, ' from '+debugName+': '+chatting('berserk'));
-			}else{
-				chat(sender, ' from '+debugName+': '+chatting('no'));
-			}
+	if(message.substr(0,8) == "cheat me"){
+		if(!isMultiplayer && ( !isHumanAlly() || !release ) ){
+			berserk = true;
+			debugMsg('Berserk activated', 'init');
+			chat(sender, ' from '+debugName+': '+chatting('berserk'));
+		}else{
+			chat(sender, ' from '+debugName+': '+chatting('no'));
 		}
-		
-		if(message.substr(0,13) == "cheat me hard"){
-			if(!isMultiplayer && ( !isHumanAlly() || !release ) ){
-				debugMsg('Big army activated', 'init');
-				minPartisans = 20;
-				maxPartisans = 25;
-				minRegular = 30;
-				maxRegular = 70;
-				minCyborgs = 40;
-				maxCyborgs = 50;
-				seer = true;
-				debugMsg('Seer activated', 'init');
-				chat(sender, ' from '+debugName+': '+chatting('seer'));
-			}else{
-				chat(sender, ' from '+debugName+': '+chatting('no'));
-			}
-		}
-/*		
+	}
+	
 	if(message.substr(0,13) == "cheat me hard"){
-		if(!isMultiplayer() && ( !isHumanAlly() || !release ) ){
+		if(!isMultiplayer && ( !isHumanAlly() || !release ) ){
 			debugMsg('Big army activated', 'init');
 			minPartisans = 20;
 			maxPartisans = 25;
@@ -601,8 +584,5 @@ function bc_eventChat(sender, to, message) {
 		}else{
 			chat(sender, ' from '+debugName+': '+chatting('no'));
 		}
-	}*/
-//	else
-//	chat(sender, "You say: "+message+", what?");
-	
+	}
 }

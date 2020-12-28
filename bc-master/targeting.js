@@ -50,11 +50,7 @@ function targetVTOL(){
 					playerData.forEach( function(data, player) {
 						if(!asPlayer)chat(player, ' from '+debugName+': '+chatting('lassat_fire'));
 					});
-				}/*else{
-					laser_sat.forEach(function (e){
-						debugMsg('debug lassat:'+structureIdle(e), 'lassat');
-					});
-				}*/
+				}
 			}
 			
 			
@@ -78,14 +74,8 @@ function targetVTOL(){
 			}
 		}else if(scout.length != 0){
 			attackObjects(target, group, 5, true);
-//			group.forEach(function(e){
-//				var attack = orderDroidLoc_p(e, DORDER_SCOUT, scout[0].x, scout[0].y);
-//				debugMsg("Scouting: "+scout[0].name+"-"+attack, 'vtol');
-//			});
 		}
 
-//		group.forEach(function(e){var attack = orderDroidLoc_p(e, 40, target[0].x, target[0].y); debugMsg("Attacking: "+target[0].name+"-"+attack, 'vtol');}); // 40 - DORDER_CIRCLE
-		
 	}
 	ready.forEach(function(e){orderDroidLoc_p(e, 40, base.x, base.y);});
 }
@@ -168,14 +158,7 @@ function targetFixers(){
 	
 //	partisans = sortByDistance(partisans, base);
 	fixers.reverse();
-	
-//	var target = [];
-//	target = target.concat(partisans.filter(function(e){if(e.health < 100 && distBetweenTwoPoints_p(e.x,e.y,fixers[0].x,fixers[0].y) < 7)return true; return false;}));
-//	if(target.length == 0) target = partisans;
-//	else return;
-//	else target = sortByDistance(target, fixers[0], 1);
-//	debugMsg("Move all repairs to "+target[0].x+"x"+target[0].y, 'targeting');
-	
+
 	fixers.forEach(function(f){
 //		var target = partisans.filter(function(p){if(p.health < 100 && distBetweenTwoPoints_p(p.x,p.y,f.x,f.y) < 7)return true; return false;});
 		if(target.length != 0){
@@ -206,14 +189,6 @@ function targetPartisan(){
 	var partisans = enumGroup(armyPartisans);
 	if(partisans.length == 0) return false;
 
-	/*
-	var fixers = enumStruct(me, REPAIR_FACILITY);
-	fixers = fixers.concat(enumGroup(armyFixers));
-	fixers.reverse();
-	
-	if(fixers.length >= 2 || partisans.length > minPartisans) partisans.filter(function(e){if(e.health > 90)return true;return false;});
-	*/
-	
 	var target=[];
 	
 	//Отключаем лишние функции в NTW картах
@@ -282,21 +257,7 @@ function targetPartisan(){
 	if(target.length != 0){
 //		debugMsg("Партизан="+partisans.length+", атакую "+target[0].name+" расстояние от партизан="+distBetweenTwoPoints_p(partisans[0].x,partisans[0].y,target[0].x,target[0].y)+", от базы="+distBetweenTwoPoints_p(base.x,base.y,target[0].x,target[0].y), 'targeting');
 		partisans.forEach(function(e){
-			/*
-			if(e.health < 60 && fixers.length != 0){
-				if(distBetweenTwoPoints_p(e.x,e.y,fixers[0].x,fixers[0].y) > 2){
-					orderDroidLoc_p(e, DORDER_MOVE, fixers[0].x, fixers[0].y);
-					return;
-				}else{
-					orderDroidLoc_p(e, DORDER_MOVE, e.x, e.y); //STOP
-				}
-			//Если нет починки, смотрим стоит ли продавать юнит
-			}else if(e.health < 40 && partisans.length > minPartisans){
-				if(recycleDroid(e)) return;
-			}
-			
-			if(e.health < 99 && fixers.length != 0 && distBetweenTwoPoints_p(e.x,e.y,fixers[0].x,fixers[0].y) < 3) return; //TODO как-то.. переделать чтоль.
-			*/
+
 			if( (target[0].type == STRUCTURE && target[0].stattype == WALL) || (target[0].type == DROID && target[0].droidType == DROID_CONSTRUCT) ){
 				orderDroidObj_p(e, DORDER_ATTACK, target[0]);
 //				debugMsg("ATTACK "+target[0].name, 'targeting');
@@ -519,12 +480,6 @@ function targetRegularRich(target, victim){
 	}else{
 		stopPoint = pointRegularArmy(regular);
 	}
-/*
-	if(targRegular.x == 0 && targRegular.y == 0 && !target){
-		debugMsg("regular: Стандартный сбор у базы", 'targeting');
-		targRegular = base;
-	}
-*/
 
 	if(stopPoint){
 		var endPoint = {x:stopPoint.x,y:stopPoint.y};
@@ -550,13 +505,7 @@ function targetRegularRich(target, victim){
 		}
 	}
 	
-//	var _target = [];
-//	var _enemy=0;
-//	_target = sortByDistance(getEnemyStructures(),base,1);
-//	if(_target.length != 0) _enemy = getEnemyNearPos(_target[0].x, _target[0].y).length;
-	
-//	if(_target.length !=0 && _enemy < regular.length) targRegular = {x:_target[0].x,y:_target[0].y};
-	
+
 //	if(regular.length > minRegular || regular.length > _enemy){
 	if(regular.length > minRegular || earlyGame){
 		if(stopPoint){

@@ -1,5 +1,5 @@
 namespace("bc_");
-const vernum    = "master";
+const vernum    = "bc-master"; //v1.1
 const verdate   = "28.12.2020";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
@@ -51,7 +51,7 @@ NTW Авиация исследует кластерные бомбы и при�
 */
 
 //DEBUG: количество вывода, закоментить перед релизом
-var debugLevels = new Array('error', 'init', 'ally', 'research', 'group', 'droids', 'debug', 'temp', 'end');
+var debugLevels = new Array('error');
 
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 
@@ -63,27 +63,27 @@ var debugName = me;
 //Массив конкретных технологий (tech.js)
 var tech = [];
 
-include("multiplay/skirmish/bc-"+vernum+"/names.js");
+include("multiplay/skirmish/"+vernum+"/names.js");
 
 //инфа
 debugName = colors[playerData[me].colour];
 
-include("multiplay/skirmish/bc-"+vernum+"/functions.js");
+include("multiplay/skirmish/"+vernum+"/functions.js");
 
 //new 3.3+
 var research_path = [];
-include("multiplay/skirmish/bc-"+vernum+"/research-paths.js");
-include("multiplay/skirmish/bc-"+vernum+"/research.js");
+include("multiplay/skirmish/"+vernum+"/research-paths.js");
+include("multiplay/skirmish/"+vernum+"/research.js");
 
-include("multiplay/skirmish/bc-"+vernum+"/builders.js");
-include("multiplay/skirmish/bc-"+vernum+"/targeting.js");
-include("multiplay/skirmish/bc-"+vernum+"/events.js");
-include("multiplay/skirmish/bc-"+vernum+"/produce.js");
-include("multiplay/skirmish/bc-"+vernum+"/performance.js");
-include("multiplay/skirmish/bc-"+vernum+"/chatting.js");
-include("multiplay/skirmish/bc-"+vernum+"/tech.js");
-include("multiplay/skirmish/bc-"+vernum+"/weapons.js");
-include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
+include("multiplay/skirmish/"+vernum+"/builders.js");
+include("multiplay/skirmish/"+vernum+"/targeting.js");
+include("multiplay/skirmish/"+vernum+"/events.js");
+include("multiplay/skirmish/"+vernum+"/produce.js");
+include("multiplay/skirmish/"+vernum+"/performance.js");
+include("multiplay/skirmish/"+vernum+"/chatting.js");
+include("multiplay/skirmish/"+vernum+"/tech.js");
+include("multiplay/skirmish/"+vernum+"/weapons.js");
+include("multiplay/skirmish/"+vernum+"/build-normal.js");
 
 /*
  * 
@@ -94,14 +94,6 @@ include("multiplay/skirmish/bc-"+vernum+"/build-normal.js");
 
 //Hard CPU-load algorythms
 var weakCPU = false;
-
-
-//Стратегия исследования пути
-//"Strict" - строгая, primary_way исcледуется один за другим
-//"Smudged" - не строгая, по мере возможности забегает вперёд, но доисследует весь primary_way
-//"Random" - случайная, выборочно по заданному пути, но доиследует весь primary_way
-//"RoundRobin" - пока не реализована..
-//var researchStrategy = 'Strict'; //По умолчанию, можно изменить в файле настроек вынесенный за предел мода
 
 var base_range = 20; // В каких пределах работают основные строители (не охотники)
 
@@ -279,27 +271,6 @@ const research_sensor = ["R-Sys-Sensor-UpLink"];
 var light_bodies=["Body3MBT","Body2SUP","Body1REC"];
 var medium_bodies=["Body7ABT","Body6SUPP","Body8MBT","Body5REC"];
 var heavy_bodies=["Body13SUP","Body10MBT","Body9REC","Body12SUP","Body11ABT"];
-/*
-var light_bodies=[
-"Body8MBT",  // Scorpion (жёлтое 2)
-"Body1REC"   // Viper (серое 1)
-//"Body4ABT"  // Bug (жёлтое 1)
-];
-var medium_bodies=[
-"Body12SUP", // Mantis (жёлтое 3)
-"Body7ABT",  // Retribution (чёрное 2)
-"Body6SUPP", // Panther (зелёное 2)
-"Body3MBT",  // Retaliation (чёрное 1)
-"Body2SUP",  // Leopard (зелёное 1)
-"Body5REC"   // Cobra (серое 2)
-];
-var heavy_bodies=[
-"Body13SUP", // Wyvern (красное 1)
-"Body10MBT", // Vengeance (чёрное 3)
-"Body9REC",  // Tiger (зелёное 3)
-"Body11ABT"  // Python (серое 3)
-];
-*/
 var avail_cyborgs=[];
 
 
@@ -324,21 +295,6 @@ var cyborgs=[
 ["R-Cyborg-Hvywpn-RailGunner",	"CyborgHeavyBody",		"Cyb-Hvywpn-RailGunner"],	//Super Rail-Gunner
 
 ];
-/*var cyborgs=[
-["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"],			// легкий пулемёт
-["R-Wpn-Flamer01Mk1", "CyborgFlamerGrd", "CyborgFlamer01"],			// лёгкий огнемёт
-["R-Wpn-MG4", "CybRotMgGrd","CyborgRotMG"],							// тяжёлый пулемёт
-["R-Wpn-Flame2", "Cyb-Bod-Thermite", "Cyb-Wpn-Thermite"],			// горячий напалм
-["R-Wpn-Cannon1Mk1", "CyborgCannonGrd", "CyborgCannon"],			// лёгкая пушка
-["R-Wpn-Mortar01Lt", "Cyb-Bod-Grenade", "Cyb-Wpn-Grenade"],			// гранатамёт
-["R-Wpn-Rocket01-LtAT", "CyborgRkt1Ground", "CyborgRocket"],		//Lancer
-["R-Wpn-Missile2A-T", "Cyb-Bod-Atmiss", "Cyb-Wpn-Atmiss"],			//scourge
-["R-Cyborg-Hvywpn-A-T", "Cyb-Hvybod-A-T", "Cyb-Hvywpn-A-T"],			//super scourge
-["R-Cyborg-Hvywpn-HPV", "Cyb-Hvybod-HPV", "Cyb-Hvywpn-HPV"],			//Super Hyper velocity
-["R-Cyborg-Hvywpn-Acannon", "Cyb-Hvybod-Acannon", "Cyb-Hvywpn-Acannon"],	//Super autocannon
-["R-Cyborg-Hvywpn-PulseLsr", "Cyb-Hvybod-PulseLsr","Cyb-Hvywpn-PulseLsr"],	//super pulse laser
-];*/
-
 
 var bodies=[
 //	===== Средняя броня (металическая)
@@ -368,11 +324,6 @@ var propulsions=[
 ["R-Vehicle-Prop-Hover", "hover01"],			//Ховер
 ["R-Vehicle-Prop-VTOL", "V-Tol"]				//СВВП
 ];
-
-//Плохая идея для 3.1, нет возможности узнать какое орудие несёт дроид.
-//var partisanGuns=["Cannon4AUTOMk1","MG4ROTARYMk1","MG3Mk1","Cannon1Mk1","MG2Mk1","MG1Mk1"];
-//var regularGuns=["PlasmiteFlamer","Rocket-MRL","Rocket-LtA-T","Flame2","MG4ROTARYMk1","Cannon4AUTOMk1","MG3Mk1","Flame1Mk1","Rocket","Cannon1Mk1","MG2Mk1","MG1Mk1"];
-//var supportGuns=["Mortar1Mk1","Rocket-LtA-T","MG3Mk1"];
 
 //Переназначаются в функции prepeareProduce() что бы не читерить.
 var avail_vtols=["MG3-VTOL"];
@@ -492,23 +443,6 @@ function init(){
 			else if(propulsionCanReach('V-Tol', base.x, base.y, startPositions[player].x, startPositions[player].y)){ msg+= ", по воздуху"; access = 'air';}
 			else {msg+= ", не доступен!"; access = 'island';};
 			if(!nf['policy'] || nf['policy'] == 'island' || nf['policy'] == 'air'){nf['policy'] = access;} 
-			/*
-			if(_builders.length != 0){
-				
-				/*
-				//Знаю, в 3.2 можно тщательнее всё проверить, но у нас совместимость с 3.1.5
-				//поэтому логика аналогична
-				//Надеемся, что строитель №0 не ховер, проверяем может ли он добраться до врага
-				//Если нет, надеемся, что враг недоступен по земле, но доступен по воде
-				if(!droidCanReach(_builders[0], startPositions[player].x, startPositions[player].y)){
-					if(!nf['policy']){nf['policy'] = 'island';}
-					else if(nf['policy'] == 'land'){ nf['policy'] = 'land';}
-				}else{
-					if(!nf['policy']){nf['policy'] = 'land';}
-					else if(nf['policy'] == 'island'){ nf['policy'] = 'land';}
-				}
-			}
-			*/
 		}
 		
 		msg+=" ["+startPositions[player].x+"x"+startPositions[player].y+"]";
@@ -541,47 +475,6 @@ function init(){
 	debugMsg("Policy build order = "+policy['build'], 'init');
 	debugMsg("nf Policy = "+nf['policy'], 'init');
 
-	
-	//Research way
-/*
-	debugMsg('--- init research way ---', 'init');
-//	if(Math.round(Math.random()*3) != 0) researchCustom = true;
-//	if(rage == HARD || rage == INSANE) researchCustom = true;
-	if(researchCustom){
-		researchStrategy = 'Smudged';
-		debugMsg("initializing custom research_primary", 'init');
-		include("multiplay/skirmish/bc-"+vernum+"/research-test.js");
-		chooseResearch();
-		//fixResearchWay(research_rocket_mg);
-		//fixResearchWay(research_vtol_laser_flamer);
-		//fixResearchWay(research_cannon_mg);
-		//fixResearchWay(research_mortar_flamer);
-		var _primary = fixResearchWay(research_primary);
-		if(_primary == false){
-			debugMsg('Cannot check research way', 'error');
-			debugMsg("initializing standart research_primary", 'init');
-			include("multiplay/skirmish/bc-"+vernum+"/research-normal.js");
-			researchCustom = false;
-			researchStrategy = 'Strict';
-		}
-		else{
-			research_primary = _primary;
-			//Переменная приоритетов путей исследований
-			research_way = [
-				research_synapse,
-				research_power,
-				research_armor,
-				research_sensor
-			];
-		}
-	}else{
-		debugMsg("initializing standart research_primary", 'init');
-		include("multiplay/skirmish/bc-"+vernum+"/research-normal.js");
-	}
-	if(!addPrimaryWay()){debugMsg("research_primary не добавлен в research_way!", 'error');}
-	debugMsg('--- end research way ---', 'init');
-*/
-	
 	if(policy['build'] == 'rich'){
 
 		//Если есть союзники бонкрашеры
@@ -603,22 +496,6 @@ function init(){
 			debugMsg('Get research path #'+r+', from solo researches array', 'init');
 			research_path = researches[r];
 		}
-		
-//		research_path = research_rockets;
-		
-		
-/*		
-		research_way.unshift(
-			["R-Sys-Engineering01"],
-			["R-Struc-Research-Module"],
-			["R-Struc-Factory-Cyborg"],
-			["R-Vehicle-Prop-Halftracks"],
-			["R-Struc-Factory-Module"],
-			["R-Struc-PowerModuleMk1"],
-			["R-Vehicle-Body11"]
-//			["R-Vehicle-Prop-Tracks"]
-		);
-*/
 		
 		if(technology.length)cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgLightBody", "CyborgChaingun"]);
 		
@@ -656,14 +533,6 @@ function init(){
 	
 	if(nf['oilfinite'])research_path = research_earlygame.concat(["R-Sys-MobileRepairTurret01"]).concat(research_path).concat(research_lasttech);
 	else research_path = research_earlygame.concat(research_path).concat(research_lasttech);
-	
-	
-		
-//	research_path = research_earlygame;
-	
-//	if(policy['build'] == 'cyborgs') cyborgs.unshift(["R-Wpn-MG1Mk1", "CyborgChain1Ground", "CyborgChaingun"]);
-	
-	
 	
 	//Лимиты:
 	maxFactories = getStructureLimit("A0LightFactory", me);
@@ -753,7 +622,7 @@ function welcome(){
 function letsRockThisFxxxingWorld(init){
 	debugMsg("Старт/Run", 'init');
 	
-	include("multiplay/skirmish/bc-"+vernum+"/weap-init.js");
+	include("multiplay/skirmish/"+vernum+"/weap-init.js");
 	
 	//Remove chaingun and flamer cyborgs if better available
 	cyborgs = cyborgs.filter(function(e){if( (e[2] == 'CyborgChaingun' && getResearch('R-Wpn-MG4').done) || (e[2] == 'CyborgFlamer01' && getResearch('R-Wpn-Flame2').done) )return false;return true;});
@@ -797,27 +666,6 @@ function letsRockThisFxxxingWorld(init){
 			setTimer("targetRegular", 65000+me*100);
 
 			if(policy['build'] == 'rich') func_buildersOrder_timer = 5000+me*100;
-			
-/*		} else if(rage == HARD){
-		
-			setTimer("targetPartisan", 5000+me*100);
-//			setTimer("buildersOrder", 5000+me*100);
-//			setTimer("targetJammers", 5500+me*100);
-			setTimer("targetCyborgs", 7000+me*100);
-			setTimer("produceDroids", 7000+me*100);
-			setTimer("produceVTOL", 8000+me*100);
-			setTimer("targetFixers", 8000+me*100);
-			setTimer("produceCyborgs", 9000+me*100);
-			setTimer("doResearch", 30000+me*100);
-			setTimer("defenceQueue", 60000+me*100);
-			setTimer("targetRegular", 32000+me*100);
-			setTimer("targetVTOL", 56000+me*100); //Не раньше 30 сек.
-			
-			reactRegularArmyTimer = 5000;
-			checkRegularArmyTimer = 5000;
-			reactWarriorsTimer = 2000;
-			func_buildersOrder_timer = 2000+me*100;
-*/		
 		} else if(rage == HARD || rage == INSANE){
 		
 //			research_way.unshift(["R-Defense-MortarPit-Incendiary"]);
@@ -839,28 +687,6 @@ function letsRockThisFxxxingWorld(init){
 			checkRegularArmyTimer = 5000;
 			reactWarriorsTimer = 2000;
 			func_buildersOrder_timer = 2000+me*100;
-		
-//Disable Cheats
-/*			
-			if(!isMultiplayer() && ( !isHumanAlly() || !release ) ){
-				berserk = true;
-				debugMsg('Berserk activated', 'init');
-				if(getNumEnemies() > 1){
-					debugMsg('Big army activated', 'init');
-					minPartisans = 20;
-					maxPartisans = 25;
-					minRegular = 30;
-					maxRegular = 70;
-					minCyborgs = 40;
-					maxCyborgs = 50;
-				}
-				if(getNumEnemies() > 2){
-					debugMsg('Seer activated', 'init');
-					seer = true;
-				}
-			}
-*/
-			
 		}
 	
 		if(!release){
