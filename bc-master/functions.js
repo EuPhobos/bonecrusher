@@ -1,4 +1,4 @@
-debugMsg('Module: functions.js','init');
+// debugMsg('Module: functions.js','init');
 
 //Функция проверяет объекты и возвращает значение
 //Задача стоит в обработке тяжёлых данных, и работа данной функции
@@ -85,7 +85,7 @@ function getInfoNear(x,y,command,range,time,obj,cheat,inc){
 			}
 			var toBuild = defence[Math.floor(Math.random()*defence.length)];
 			var pos = pickStructLocation(_builder[0],toBuild,x,y);
-			if(!!pos && distBetweenTwoPoints_p(x,y,pos.x,pos.y) < range){
+			if(pos && distBetweenTwoPoints_p(x,y,pos.x,pos.y) < range){
 				debugMsg('gi: try: '+x+'x'+y+', build: '+pos.x+'x'+pos.y+' - true', 'defence');
 				_globalInfoNear[x+'_'+y+'_'+command].value = true;
 				_globalInfoNear[x+'_'+y+'_'+command].x = pos.x;
@@ -694,6 +694,12 @@ function getNumEnemies(){
 	return enemies;
 }
 
+function isHumanOverride(){
+	if(playerData[me].isHuman) return true;
+	return false;
+}
+
+
 function isHumanAlly(){
 	for ( var e = 0; e < maxPlayers; ++e ) {
 		if(playerData[e].isHuman && allianceExistsBetween(me, e)) return true;
@@ -994,16 +1000,20 @@ function checkEventIdle(){
 
 
 //для 3.2
+
 function recycleBuilders(){
+	/*
 	var factory = enumStruct(me, FACTORY);
 	factory = factory.concat(enumStruct(me, REPAIR_FACILITY));
 	var factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 	if(factory_ready.length != 0){
-		var _builders = enumDroid(me,DROID_CONSTRUCT);
-		_builders.forEach(function(e){
-			orderDroid(e, DORDER_RECYCLE);
-		});
-	}
+	*/
+	var _builders = enumDroid(me,DROID_CONSTRUCT);
+	_builders.forEach(function(e){
+//		orderDroid(e, DORDER_RECYCLE);
+		recycleDroid(e);
+	});
+//	}
 }
 
 
@@ -1094,10 +1104,11 @@ function longCycle(){
 	if(!running) return;
 	
 	//Повторно отправляем дроидов на продажу
-	var broken = enumGroup(droidsRecycle);
-	if(broken.length != 0){
-		debugMsg("broken: "+broken.length, 'debug');
-		broken.forEach(function(o){
+	var recycle = enumGroup(droidsRecycle);
+	if(recycle.length != 0){
+		debugMsg("recycle: "+recycle.length, 'debug');
+		recycle.forEach(function(o){
+			if(o.droidType == DROID_CONSTRUCT && (o.order == DORDER_BUILD || o.order == DORDER_HELPBUILD)) return;
 			orderDroid(o, DORDER_RECYCLE);
 		});
 	}
@@ -1146,10 +1157,10 @@ function longCycle(){
 	if(broken.length != 0){
 		broken.forEach(function(o){
 			if(o.health > 80){groupArmy(o); return;}
-			if(!points) recycleDroid(o);
+			if(!points){recycleDroid(o); return;}
 			var p=0;
 			if(points.length > 1)p=Math.floor(Math.random()*points.length);
-			if(typeof points !== "undefined") orderDroidLoc_p(o, DORDER_MOVE, points[p].x, points[p].y); return;
+			orderDroidLoc_p(o, DORDER_MOVE, points[p].x, points[p].y); return;
 		});
 	}
 	
@@ -1200,6 +1211,8 @@ function recycleDroid(droid){
 	debugMsg(JSON.stringify(droid), 'group');
 	debugMsg(typeof droid.group, 'group');
 */
+	
+
 	if(!(typeof droid.group === "undefined") && droid.group != droidsRecycle) groupAdd(droidsRecycle, droid);
 	
 	debugMsg(droid.health+": "+droid.x+"x"+droid.y, 'droids');
@@ -1209,6 +1222,8 @@ function recycleDroid(droid){
 	
 	var factory_ready = factory.filter(function(e){if(e.status == 1)return true; return false;});
 	
+	if(droid.droidType == DROID_CONSTRUCT && (droid.order == DORDER_BUILD || droid.order == DORDER_HELPBUILD)) return false;
+	
 	if(factory_ready.length != 0){
 		orderDroid(droid, DORDER_RECYCLE);
 		return true;
@@ -1216,8 +1231,6 @@ function recycleDroid(droid){
 		orderDroidLoc_p(droid, DORDER_MOVE, base.x, base.y);
 		return true;
 	}
-	
-	return false;
 }
 
 function getFixPoints(droid){
