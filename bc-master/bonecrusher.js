@@ -1,6 +1,6 @@
 namespace("bc_");
-const vernum    = "bc-master"; //v1.1.1
-const verdate   = "22.01.2021";
+const vernum    = "bc-master"; //v1.1.2
+const verdate   = "11.04.2021";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 const release	= false;
@@ -16,7 +16,8 @@ const release	= false;
 //v1.02 - 03.07.2020 Cosmetic update
 //		Не читерить без явных указаний на это
 //v1.1 - Big update
-//v1.1.1 - Fix some errors
+//v1.1.01 - Fix some errors
+//v1.1.02 - Fix problem with builders
 /*
 + Проверить чит-чат для INSANE (как у встроенного)
 === Строители
@@ -113,10 +114,10 @@ var builderPts = 750; //Необходимость энергии для пос�
 
 var maxConstructors = 15;
 
-var minPartisans = 7;
-var maxPartisans = 15;
+var minPartisans = 4;
+var maxPartisans = 20;
 var minRegular = 10;
-var maxRegular = 50;
+var maxRegular = 80;
 var maxVTOL = 40;
 var minCyborgs = 20;
 var maxCyborgs = 30;
@@ -374,7 +375,7 @@ var AA_towers=[
 //Инициализация
 function init(){
 
-	if(isHumanOverride()) {debugMsg("Human override detected..", 'init');rage=HARD;}
+	if(isHumanOverride()) {debugMsg("Human override detected..", 'init');rage=HARD;asPlayer=true;}
 	
 	debugMsg("ИИ №"+me+" "+vername+" "+vernum+"("+verdate+") difficulty="+rage, "init");
 	debugMsg("Warzone2100 "+version, "init");
@@ -638,7 +639,7 @@ function letsRockThisFxxxingWorld(init){
 	queue("prepeareProduce", 2000);
 	queue("produceDroids", 3000);
 	queue("doResearch", 3000);
-	setTimer("longCycle", 120000);
+	setTimer("longCycle", 60000);
 	
 	running = true;
 	if(init){

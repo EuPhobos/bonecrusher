@@ -701,6 +701,7 @@ function isHumanOverride(){
 
 
 function isHumanAlly(){
+	if(asPlayer) return false;
 	for ( var e = 0; e < maxPlayers; ++e ) {
 		if(playerData[e].isHuman && allianceExistsBetween(me, e)) return true;
 	}
@@ -1237,7 +1238,8 @@ function getFixPoints(droid){
 	
 	if ( typeof droid === "undefined" ) droid = false;
 	
-	var points = enumStruct(me, REPAIR_FACILITY);
+//	var points = enumStruct(me, REPAIR_FACILITY);
+	var points = repfac_ready;
 	points = points.concat(enumGroup(armyFixers));
 	
 	if(points.length != 0) {

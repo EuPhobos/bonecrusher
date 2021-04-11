@@ -27,7 +27,9 @@ const research_earlygame = [
 */
 const research_earlygame = [
 	"R-Defense-Tower01",
+	"R-Sys-Engineering01",
 	"R-Vehicle-Prop-Halftracks",
+	"R-Wpn-MG2Mk1",
 	"R-Struc-PowerModuleMk1",
 	"R-Sys-MobileRepairTurret01",   //Паяльник
 	"R-Vehicle-Prop-Hover"
