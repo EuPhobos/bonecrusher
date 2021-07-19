@@ -19,7 +19,7 @@ function mainBuilders(rotation){
 	//enumGroup(buildersMain).forEach( function(obj, iter){
 	var rnd = Math.round(Math.random());
 //	debugMsg("lab="+len_research_lab_ready+", fact="+factory_ready.length+", pow="+playerPower(me), 'builders');
-	for (var i=0;i<_b.length;i++){
+	for (let i = 0; i < _b.length; i++) {
 //		debugMsg('---', 'builders');
 		var obj = _b[i];
 //		var pos = {x:base.x, y:base.y};
@@ -50,7 +50,7 @@ function mainBuilders(rotation){
 		if(helped < 1){
 			var myBase = enumStruct(me);
 			var _h=false;
-			for ( var b in myBase ){
+			for (const b in myBase) {
 //				if(earlyGame && distBetweenTwoPoints_p(myBase[b].x, myBase[b].y, obj.x, obj.y) > 5){continue;}
 //				if(myBase[b].status == BEING_DEMOLISHED){orderDroidObj_p(obj, DORDER_DEMOLISH, myBase[b]); helped++; _h=true; break;} //TODO
 				if(distBetweenTwoPoints_p(base.x,base.y,myBase[b].x,myBase[b].y) > (base_range/2)){continue;}
@@ -66,7 +66,7 @@ function mainBuilders(rotation){
 //		debugMsg('modules', 'builders');
 		//Модули на здания
 		var safe = getInfoNear(base.x,base.y,'safe',(base_range/2)).value;
-		var busy = false;
+		let busy = false;
 		if((safe || berserk || policy['build'] == 'rich') && module < 3){
 			if(getResearch("R-Struc-Factory-Module").done && berserk ) { factory.forEach( function(e){ if(e.modules < 2){ if(orderDroidBuild_p(obj, DORDER_BUILD, "A0FacMod1", e.x, e.y)){module++;busy=true;}}});if(busy)continue;}
 			if(getResearch("R-Struc-PowerModuleMk1").done) { power_gen.forEach( function(e){ if(e.modules < 1){ orderDroidBuild_p(obj, DORDER_BUILD, "A0PowMod1", e.x, e.y);module++;busy=true;}});}

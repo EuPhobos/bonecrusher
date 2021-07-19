@@ -1,6 +1,6 @@
 namespace("bc_");
 const vernum    = "bc-master"; //v1.1.2
-const verdate   = "11.04.2021";
+const verdate   = "15.04.2021";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 const release	= false;
@@ -16,8 +16,10 @@ const release	= false;
 //v1.02 - 03.07.2020 Cosmetic update
 //		Не читерить без явных указаний на это
 //v1.1 - Big update
+//v1.1.1 - Fix some errors
 //v1.1.01 - Fix some errors
 //v1.1.02 - Fix problem with builders
+
 /*
 + Проверить чит-чат для INSANE (как у встроенного)
 === Строители
@@ -53,7 +55,7 @@ NTW Авиация исследует кластерные бомбы и при�
 */
 
 //DEBUG: количество вывода, закоментить перед релизом
-var debugLevels = new Array('init', 'error');
+const debugLevels = new Array('init','error');
 
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 
@@ -86,6 +88,9 @@ include("multiplay/skirmish/"+vernum+"/chatting.js");
 include("multiplay/skirmish/"+vernum+"/tech.js");
 include("multiplay/skirmish/"+vernum+"/weapons.js");
 include("multiplay/skirmish/"+vernum+"/build-normal.js");
+include("multiplay/skirmish/"+vernum+"/astar.js");
+include("multiplay/skirmish/"+vernum+"/tactics.js");
+
 
 /*
  * 
@@ -97,44 +102,44 @@ include("multiplay/skirmish/"+vernum+"/build-normal.js");
 //Hard CPU-load algorythms
 var weakCPU = false;
 
-var base_range = 20; // В каких пределах работают основные строители (не охотники)
+let base_range = 20; // В каких пределах работают основные строители (не охотники)
 
-var buildersTimer = 25000;		//Триггер для заказа строителей (что бы не выходили пачкой сразу)
-var fixersTimer = 50000;		//Триггер для заказа рем.инженеров
-var scannersTimer = 300000;		//Триггер для заказа сенсоров
-var checkRegularArmyTimer = 10000;
-var reactRegularArmyTimer = 10000;
-var reactWarriorsTimer = 5000;
-var reactPartisanTimer = 20000;
-var fullBaseTimer = 60000;
+let buildersTimer = 25000;		//Триггер для заказа строителей (что бы не выходили пачкой сразу)
+const fixersTimer = 50000;		//Триггер для заказа рем.инженеров
+let scannersTimer = 300000;		//Триггер для заказа сенсоров
+let checkRegularArmyTimer = 10000;
+let reactRegularArmyTimer = 10000;
+let reactWarriorsTimer = 5000;
+const reactPartisanTimer = 20000;
+const fullBaseTimer = 60000;
 
-var minBuilders = 5;
+let minBuilders = 5;
 
-var builderPts = 750; //Необходимость энергии для постройки "лишнего" строителя
+let builderPts = 750; //Необходимость энергии для постройки "лишнего" строителя
 
-var maxConstructors = 15;
+let maxConstructors = 15;
 
-var minPartisans = 4;
-var maxPartisans = 20;
-var minRegular = 10;
-var maxRegular = 80;
-var maxVTOL = 40;
-var minCyborgs = 20;
-var maxCyborgs = 30;
-var maxFixers = 5;
-var maxJammers = 2;
-var maxScouts = 2;
+let minPartisans = 4;
+let maxPartisans = 20;
+let minRegular = 10;
+let maxRegular = 80;
+let maxVTOL = 40;
+let minCyborgs = 20;
+let maxCyborgs = 30;
+let maxFixers = 5;
+let maxJammers = 2;
+const maxScouts = 2;
 
-var maxExtractors = 40;
-var maxGenerators = 10;
+const maxExtractors = 40;
+let maxGenerators = 10;
 
 //Performance limits
-var ordersLimit = 100;
+const ordersLimit = 100;
 
 //functions controller for performance purpose
-var func_buildersOrder = true;
-var func_buildersOrder_timer = 5000+me*100;
-var func_buildersOrder_trigger = 0;
+let func_buildersOrder = true;
+let func_buildersOrder_timer = 5000+me*100;
+let func_buildersOrder_trigger = 0;
 
 /*
  * 
@@ -151,21 +156,21 @@ const DORDER_NONE = 0;
 
 // --- TRIGGERS --- \\
 
-var fullBase = false;
-var earlyGame = true;
-var running = false;	//Работаем?
+let fullBase = false;
+let earlyGame = true;
+let running = false;	//Работаем?
 
 var produceTrigger=[];
 
-var armyToPlayer = false;	//Передавать всю новую армию игроку №№
-var vtolToPlayer = false;
+let armyToPlayer = false;	//Передавать всю новую армию игроку №№
+let vtolToPlayer = false;
 
 
 // --- VARIABLES --- \\
 
 
 //Координаты всех ресурсов, свободных и занятых
-var allResources;
+let allResources;
 
 //Координаты нашей базы
 var base		= {x:0,y:0};
@@ -181,8 +186,8 @@ var rWay;
 //Массив всех приказов юнитам
 var _globalOrders = [];
 
-var build_rich = 26; //Сколько должно быть рядом нефтеточек, что бы изменить механизм постройки на rich
-var army_rich = 28; //Сколько должно быть занято нефтеточек, что бы изменить механизм армии на rich
+const build_rich = 26; //Сколько должно быть рядом нефтеточек, что бы изменить механизм постройки на rich
+const army_rich = 28; //Сколько должно быть занято нефтеточек, что бы изменить механизм армии на rich
 
 var bc_ally=[]; //Союзные ИИ BoneCrusher-ы
 
@@ -211,7 +216,7 @@ var armyRegular = newGroup();
 var targRegular={x:0,y:0};
 var lastImpact=false;
 var pointRegular=false;
-var lastEnemiesSeen = 0;
+let lastEnemiesSeen = 0;
 var armySupport = newGroup();
 var armyCyborgs = newGroup();
 var armyFixers = newGroup();
@@ -224,24 +229,24 @@ var droidsRecycle = newGroup();
 var droidsBroken = newGroup();
 var droidsFleet = newGroup();
 
-var maxFactories, maxFactoriesCyb, maxFactoriesVTOL, maxLabs, maxPads;
+let maxFactories, maxFactoriesCyb, maxFactoriesVTOL, maxLabs, maxPads;
 
 //Triggers
-var buildersTrigger = 0;
-var fixersTrigger = 0;
-var scannersTrigger = 0;
-var checkRegularArmyTrigger = 0;
-var reactRegularArmyTrigger = 0;
-var reactWarriorsTrigger = 0;
-var fullBaseTrigger = 0;
-var partisanTrigger = 0;
-var fleetTrigger = 0;
+let buildersTrigger = 0;
+let fixersTrigger = 0;
+let scannersTrigger = 0;
+const checkRegularArmyTrigger = 0;
+let reactRegularArmyTrigger = 0;
+let reactWarriorsTrigger = 0;
+let fullBaseTrigger = 0;
+let partisanTrigger = 0;
+let fleetTrigger = 0;
 
-var berserk = false;
-var seer = false;
-var credit = 0;
+let berserk = false;
+let seer = false;
+let credit = 0;
 
-var lassat_charged = false;
+let lassat_charged = false;
 
 
 var eventsRun=[];
@@ -363,8 +368,8 @@ var AA_defence = [];
 var AA_queue = [];
 var AA_towers=[
 ['R-Defense-AASite-QuadMg1', 'AASite-QuadMg1'],					//Hurricane AA Site
-['R-Defense-AASite-QuadBof', 'AASite-QuadBof'],					//AA Flak Cannon Emplacement
-['R-Defense-WallTower-DoubleAAgun', 'WallTower-DoubleAAGun'],	//AA Flak Cannon Hardpoint
+['R-Defense-AASite-QuadBof', 'AASite-QuadBof'],					//AA Cyclone Flak Cannon Emplacement
+['R-Defense-WallTower-DoubleAAgun', 'WallTower-DoubleAAGun'],	//AA Cyclone Flak Cannon Hardpoint
 ['R-Defense-Sunburst', 'P0-AASite-Sunburst'],					//Sunburst AA Site
 ['R-Defense-SamSite1', 'P0-AASite-SAM1'],						//Avenger SAM Site
 ['R-Defense-SamSite2', 'P0-AASite-SAM2'],						//Vindicator SAM Site
@@ -604,8 +609,8 @@ function init(){
 
 	if(!release)research_path.forEach(function(e){debugMsg(e, 'init');});
 
-	if(!release) for ( var p = 0; p < maxPlayers; ++p ) {debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'init');}
-	
+	if(!release) for (let p = 0; p < maxPlayers; ++p) {debugMsg("startPositions["+p+"] "+startPositions[p].x+"x"+startPositions[p].y, 'init');}
+
 	//Просто дебаг информация
 	var oilDrums = enumFeature(ALL_PLAYERS, "OilDrum");
 	debugMsg("На карте "+oilDrums.length+" бочек с нефтью", 'init');

@@ -319,10 +319,10 @@ function bc_eventAttacked(victim, attacker) {
 		var enemyObjects = enumRange(attacker.x, attacker.y, 7, ENEMIES, me);
 		
 		debugMsg('myDroids: '+myDroids.length+', enemyObjects: '+enemyObjects.length, 'temp');
-		
-		var myHP = 0
-		var enemyHP = 0;
-		
+
+		let myHP = 0
+		let enemyHP = 0;
+
 		myDroids.forEach(function(o){myHP+=o.health;});
 		enemyObjects.forEach(function(o){enemyHP+=o.health;});
 		
@@ -342,9 +342,9 @@ function bc_eventAttacked(victim, attacker) {
 	
 	//Если атака с самолёта рядом с базой, строим ПВО
 	if(isFixVTOL(attacker) && distBetweenTwoPoints_p(victim.x,victim.y,base.x,base.y) < base_range) AA_queue.push({x:victim.x,y:victim.y});
-	
-	var lastImpact;
-	
+
+	let lastImpact;
+
 	//Если атака по стратегическим точкам, направляем основную армию
 	if(((victim.type == DROID && victim.droidType == DROID_CONSTRUCT) || (victim.type == STRUCTURE)) && gameTime > eventsRun['targetRegular']){
 		eventsRun['targetRegular'] = gameTime + 5000;
@@ -381,8 +381,8 @@ function bc_eventAttacked(victim, attacker) {
 
 		var myDroids = enumRange(victim.x, victim.y, 10, ALLIES).filter(function(o){if(o.player == me && o.type == DROID && o.droidType == DROID_WEAPON)return true; return false;});
 		var enemyObjects = enumRange(attacker.x, attacker.y, 5, ENEMIES, me);
-		var myHP = 0
-		var enemyHP = 0;
+		let myHP = 0
+		let enemyHP = 0;
 		myDroids.forEach(function(o){myHP+=o.health;});
 		enemyObjects.forEach(function(o){enemyHP+=o.health;});
 		debugMsg('enemy: myHP: '+myHP+', enemyHP: '+enemyHP, 'temp');
@@ -540,12 +540,12 @@ function bc_eventChat(sender, to, message) {
 			break;
 		case "dbg":
 			debugMsg("DEBUG: ", 'dbg');
-/*			for(var i in avail_research){
+/*			for (const i in avail_research) {
 				debugMsg(avail_research[i].name, 'dbg');
 			}
 			debugMsg("<==-==>", 'dbg');
 			debugMsg("DEBUG: research_way", 'dbg');
-			for(var i in research_way){
+			for (const i in research_way) {
 				debugMsg(research_way[i], 'dbg');
 			}
 */

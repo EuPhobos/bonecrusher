@@ -312,7 +312,7 @@ function targetCyborgs(){
 }
 
 
-var brave = 3;
+const brave = 3;
 
 //Направляем армию
 function pointRegularArmy(army){
@@ -469,7 +469,7 @@ function targetRegularRich(target, victim){
 	reactRegularArmyTrigger = gameTime + reactRegularArmyTimer;
 	
 	var help = [];
-	var stopPoint;
+	let stopPoint;
 	if(ally.length != 0) help = getEnemyNearAlly();
 	if(help.length == 0){
 		help = getEnemyCloseBase();
