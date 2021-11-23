@@ -320,7 +320,7 @@ function bc_eventAttacked(victim, attacker) {
 		
 		debugMsg('myDroids: '+myDroids.length+', enemyObjects: '+enemyObjects.length, 'temp');
 
-		let myHP = 0
+		let myHP = 0;
 		let enemyHP = 0;
 
 		myDroids.forEach(function(o){myHP+=o.health;});
@@ -381,7 +381,7 @@ function bc_eventAttacked(victim, attacker) {
 
 		var myDroids = enumRange(victim.x, victim.y, 10, ALLIES).filter(function(o){if(o.player == me && o.type == DROID && o.droidType == DROID_WEAPON)return true; return false;});
 		var enemyObjects = enumRange(attacker.x, attacker.y, 5, ENEMIES, me);
-		let myHP = 0
+		let myHP = 0;
 		let enemyHP = 0;
 		myDroids.forEach(function(o){myHP+=o.health;});
 		enemyObjects.forEach(function(o){enemyHP+=o.health;});
