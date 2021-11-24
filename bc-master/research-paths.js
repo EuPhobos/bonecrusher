@@ -41,6 +41,100 @@ const research_test = [
 	"R-Vehicle-Prop-Hover"
 ];
 
+
+const research_new_cannon = [
+"R-Wpn-MG1Mk1",
+"R-Sys-Engineering01",
+"R-Defense-Tower01",
+"R-Wpn-Cannon1Mk1",		// #6  Light Cannon
+"R-Struc-PowerModuleMk1",
+"R-Vehicle-Prop-Halftracks",    //Полугусенецы
+"R-Defense-WallTower02", //защита лёгкая пушка
+//---
+"R-Wpn-MG1Mk1",		// #0  Machinegun
+"R-Sys-Engineering01",		// #1  Engineering
+"R-Defense-HardcreteWall",		// #2  Hardcrete
+"R-Sys-MobileRepairTurret01",		// #3  Mobile Repair Turret
+"R-Defense-Tower01",		// #4  Heavy Machinegun Guard Tower
+"R-Wpn-MG-Damage01",		// #5  Hardened MG Bullets
+"R-Sys-Sensor-Turret01",		// #6  Sensor Turret
+"R-Sys-Sensor-Tower01",		// #7  Sensor Tower
+"R-Wpn-MG-Damage02",		// #8  APDSB MG Bullets
+"R-Wpn-MG2Mk1",		// #9  Twin Machinegun
+"R-Vehicle-Prop-Halftracks",		// #10  Half-tracked Propulsion
+"R-Struc-CommandRelay",		// #11  Command Relay Post
+"R-Struc-Research-Module",		// #12  Research Module
+"R-Vehicle-Engine01",		// #13  Fuel Injection Engine
+"R-Struc-PowerModuleMk1",		// #14  Power Module
+"R-Struc-Factory-Cyborg",		// #15  Cyborg Factory
+"R-Struc-Factory-Module",		// #16  Factory Module
+"R-Cyborg-Metals01",		// #17  Cyborg Composite Alloys
+"R-Vehicle-Body05",		// #18  Medium Body - Cobra
+"R-Struc-Research-Upgrade01",		// #19  Synaptic Link Data Analysis
+"R-Wpn-Cannon1Mk1",		// #20  Light Cannon
+"R-Wpn-Cannon-Damage01",		// #21  HEAT Cannon Shells
+"R-Defense-WallTower02",		// #22  Light Cannon Hardpoint
+"R-Vehicle-Metals01",		// #23  Composite Alloys
+"R-Vehicle-Metals02",		// #24  Composite Alloys Mk2
+"R-Vehicle-Body11",		// #25  Heavy Body - Python
+"R-Struc-Research-Upgrade02",		// #26  Synaptic Link Data Analysis Mk2
+"R-Wpn-MG-Damage03",		// #27  APDSB MG Bullets Mk2
+"R-Cyborg-Metals02",		// #28  Cyborg Composite Alloys Mk2
+"R-Struc-RepairFacility",		// #29  Repair Facility
+"R-Struc-Factory-Upgrade01",		// #30  Automated Manufacturing
+"R-Wpn-Cannon-Damage02",		// #31  HEAT Cannon Shells Mk2
+"R-Cyborg-Metals03",		// #32  Cyborg Composite Alloys Mk3
+"R-Struc-Research-Upgrade03",		// #33  Synaptic Link Data Analysis Mk3
+"R-Wpn-MG-ROF01",		// #34  Chaingun Upgrade
+"R-Wpn-Cannon-Damage03",		// #35  HEAT Cannon Shells Mk3
+"R-Wpn-Cannon-Damage04",		// #36  APFSDS Cannon Rounds
+"R-Wpn-Cannon-ROF01",		// #37  Cannon Autoloader
+"R-Struc-Research-Upgrade04",		// #38  Dedicated Synaptic Link Data Analysis
+"R-Vehicle-Metals03",		// #39  Composite Alloys Mk3
+"R-Cyborg-Metals04",		// #40  Cyborg Dense Composite Alloys
+"R-Struc-Factory-Upgrade04",		// #41  Robotic Manufacturing
+"R-Wpn-Cannon-ROF02",		// #42  Cannon Autoloader Mk2
+"R-Struc-Power-Upgrade01",		// #43  Gas Turbine Generator
+"R-Struc-Power-Upgrade01b",		// #44  Gas Turbine Generator Mk2
+"R-Struc-Power-Upgrade01c",		// #45  Gas Turbine Generator Mk3
+"R-Struc-Research-Upgrade05",		// #46  Dedicated Synaptic Link Data Analysis Mk2
+"R-Wpn-MG-Damage04",		// #47  APDSB MG Bullets Mk3
+"R-Wpn-Cannon-Damage05",		// #48  APFSDS Cannon Rounds Mk2
+"R-Vehicle-Metals04",		// #49  Dense Composite Alloys
+"R-Cyborg-Metals05",		// #50  Cyborg Dense Composite Alloys Mk2
+"R-Wpn-Cannon5",		// #51  Assault Cannon
+"R-Struc-Research-Upgrade06",		// #52  Dedicated Synaptic Link Data Analysis Mk3
+"R-Wpn-Cannon-ROF03",		// #53  Cannon Autoloader Mk3
+"R-Wpn-Cannon-Damage06",		// #54  APFSDS Cannon Rounds Mk3
+"R-Struc-Research-Upgrade07",		// #55  Neural Synapse Research Brain
+"R-Struc-Power-Upgrade02",		// #56  Vapor Turbine Generator
+"R-Wpn-MG-Damage05",		// #57  Tungsten-Tipped MG Bullets
+"R-Vehicle-Metals05",		// #58  Dense Composite Alloys Mk2
+"R-Wpn-Cannon6TwinAslt",		// #59  Twin Assault Cannon
+"R-Cyborg-Metals06",		// #60  Cyborg Dense Composite Alloys Mk3
+"R-Wpn-Cannon-Damage07",		// #61  HVAPFSDS Cannon Rounds
+"R-Wpn-Cannon-ROF04",		// #62  Cannon Rapid Loader
+"R-Wpn-Cannon-Damage08",		// #63  HVAPFSDS Cannon Rounds Mk2
+"R-Wpn-MG-Damage06",		// #64  Tungsten-Tipped MG Bullets Mk2
+"R-Cyborg-Metals07",		// #65  Cyborg Superdense Composite Alloys
+"R-Vehicle-Metals06",		// #66  Dense Composite Alloys Mk3
+"R-Wpn-Cannon-ROF05",		// #67  Cannon Rapid Loader Mk2
+"R-Struc-Power-Upgrade03",		// #68  Vapor Turbine Generator Mk2
+"R-Struc-Power-Upgrade03a",		// #69  Vapor Turbine Generator Mk3
+"R-Struc-Research-Upgrade08",		// #70  Neural Synapse Research Brain Mk2
+"R-Wpn-Cannon-Damage09",		// #71  HVAPFSDS Cannon Rounds Mk3
+"R-Wpn-MG-Damage07",		// #72  Tungsten-Tipped MG Bullets Mk3
+"R-Vehicle-Metals07",		// #73  Superdense Composite Alloys
+"R-Cyborg-Metals08",		// #74  Cyborg Superdense Composite Alloys Mk2
+"R-Struc-Research-Upgrade09",		// #75  Neural Synapse Research Brain Mk3
+"R-Wpn-Cannon-ROF06",		// #76  Cannon Rapid Loader Mk3
+"R-Cyborg-Metals09",		// #77  Cyborg Superdense Composite Alloys Mk3
+"R-Sys-Autorepair-General",		// #78  Auto-Repair
+"R-Vehicle-Metals08",		// #79  Superdense Composite Alloys Mk2
+"R-Vehicle-Metals09",		// #80  Superdense Composite Alloys Mk3
+"R-Wpn-MG-Damage08"		// #81  Depleted Uranium MG Bullets
+];
+
 /*const research_cannon = [
 "R-Defense-Tower01",
 "R-Wpn-Cannon1Mk1",		// #6  Light Cannon

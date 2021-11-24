@@ -1,6 +1,6 @@
 namespace("bc_");
 const vernum    = "bc-master"; //v1.1.2
-const verdate   = "15.04.2021";
+const verdate   = "xx.07.2021";
 const vername   = "BoneCrusher!";
 const shortname = "bc";
 const release	= false;
@@ -55,7 +55,7 @@ NTW Авиация исследует кластерные бомбы и при�
 */
 
 //DEBUG: количество вывода, закоментить перед релизом
-const debugLevels = new Array('init','error');
+const debugLevels = new Array('init','error','research');
 
 //var debugLevels = new Array('init', 'end', 'stats', 'temp', 'production', 'group', 'events', 'error', 'research', 'builders', 'targeting');
 
@@ -119,10 +119,10 @@ let builderPts = 750; //Необходимость энергии для пос�
 
 let maxConstructors = 15;
 
-let minPartisans = 4;
+let minPartisans = 6;
 let maxPartisans = 20;
-let minRegular = 10;
-let maxRegular = 80;
+let minRegular = 15;
+let maxRegular = 120;
 let maxVTOL = 40;
 let minCyborgs = 20;
 let maxCyborgs = 30;
@@ -523,14 +523,15 @@ function init(){
 			research_path = researches[r];
 		}else{
 
-			var researches = [
-				research_rich2,
-				research_cannon, research_cannon, research_cannon, research_cannon, research_cannon,
-				research_fire2, 
-				research_rich,
-				research_fire1,
-				research_fire3, research_fire3,
-				research_rockets];
+			var researches = [research_new_cannon];
+// 			var researches = [
+// 				research_rich2,
+// 				research_cannon, research_cannon, research_cannon, research_cannon, research_cannon,
+// 				research_fire2, 
+// 				research_rich,
+// 				research_fire1,
+// 				research_fire3, research_fire3,
+// 				research_rockets];
 
 //			var researches = [research_green];
 			var r = Math.floor(Math.random()*researches.length);
